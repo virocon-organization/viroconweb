@@ -176,3 +176,7 @@ STATICFILES_DIRS = (
 # https://warehouse.python.org/project/whitenoise/
 
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+# see https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
