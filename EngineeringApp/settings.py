@@ -20,8 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open('EngineeringApp/secret_key.txt') as f:
-    SECRET_KEY = f.read().strip()
+SECRET_KEY = "{{ SECRET_KEY }}"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -151,8 +150,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail.gmx.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'virocon@gmx.de'
-with open('EngineeringApp/email_host_password.txt') as f:
-    EMAIL_HOST_PASSWORD = f.read().strip()
+EMAIL_HOST_PASSWORD = "{{ EMAIL_HOST_PASSWORD }}"
 
 # see https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.
