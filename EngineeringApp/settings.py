@@ -24,7 +24,7 @@ with open('EngineeringApp/secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -149,9 +149,10 @@ MEDIA_URL = '/enviro/MeasureCSV/'
 DEFAULT_FROM_EMAIL = 'virocon@gmx.de'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail.gmx.net'
-EMAIL_HOST_USER = 'virocon@gmx.de'
-EMAIL_HOST_PASSWORD = 'efmt85959697'
 EMAIL_PORT = 587
+EMAIL_HOST_USER = 'virocon@gmx.de'
+with open('EngineeringApp/email_host_password.txt') as f:
+    EMAIL_HOST_PASSWORD = f.read().strip()
 
 # see https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.

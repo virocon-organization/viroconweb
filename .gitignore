@@ -15,3 +15,4 @@ user/migrations/__pycache__/
 *.out
 *.log
 EngineeringApp/secret_key.txt
+EngineeringApp/email_host_password.txt
