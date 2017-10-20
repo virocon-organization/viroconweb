@@ -155,3 +155,4 @@ xlrd==1.0.0
 XlsxWriter==0.9.6
 xlwt==1.2.0
 zict==0.1.2
+psycopg2==2.7.3.1
