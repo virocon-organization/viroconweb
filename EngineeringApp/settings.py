@@ -137,6 +137,7 @@ ALLOWED_HOSTS = [
     '134.102.162.102',
     '134.102.162.29',
     '134.102.174.219',
+    'serene-sierra-98066.herokuapp.com'
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'enviro/MeasureCSV')
