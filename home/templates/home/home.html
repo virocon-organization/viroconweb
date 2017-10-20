@@ -1,0 +1,167 @@
+<!--HTML-site: Home
+    overview of the function from virocon-->
+
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    <script>
+        $(document).ready(function () {
+            var x = document.getElementById("logo_center_top");
+                x.style.display = "none";
+        });
+    </script>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'user:user' %}"><p class="bg-danger">Please login to use ViroCon</p></a>
+    {% endif %}
+    <h2>Apply methods</h2>
+    <div class="{% if not user.is_authenticated %}not-active{% endif %}">
+        <div class="row">
+            <div class="col-md-6 ">
+                <img src=" {% static 'images/arrow.png' %}" class="image-bar hidden-xs hidden-sm">
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="{% url 'enviro:measurefiles-add' %}">
+                    <div class="panel panel-default" onmouseenter="$('#addData').collapse('show')"
+                         onmouseleave="$('#addData').collapse('hide')">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-open" aria-hidden="true"></span>
+                            </div>
+                            add measurement file
+                        </div>
+                        <div class="collapse" id="addData">
+                            Upload your own measurement data as coma seperated values (csv). The file will be
+                            saved and linked with your profile.
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 ">
+                <img src=" {% static 'images/bar.png' %}" class="image-bar hidden-xs hidden-sm">
+            </div>
+            <div class="col-md-6">
+                <img src=" {% static 'images/arrow.png' %}" class="image-bar hidden-xs hidden-sm">
+            </div>
+        </div>
+        <br class="visible-xs  visible-sm">
+        <div class="row">
+            <div class="col-md-6 overlap">
+                <a href="{% url 'enviro:measurefiles-select' %}">
+                    <div class="panel panel-default" onmouseenter="$('#fitData').collapse('show')"
+                         onmouseleave="$('#fitData').collapse('hide')">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                            </div>
+                            fit probabilistic model to measurement file
+                        </div>
+                        <div class="collapse" id="fitData">
+                            Fit a probabilistic model to your measured data. The fit will be visualized. If the
+                            results are satisfying you can save the probabilistic model.
+
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <br class="visible-xs visible-sm">
+            <div class="col-md-6">
+                <a href="{% url 'enviro:probabilistic_model-add' '02' %}">
+                    <div class="panel panel-default" onmouseenter="$('#cpm').collapse('show')"
+                         onmouseleave="$('#cpm').collapse('hide')">
+                        <div class="panel-heading">
+
+                            <div class="app_icon"><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+                            </div>
+
+                            enter probabilistic model directly
+                        </div>
+                        <div class="collapse" id="cpm">
+                            Enter a probabilistic model directly by fully specifying the joint probability
+                            density function using the Conditional Modeling Approach.
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <img src=" {% static 'images/bar_angle.png' %}" class="image-bar-angle hidden-xs hidden-sm">
+            </div>
+            <div class="col-md-6">
+                <img src=" {% static 'images/bar_angle_2.png' %}" class="image-bar-angle hidden-xs hidden-sm">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <br>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'enviro:probabilistic_model-select' %}">
+                    <div class="panel panel-default" onmouseenter="$('#cc').collapse('show')"
+                         onmouseleave="$('#cc').collapse('hide')">
+                        <div class="panel-heading">
+
+                            <div class="app_icon"><span class="glyphicon glyphicon-globe"></span>
+                            </div>
+                            create contour
+                        </div>
+                        <div class="collapse" id="cc">
+                            Compute environmental contours using either the Highest Density Contour (HDC)
+                            method or the Inverse First Order Reliability Method (IFORM).
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <br>
+            </div>
+        </div>
+        <br>
+        <div class="page-header"></div>
+        <h2>My data</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="{% url 'enviro:measurefiles-overview' %}">
+                    <div class="panel panel-default" onmouseenter="$('#seeData').collapse('show')"
+                         onmouseleave="$('#seeData').collapse('hide')">
+                        <div class="panel-heading">
+
+                            <div class="app_icon">
+                                <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            </div>
+                            measurement files overview
+                        </div>
+
+                        <div class="collapse" id="seeData">
+                            Delete or share your uploaded measurement files.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'enviro:probabilistic_model-overview' %}">
+                    <div class="panel panel-default" onmouseenter="$('#mpm').collapse('show')"
+                         onmouseleave="$('#mpm').collapse('hide')">
+                        <div class="panel-heading">
+
+                            <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
+                            </div>
+                            probabilistic models overview
+                        </div>
+                        <div class="collapse" id="mpm">
+                            Delete or share your probabilistic models.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

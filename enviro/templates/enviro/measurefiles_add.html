@@ -1,0 +1,36 @@
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    add measurement file
+    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"></h3>
+            </div>
+            <div class="panel-body">
+                {% for x in form %}
+                    <div class="form-group CreateDataText">
+                        <div class="row">
+                            <div class="col-md-2"></div>
+                            <div class="col-md-2"> {{ x.label_tag }}</div>
+                            <div class="col-md-4"> {{ x }}</div>
+                            <div class="col-md-3"><span class="text-danger small">{{ x.errors }}</span></div>
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">OK</button>
+                </div>
+                <hr>
+                <div> csv. file structure with two data columns</div>
+                <div class="row">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-6"><img class="img-responsive" src="{% static 'img/example_csv.png' %}"></div>
+                    <div class="col-md-3"></div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+{% endblock content %}

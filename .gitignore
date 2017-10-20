@@ -1,0 +1,17 @@
+*.cpython-35.pyc
+*.pyc
+*.xml
+*.cpython-35.*
+.idea/inspectionProfiles/
+contact/__pycache__/
+contact/migrations/__pycache__/
+enviro/migrations/__pycache__/
+home/migrations/__pycache__/
+user/__pycache__/
+user/migrations/__pycache__/
+*.aux
+*.toc
+*.synctex.gz
+*.out
+*.log
+Documentation

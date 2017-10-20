@@ -1,0 +1,48 @@
+{% extends "../base.html"%}
+{% load static %}
+{% block content %}
+Help
+<div class="page-header"></div>
+<br>
+<p>
+    The main task of this website is to compute an environmental contour.
+    An environmental contour lets you define load cases based on wave, wind and current in a rational way.
+</p>
+<p>
+    Two specific environmental contour methods are available, the Highest Density Contour (HDC) method [1] and the
+    Inverse First Order Reliability Method (IFORM) [2].
+    An environmental contour is defined based on a probabilistic model and a return period. ViroCon's methods are
+    chosen to align with current recommended practices dealing with environmental conditions and environmental loads [3].
+</p>
+<p>
+    You can either define a probabilistic model directly or fit a probabilistic model to measured data.
+    The arrows at the home site guide you through the work process of deriving an environmental contour.
+    Measurement files and probalistic models can be saved online and are associated with your profile.
+</p>
+<p>
+</p>
+<div style="margin-top:24pt; margin-bottom:24pt">
+    <object data="{% static 'virocon_userguide.pdf' %}" type="application/pdf" style="width:80%;height:80%">
+    </object>
+</div>
+<p>
+    Still questions? Contact <a href="mailto:a.haselsteiner@unibremen.de" class="textlink">Andreas.</a>
+</p>
+<div align="left">
+    <h3>References</h3>
+   <p>
+       <a href="https://doi.org/10.1016/j.coastaleng.2017.03.002" class="textlink">
+           [1] A.F. Haselsteiner, J.-H. Ohlendorf, W. Wosniok, K.-D. Thoben (2017): Deriving environmental contours
+           from highest density regions, Coastal Engineering 123, 42-51.
+       </a>
+       <br>
+       [2] S. Winterstein, T. Ude, C. Cornell, P. Bjerager, S. Haver (1993): Environmental parameters for extreme
+       response: inverse FORM with omission factors, in: Proceedings, ICOSSAR-93. Innsbruck, Austria, 1993.
+       <br>
+       <a href="https://rules.dnvgl.com/docs/pdf/dnv/codes/docs/2010-10/rp-c205.pdf" class="textlink">
+           [3] Det Norske Veritas (2010): Recommended practice - DNV-RP-C205 Environmental conditions and
+           environmental loads. Technical report.
+       </a>
+    </p>
+</div>
+{% endblock content %}

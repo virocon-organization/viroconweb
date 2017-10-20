@@ -1,0 +1,30 @@
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    Fit Result
+    <div class="page-header"></div>
+    {% for img in imgs %}
+        <img src="{% static img %}" class="img-responsive center-block">
+    {% endfor %}
+    <hr>
+    <div class="col-md-4"></div>
+    <div class="col-md-2">
+        <form class="form-horizontal" action="{% url 'enviro:measurefiles-new-fit' pk %}" method="post"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <button type="submit" class="btn btn-danger">delete</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-2">
+        <form class="form-horizontal" action="{% url 'enviro:probabilistic_model-select' %}" method="post"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">save</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4"></div>
+{% endblock content %}

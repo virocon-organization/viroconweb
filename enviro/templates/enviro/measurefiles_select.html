@@ -1,0 +1,31 @@
+<!--HTML-Seite: Liste der CSV-Dateien in der MeasureFile Datenbank -->
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    select measurement file for fit
+    <div class="page-header"></div>
+    <br>
+    <div class="panel panel-default">
+        <div class="panel-heading">uploaded mesurement files</div>
+        <table class="table">
+            <tr>
+                <td>Title</td>
+                <td>Fit</td>
+            </tr>
+            {% for object in context %}
+                <tr>
+                    <td> {{ object.title }} </td>
+                    <td>
+                        <form action="{% url 'enviro:measurefiles-fit' object.pk %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-default btn-sm ">
+                                <span class="glyphicon glyphicon-asterisk"></span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock content %}
+
