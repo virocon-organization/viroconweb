@@ -25,7 +25,7 @@ class SecUserForm(ModelForm):
 
 class MeasureFileForm(forms.Form):
     title = forms.CharField(max_length=20, label='title')
-    measure_file = forms.FileField(label='measurement file')
+    measure_file = forms.FileField(label='measurement file',max_length=255)
 
 
 class MeasureFileFitForm(forms.Form):
