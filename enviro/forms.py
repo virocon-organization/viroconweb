@@ -66,7 +66,7 @@ class MeasureFileFitForm(forms.Form):
                                                                           widget=forms.Select(
                                                                               attrs={'id': 'loc_%s' % i}))
 
-    title = forms.CharField(max_length=25, label='title')
+    title = forms.CharField(max_length=50, label='title')
     number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '15'}), label='number of intervals')
 
 
@@ -204,7 +204,7 @@ class VariablesForm(forms.Form):
                                                                                             'style': 'display:none',
                                                                                             'value': '0'}))
 
-    collection_name = forms.CharField(max_length=25, label='title')
+    collection_name = forms.CharField(max_length=50, label='title')
 
 
 

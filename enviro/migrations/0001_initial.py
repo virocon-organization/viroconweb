@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('upload_date', models.DateTimeField(default=django.utils.timezone.now)),
-                ('collection_name', models.CharField(default='VariablesCollection', max_length=25)),
+                ('collection_name', models.CharField(default='VariablesCollection', max_length=50)),
                 ('primary_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='variables_primary', to=settings.AUTH_USER_MODEL)),
                 ('secondary_user', models.ManyToManyField(related_name='variables_secondary', to=settings.AUTH_USER_MODEL)),
             ],

@@ -7,9 +7,9 @@ import os
 
 
 class MeasureFileManager(models.Model):
-    secondary_user = models.ManyToManyField(User, related_name="secondary", max_length=20)
+    secondary_user = models.ManyToManyField(User, related_name="secondary", max_length=50)
     primary_user = models.ForeignKey(User, null=True, related_name="primary")
-    title = models.CharField(max_length=20, default="MeasureFile")
+    title = models.CharField(max_length=50, default="MeasureFile")
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(validators=[validate_file_extension])
 
@@ -36,7 +36,7 @@ class ProbabilisticModel(models.Model):
     primary_user = models.ForeignKey(User, null=True, related_name="variables_primary")
     secondary_user = models.ManyToManyField(User, related_name="variables_secondary")
     upload_date = models.DateTimeField(default=timezone.now)
-    collection_name = models.CharField(default='VariablesCollection', max_length=25)
+    collection_name = models.CharField(default='VariablesCollection', max_length=50)
 
     def __str__(self):
         return "probabilistic_model"
@@ -45,7 +45,7 @@ class ProbabilisticModel(models.Model):
 class DistributionModel(models.Model):
     DISTRIBUTIONS = (('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'),
                      ('Lognormal_2', 'Log-Normal'), ('KernelDensity', 'Kernel Density'))
-    name = models.CharField(default="peak period", max_length=25)
+    name = models.CharField(default="peak period", max_length=50)
     symbol = models.CharField(default="p", max_length=5)
     distribution = models.CharField(choices=DISTRIBUTIONS, max_length=15)
     probabilistic_model = models.ForeignKey(ProbabilisticModel, on_delete=models.CASCADE)
