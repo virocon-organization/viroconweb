@@ -4,7 +4,6 @@ from reportlab.lib.units import cm, inch
 from reportlab.platypus import Paragraph, Spacer, Image, Table, TableStyle, Frame, BaseDocTemplate, PageTemplate
 from reportlab.platypus.flowables import KeepTogether
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import shutil
 from .models import ProbabilisticModel, DistributionModel, ParameterModel
@@ -14,6 +13,9 @@ from scipy.stats import norm
 import warnings
 from mpl_toolkits.mplot3d import Axes3D
 
+import matplotlib
+matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
+import matplotlib.pyplot as plt
 
 def plot_figure(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, var_symbol, user):
     """
