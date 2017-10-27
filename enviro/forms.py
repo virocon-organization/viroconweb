@@ -24,8 +24,8 @@ class SecUserForm(ModelForm):
 
 
 class MeasureFileForm(forms.Form):
-    title = forms.CharField(max_length=20, label='title')
-    measure_file = forms.FileField(label='measurement file',max_length=255)
+    title = forms.CharField(max_length=50, label='title')
+    measure_file = forms.FileField(label='measurement file', max_length=255)
 
 
 class MeasureFileFitForm(forms.Form):
@@ -35,7 +35,8 @@ class MeasureFileFitForm(forms.Form):
     def __init__(self, variable_names, variable_count=2, *args, **kwargs):
         super(MeasureFileFitForm, self).__init__(*args, **kwargs)
 
-        self.fields['_%s' % variable_names[0]] = forms.CharField(widget=forms.TextInput(attrs={'value': 'name'}))
+        self.fields['_%s' % variable_names[0]] = forms.CharField(widget=forms.TextInput(attrs={'value': 'name'}),
+                                                                 max_length=50)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS, widget=forms.Select,
                                                                initial='Weibull', label='distribution')
 
