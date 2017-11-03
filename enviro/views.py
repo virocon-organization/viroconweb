@@ -295,10 +295,11 @@ class ProbabilisticModelHandler(Handler):
         The method handles the calculation requests and calls the specific calculation method iform_calc or hdc_calc.
         :param request:     user request to calculate a function. 
         :param pk:          primary key of item of the ProbabilisticModel database.
-        :param method:      the calculation method. 'I' = ifrom_calc, 'H' = hdc_calc.
+        :param method:      the calculation method. 'I' = iform_calc, 'H' = hdc_calc.
         :return:            a graph with table (pdf) or error message.
         """
         item = ProbabilisticModel.objects.get(pk=pk)
+        print(item)
         var_names = []
         var_symbols = []
         dists_model = DistributionModel.objects.filter(probabilistic_model=item)

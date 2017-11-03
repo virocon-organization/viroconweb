@@ -17,7 +17,7 @@ import matplotlib
 matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
 import matplotlib.pyplot as plt
 
-def plot_figure(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, var_symbol, user):
+def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, symbol_parent_var, user):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution). (needed to recognize the images later)
@@ -29,7 +29,7 @@ def plot_figure(main_index, low_index, shape, loc, scale, form, dist_points, int
     :param dist_points:     the dates for the histogram.
     :param interval:        interval of the plotted distribution.
     :param var_name:        the name of a single variable of the probabilistic model. 
-    :param var_symbol:      symbol of the variables of the probabilistic model.
+    :param symbol_parent_var:      symbol of the variable on which the conditional variable is based.
     :param user:            the user who started the request (to assign the images later).
     :return: 
     """
@@ -39,23 +39,24 @@ def plot_figure(main_index, low_index, shape, loc, scale, form, dist_points, int
     if form == 'Normal':
         x = np.linspace(norm.ppf(0.0001, loc, scale), norm.ppf(0.9999, loc, scale), 100)
         y = norm.pdf(x, loc, scale)
-        text = form + ', ' + 'mu: ' + str(format(loc, '.3f')) + ' sigma: ' + str(format(scale, '.3f')) + ', ' + str(
-            format(interval[0], '.3f')) + '<' + var_name[0] + '<' + str(format(interval[1], '.3f'))
+        text = form + ', ' + 'mu: ' + str(format(loc, '.3f')) + ' sigma: ' + str(format(scale, '.3f'))
     elif form == 'Weibull':
         x = np.linspace(weibull_min.ppf(0.0001, shape, loc, scale), weibull_min.ppf(0.9999, shape, loc, scale), 100)
         y = weibull_min.pdf(x, shape, loc, scale)
         text = form + ', ' + 'shape: ' + str(format(shape, '.3f')) + ' loc: ' + str(
-            format(loc, '.3f')) + ' scale: ' + str(
-            format(scale, '.3f')) + ', ' + str(format(interval[0], '.3f')) + '<' + var_name[0] + '<' + str(
-            format(interval[1], '.3f'))
+            format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
     elif form == 'Lognormal':
         scale = np.exp(scale)
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale), lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
-        text = form + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f')) + ', ' + str(
-            format(interval[0], '.3f')) + '<' + var_name[0] + '<' + str(format(interval[1], '.3f'))
+        text = form + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
     else:
         raise KeyError('No function match - {}'.format(form))
+    print('symbol_parent_var: ')
+    print(symbol_parent_var)
+    if symbol_parent_var:
+        text = text + ', ' + str(format(interval[0], '.3f')) + '<' + symbol_parent_var + '<' + str(
+            format(interval[1], '.3f'))
 
     ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=form)
 
@@ -64,14 +65,14 @@ def plot_figure(main_index, low_index, shape, loc, scale, form, dist_points, int
     ax.grid(True)
 
     plt.title(text)
-    plt.xlabel('{}[{}]'.format(var_name, var_symbol))
+    plt.xlabel(var_name)
     plt.ylabel('probability density [-]')
     plt.savefig('enviro/static/' + str(user) + '/fit_' + str(main_index) + str(low_index) + '.png')
     plt.close(fig)
     return
 
 
-def plot_func(main_index, var_name, var_symbol, para_name, data_points, fit_func, user, dist_name):
+def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, data_points, fit_func, user, dist_name):
     """
     The function plots an image which shows the fit of a function. 
     :param main_index:      index of the related distribution.
@@ -117,7 +118,7 @@ def plot_func(main_index, var_name, var_symbol, para_name, data_points, fit_func
     ax.grid(True)
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
-    plt.xlabel('{}[{}]'.format(var_name, var_symbol))
+    plt.xlabel(var_name)
     plt.savefig('enviro/static/' + str(user) + '/fit_' + str(main_index) + para_name + '.png')
     plt.close(fig)
 
@@ -174,8 +175,8 @@ def plot_fits(fit, var_names, var_symbols, title, user):
                 for k, point in enumerate(spec_param_points[1]):
                     float_points.append(point)
                     intervals.append(spec_param_points[0][k])
-                plot_func(i, var_names[i], var_symbols[i], params[j], [spec_param_points[0], float_points],
-                          param, user, distribution.name)
+                plot_parameter_fit_overview(i, var_names[i], var_symbols[i], params[j], [spec_param_points[0], float_points],
+                                            param, user, distribution.name)
                 parameter_model = ParameterModel(function=param.func_name, x0=param.a, x1=param.b, x2=param.c,
                                                  dependency=fit.mul_var_dist.dependencies[i][j],
                                                  distribution=distribution_model)
@@ -207,14 +208,37 @@ def plot_fits(fit, var_names, var_symbols, title, user):
                     interval = [min(intervals), max(intervals)]
                 else:
                     interval = [intervals[k], intervals[k + 1]]
-                plot_figure(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
-                            fit.mul_var_dist.distributions[i].name, dist_point, interval,
-                            var_names[i], var_symbols[i], user)
+
+
+                symbol_parent_var = None
+                if type(get_first_number_of_tuple(fit.mul_var_dist.dependencies[i]))==int:
+                    symbol_parent_var = var_symbols[get_first_number_of_tuple(fit.mul_var_dist.dependencies[i])]
+
+                print(fit.mul_var_dist.dependencies)
+                print(var_symbols)
+                print(symbol_parent_var)
+
+                plot_pdf_with_raw_data(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
+                                       fit.mul_var_dist.distributions[i].name, dist_point, interval,
+                                       var_names[i], symbol_parent_var, user)
                 finisher = k
             # acceleration
             if finisher == fit.n_steps - 1 or i == 0:
                 break
     return probabilistic_model.pk
+
+def get_first_number_of_tuple(x):
+    """
+    Finds the first integer number of a tuple and returns it.
+    :param x:           the tuple
+    """
+    first_number = None
+    for i in range(len(x)):
+        if type(x[i])==int:
+            first_number = x[i]
+            break
+
+    return first_number
 
 
 def plot_contour(matrix, user, method, title, var_names, var_symbols):
