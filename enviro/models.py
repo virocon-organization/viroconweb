@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 import os
 
 
-class MeasureFileManager(models.Model):
+class MeasureFileModel(models.Model):
     secondary_user = models.ManyToManyField(User, related_name="secondary", max_length=50)
     primary_user = models.ForeignKey(User, null=True, related_name="primary")
     title = models.CharField(max_length=50, default="MeasureFile")
@@ -18,7 +18,7 @@ class MeasureFileManager(models.Model):
 
 
 # deletes the file which was attached to the MesureFileManager object
-@receiver(models.signals.post_delete, sender=MeasureFileManager)
+@receiver(models.signals.post_delete, sender=MeasureFileModel)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """
     Deletes file from filesystem when corresponding `MediaFile` object is deleted.
@@ -37,7 +37,7 @@ class ProbabilisticModel(models.Model):
     secondary_user = models.ManyToManyField(User, related_name="variables_secondary")
     upload_date = models.DateTimeField(default=timezone.now)
     collection_name = models.CharField(default='VariablesCollection', max_length=50)
-
+    measure_file_model = models.ForeignKey(MeasureFileModel, on_delete=models.CASCADE, null=True)
     def __str__(self):
         return "probabilistic_model"
 

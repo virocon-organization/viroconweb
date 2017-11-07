@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from .forms import *
-from .models import MeasureFileManager
+from .models import MeasureFileModel
 from .compute.ComputeInterface import ComputeInterface
 from .plot import *
 import os
@@ -119,20 +119,20 @@ class Handler:
 
 class MeasureFileHandler(Handler):
     @staticmethod
-    def overview(request, collection=MeasureFileManager):
+    def overview(request, collection=MeasureFileModel):
         return Handler.overview(request, collection)
 
     @staticmethod
-    def delete(request, pk, collection=MeasureFileManager):
+    def delete(request, pk, collection=MeasureFileModel):
         return Handler.delete(request, pk, collection)
 
     @staticmethod
-    def update(request, pk, collection=MeasureFileManager):
+    def update(request, pk, collection=MeasureFileModel):
         return Handler.update(request, pk, collection)
 
     @staticmethod
     def select(request):
-        collection = MeasureFileManager
+        collection = MeasureFileModel
         meas = collection.objects.all()
         context = set()
         for item in meas:
@@ -157,9 +157,9 @@ class MeasureFileHandler(Handler):
         if request.method == 'POST':
             measure_file_form = MeasureFileForm(data=request.POST, files=request.FILES)
             if measure_file_form.is_valid():
-                measure_model = MeasureFileManager(primary_user=request.user,
-                                                   title=measure_file_form.cleaned_data['title'],
-                                                   measure_file=measure_file_form.cleaned_data['measure_file'])
+                measure_model = MeasureFileModel(primary_user=request.user,
+                                                 title=measure_file_form.cleaned_data['title'],
+                                                 measure_file=measure_file_form.cleaned_data['measure_file'])
                 measure_model.save()
                 return redirect('enviro:measurefiles-select')
             else:
@@ -175,7 +175,7 @@ class MeasureFileHandler(Handler):
         informed with an error message.
         :return:        HttpResponse.
         """
-        mfm_item = MeasureFileManager.objects.get(pk=pk)
+        mfm_item = MeasureFileModel.objects.get(pk=pk)
         var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
         var_number = len(var_names)
         fit_form = MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
@@ -193,7 +193,7 @@ class MeasureFileHandler(Handler):
                                    'header': 'fit measurement file to probabilistic model',
                                    'return_url': 'enviro:measurefiles-select'})
 
-                var_man_pk = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'], request.user)
+                var_man_pk = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'], request.user, mfm_item)
                 img_list = os.listdir('enviro/static/' + str(request.user))
                 send_img = []
                 for img in img_list:
@@ -212,7 +212,7 @@ class MeasureFileHandler(Handler):
         :return:        HttpResponse to enter a new fit.     
         """
         ProbabilisticModel.objects.all().filter(pk=pk).delete()
-        user_files = MeasureFileManager.objects.all().filter(primary_user=request.user)
+        user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
         return render(request, 'enviro/measurefiles_select.html', {'context': user_files})
 
 
@@ -251,7 +251,7 @@ class ProbabilisticModelHandler(Handler):
             if variable_form.is_valid():
                 probabilistic_model = ProbabilisticModel(primary_user=request.user,
                                                          collection_name=variable_form.cleaned_data[
-                                                             'collection_name'], )
+                                                             'collection_name'], measure_file_model=None)
                 probabilistic_model.save()
                 for i in range(var_num_int):
                     distribution = DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
@@ -341,8 +341,9 @@ class ProbabilisticModelHandler(Handler):
 
                 path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
                                 str(iform_form.cleaned_data['return_period']),
-                                ' years, IFORM']), probabilistic_model.collection_name, var_names, var_symbols)
+                                ' years, IFORM']), probabilistic_model, var_names, var_symbols)
 
+                #probabilistic_model.measure_file_model.measure_file
                 # if matrix 4dim - send data for 4dim interactive plot.
                 if len(contour_matrix[0]) == 4:
                     dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)

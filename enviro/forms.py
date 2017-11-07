@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from .models import MeasureFileManager
+from .models import MeasureFileModel
 from django.utils import timezone
 from django.forms.extras.widgets import SelectDateWidget
 from decimal import Decimal
@@ -13,13 +13,13 @@ SUB = {ord(c): ord(t) for c, t in zip(u"0123456789", u"₀₁₂₃₄₅₆₇�
 
 class MeasureForm(ModelForm):
     class Meta:
-        model = MeasureFileManager
+        model = MeasureFileModel
         exclude = ('secondary_user', 'upload_date', 'primary_user')
 
 
 class SecUserForm(ModelForm):
     class Meta:
-        model = MeasureFileManager
+        model = MeasureFileModel
         fields = ('secondary_user',)
 
 

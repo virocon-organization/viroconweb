@@ -1,3 +1,4 @@
+import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm, inch
@@ -123,7 +124,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     plt.close(fig)
 
 
-def plot_fits(fit, var_names, var_symbols, title, user):
+def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
     """
     The function distributes the information given by the parameters and starts the plot assignment. 
     The Distribution of the parameters depends on the dependencies between the variables of a probabilistic model. 
@@ -136,7 +137,7 @@ def plot_fits(fit, var_names, var_symbols, title, user):
     :param user:            the user who started the request (to assign the images later).
     :return:                the primary key of the created MeasureFileManager instance.
     """
-    probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title)
+    probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title, measure_file_model=measure_file)
     probabilistic_model.save()
 
     # deletes the results form further fits for a specific user.
@@ -241,13 +242,13 @@ def get_first_number_of_tuple(x):
     return first_number
 
 
-def plot_contour(matrix, user, method, title, var_names, var_symbols):
+def plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbols):
     """
     The function plots a png image of a contour.
-    :param matrix:      data points of the contour. 
-    :param user:        who gives the contour calculation order.
+    :param matrix:      data points of the contour
+    :param user:        who gives the contour calculation order
     :param method:      IFORM or HDC
-    :param title:       title of the probabilistic model 
+    :param probabilistic_model:       probabilistic model object
     :param var_names:   name of the variables of the probabilistic model
     :param var_symbols: symbols of the variables of the probabilistic model
     """
@@ -261,7 +262,16 @@ def plot_contour(matrix, user, method, title, var_names, var_symbols):
 
     if len(matrix[0]) == 2:
         ax = fig.add_subplot(111)
+
+        # plot raw data
+        data_path = probabilistic_model.measure_file_model.measure_file.url
+        data_path = data_path[1:]
+        data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+        ax.scatter(data[:,0], data[:,1], s=5 ,c='k')
+
+        # plot contour
         ax.scatter(matrix[0][0], matrix[0][1])
+
         plt.xlabel('{}'.format(var_names[0]))
         plt.ylabel('{}'.format(var_names[1]))
     elif len(matrix[0]) == 3:
@@ -276,7 +286,7 @@ def plot_contour(matrix, user, method, title, var_names, var_symbols):
         warnings.warn("4-Dim plot or higher is not supported", DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
-    plt.title(title + ': ' + method)
+    plt.title(probabilistic_model.collection_name + ': ' + method)
 
     short_path = user + '/contour.png'
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
@@ -324,18 +334,18 @@ def define_header_and_footer(canvas, doc):
     canvas.restoreState()
 
 
-def plot_pdf(matrix, user, method, title, var_names, var_symbols):
+def plot_pdf(matrix, user, method, probabilistic_model, var_names, var_symbols):
     """
     The function generates a pdf. The pdf includes an image of the contour and a table with the data points.
     :param matrix:      data points supported by compute. 
     :param user:        who starts the order. 
     :param method:      IFORM or HDC
-    :param title:       title of the probabilistic model.
+    :param probabilistic_model:       probabilistic model object.
     :param var_names:   names of the variables.
     :param var_symbols: symbols of the variables of the probabilistic model
     :return:            the path to the user related pdf.
     """
-    plot_contour(matrix, user, method, title, var_names, var_symbols)
+    plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbols)
 
     story = []
     styles = getSampleStyleSheet()
