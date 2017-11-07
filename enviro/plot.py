@@ -267,11 +267,12 @@ def plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbo
         data_path = probabilistic_model.measure_file_model.measure_file.url
         data_path = data_path[1:]
         data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
-        ax.scatter(data[:,0], data[:,1], s=5 ,c='k')
+        ax.scatter(data[:,0], data[:,1], s=5 ,c='k', label='measured/simulated data')
 
         # plot contour
-        ax.scatter(matrix[0][0], matrix[0][1])
+        ax.scatter(matrix[0][0], matrix[0][1], label='environmental contour')
 
+        plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
         plt.ylabel('{}'.format(var_names[1]))
     elif len(matrix[0]) == 3:
