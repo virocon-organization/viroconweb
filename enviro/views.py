@@ -13,7 +13,6 @@ import numpy as np
 from scipy.optimize import OptimizeWarning
 
 
-
 class Handler:
     @staticmethod
     def overview(request, collection):
@@ -332,6 +331,7 @@ class ProbabilisticModelHandler(Handler):
                 try:
                     contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
                                               iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
+                    method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']))
                 # catch and allocate errors caused by calculating iform.
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html', {'error_message': err,
@@ -341,7 +341,7 @@ class ProbabilisticModelHandler(Handler):
 
                 path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
                                 str(iform_form.cleaned_data['return_period']),
-                                ' years, IFORM']), probabilistic_model, var_names, var_symbols)
+                                ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
 
                 #probabilistic_model.measure_file_model.measure_file
                 # if matrix 4dim - send data for 4dim interactive plot.
@@ -399,7 +399,7 @@ class ProbabilisticModelHandler(Handler):
                     with warnings.catch_warnings(record=True) as warn:
                         contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
                                                 hdc_form.cleaned_data['sea_state'], limits, deltas)
-
+                        method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']))
                 # catch and allocate errors caused by calculating hdc.
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html', {'error_message': err,
@@ -411,7 +411,7 @@ class ProbabilisticModelHandler(Handler):
                 path = plot_pdf(contour_matrix, str(request.user),  ''.join(['T = ',
                                 str(hdc_form.cleaned_data['n_years']),
                                 ' years, Highest Density Contour (HDC)']),
-                                probabilistic_model.collection_name, var_names, var_symbols)
+                                probabilistic_model, var_names, var_symbols, method)
 
                 # if matrix 3dim - send data for 3dim interactive plot.
                 if len(contour_matrix[0]) > 2:
@@ -481,3 +481,10 @@ def get_info_from_file(url):
             var_symbols.append(reader[i])
             i += 1
         return var_names, var_symbols
+
+class Method:
+    def __init__(self, fitting_method, contour_method, return_period):
+        self.fitting_method = fitting_method
+        self.contour_method = contour_method
+        self.return_period = return_period
+

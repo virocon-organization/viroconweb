@@ -12,11 +12,10 @@ from scipy.stats import weibull_min
 from scipy.stats import lognorm
 from scipy.stats import norm
 import warnings
-from mpl_toolkits.mplot3d import Axes3D
-
 import matplotlib
 matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
 import matplotlib.pyplot as plt
+from .plot_generic import *
 
 def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, symbol_parent_var, user):
     """
@@ -242,12 +241,12 @@ def get_first_number_of_tuple(x):
     return first_number
 
 
-def plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbols):
+def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
     """
     The function plots a png image of a contour.
     :param matrix:      data points of the contour
     :param user:        who gives the contour calculation order
-    :param method:      IFORM or HDC
+    :param method_label:      e.g. "T = 25 years, IFORM"
     :param probabilistic_model:       probabilistic model object
     :param var_names:   name of the variables of the probabilistic model
     :param var_symbols: symbols of the variables of the probabilistic model
@@ -270,7 +269,23 @@ def plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbo
         ax.scatter(data[:,0], data[:,1], s=5 ,c='k', label='measured/simulated data')
 
         # plot contour
-        ax.scatter(matrix[0][0], matrix[0][1], label='environmental contour')
+        alpha = .1
+        for i in range(len(matrix)):
+            ax.scatter(matrix[i][0], matrix[i][1], s=15, c='b',label='extreme env. design condition')
+            #ax.plot(matrix[i][0], matrix[i][1], 'b-')
+            concave_hull, edge_points = alpha_shape(convert_ndarray_list_to_multipoint(matrix[i]), alpha=alpha)
+            print(matrix[i])
+            print(edge_points)
+            print(type(edge_points))
+
+            #plot_polygon(concave_hull)
+            patch_design_region = PolygonPatch(concave_hull, fc='#999999', linestyle='None', fill=True,
+                                 zorder=-2, label='design region')
+            patch_environmental_contour = PolygonPatch(concave_hull, ec='b', fill=False,
+                                 zorder=-1, label='environmental contour')
+            ax.add_patch(patch_design_region)
+            ax.add_patch(patch_environmental_contour)
+
 
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
@@ -287,7 +302,7 @@ def plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbo
         warnings.warn("4-Dim plot or higher is not supported", DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
-    plt.title(probabilistic_model.collection_name + ': ' + method)
+    plt.title(probabilistic_model.collection_name + ': ' + method_label)
 
     short_path = user + '/contour.png'
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
@@ -335,18 +350,18 @@ def define_header_and_footer(canvas, doc):
     canvas.restoreState()
 
 
-def plot_pdf(matrix, user, method, probabilistic_model, var_names, var_symbols):
+def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
     """
     The function generates a pdf. The pdf includes an image of the contour and a table with the data points.
     :param matrix:      data points supported by compute. 
     :param user:        who starts the order. 
-    :param method:      IFORM or HDC
+    :param method_label:      e.g. "T = 25 years, IFORM"
     :param probabilistic_model:       probabilistic model object.
     :param var_names:   names of the variables.
     :param var_symbols: symbols of the variables of the probabilistic model
     :return:            the path to the user related pdf.
     """
-    plot_contour(matrix, user, method, probabilistic_model, var_names, var_symbols)
+    plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
 
     story = []
     styles = getSampleStyleSheet()
