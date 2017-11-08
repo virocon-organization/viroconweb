@@ -263,10 +263,11 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
         ax = fig.add_subplot(111)
 
         # plot raw data
-        data_path = probabilistic_model.measure_file_model.measure_file.url
-        data_path = data_path[1:]
-        data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
-        ax.scatter(data[:,0], data[:,1], s=5 ,c='k', label='measured/simulated data')
+        if (probabilistic_model.measure_file_model):
+            data_path = probabilistic_model.measure_file_model.measure_file.url
+            data_path = data_path[1:]
+            data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+            ax.scatter(data[:,0], data[:,1], s=5 ,c='k', label='measured/simulated data')
 
         # plot contour
         alpha = .1
