@@ -16,6 +16,7 @@ import matplotlib
 matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
 import matplotlib.pyplot as plt
 from .plot_generic import *
+from descartes import PolygonPatch
 
 def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, symbol_parent_var, user):
     """

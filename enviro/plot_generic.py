@@ -6,7 +6,6 @@ import math
 import matplotlib.pyplot as plt
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
-from descartes import PolygonPatch
 
 # thanks to: http://blog.thehumangeo.com/2014/05/12/drawing-boundaries-in-python/
 def alpha_shape(points, alpha):
