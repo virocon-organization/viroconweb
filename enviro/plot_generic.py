@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
+import warnings
 
 # thanks to: http://blog.thehumangeo.com/2014/05/12/drawing-boundaries-in-python/
 def alpha_shape(points, alpha):
@@ -71,7 +72,13 @@ def convert_ndarray_list_to_multipoint(ndarray_list):
     :return:                Multipoint object
     """
     points_list = []
+    data_dimension = len(ndarray_list)
     for i in range(len(ndarray_list[0])):
-        points_list.append(Point(ndarray_list[0][i], ndarray_list[1][i]))
+        if data_dimension == 2:
+            points_list.append(Point(ndarray_list[0][i], ndarray_list[1][i]))
+        elif data_dimension == 3:
+            points_list.append(Point(ndarray_list[0][i], ndarray_list[1][i], ndarray_list[2][i]))
+        else:
+            warnings.warn("4-Dim plot or higher is not supported", DeprecationWarning)
     points = MultiPoint(points_list)
     return points

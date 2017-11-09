@@ -17,6 +17,8 @@ matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/i
 import matplotlib.pyplot as plt
 from .plot_generic import *
 from descartes import PolygonPatch
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.tri as mtri
 
 def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, symbol_parent_var, user):
     """
@@ -276,11 +278,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
             ax.scatter(matrix[i][0], matrix[i][1], s=15, c='b',label='extreme env. design condition')
             #ax.plot(matrix[i][0], matrix[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(convert_ndarray_list_to_multipoint(matrix[i]), alpha=alpha)
-            print(matrix[i])
-            print(edge_points)
-            print(type(edge_points))
 
-            #plot_polygon(concave_hull)
             patch_design_region = PolygonPatch(concave_hull, fc='#999999', linestyle='None', fill=True,
                                  zorder=-2, label='design region')
             patch_environmental_contour = PolygonPatch(concave_hull, ec='b', fill=False,
@@ -293,8 +291,11 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
         plt.xlabel('{}'.format(var_names[0]))
         plt.ylabel('{}'.format(var_names[1]))
     elif len(matrix[0]) == 3:
-        ax = fig.add_subplot(111, projection='3d')
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+        #ax.plot_trisurf(matrix[0][0], matrix[0][1], matrix[0][2], linewidth=0.2, antialiased=False)
         ax.scatter(matrix[0][0], matrix[0][1], matrix[0][2], marker='o', c='r')
+
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[1]))
         ax.set_zlabel('{}'.format(var_names[2]))
@@ -383,12 +384,20 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     story.append(Spacer(1, .25 * inch))
 
     # add table
-    table_data = data_to_table(matrix, var_names)
-    t = Table(table_data, 100, 25)
-    grid_style = TableStyle([('GRID', (0, 0), (-1, -1), 0.25, colors.black), ('ALIGN', (1, 1), (-1, -1), 'RIGHT')])
-    t.setStyle(grid_style)
-    story.append(KeepTogether(t))
-    story.append(Spacer(1, .5 * inch))
+    print(len(matrix))
+    print(len(matrix[0]))
+    print(len(matrix[0][0]))
+    if len(matrix[0][0])<=200:
+        table_data = data_to_table(matrix, var_names)
+        t = Table(table_data, 100, 25)
+        grid_style = TableStyle([('GRID', (0, 0), (-1, -1), 0.25, colors.black), ('ALIGN', (1, 1), (-1, -1), 'RIGHT')])
+        t.setStyle(grid_style)
+        story.append(KeepTogether(t))
+        story.append(Spacer(1, .5 * inch))
+    else:
+        story.append(Paragraph("The table is not plotted since a maximum of 200 extreme environmental design conditions"
+                               " are supported. Based on your input we computed " + str(len(matrix[0][0])) + " conditions", styleN))
+        story.append(Spacer(1, .25 * inch))
 
     # build Story into Document Template
     short_path = user + '/contour_table.pdf'
