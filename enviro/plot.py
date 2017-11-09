@@ -311,6 +311,20 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
     plt.close(fig)
 
+def plot_data_set_as_scatter(user, measure_file_model, var_names):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    data_path = measure_file_model.measure_file.url
+    data_path = data_path[1:]
+    data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+    ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
+    ax.set_xlabel('{}'.format(var_names[0]))
+    ax.set_ylabel('{}'.format(var_names[1]))
+
+
+    short_path = str(user) + '/scatter.png'
+    plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
+    plt.close(fig)
 
 def data_to_table(matrix, var_names):
     """
@@ -384,9 +398,6 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     story.append(Spacer(1, .25 * inch))
 
     # add table
-    print(len(matrix))
-    print(len(matrix[0]))
-    print(len(matrix[0][0]))
     if len(matrix[0][0])<=200:
         table_data = data_to_table(matrix, var_names)
         t = Table(table_data, 100, 25)

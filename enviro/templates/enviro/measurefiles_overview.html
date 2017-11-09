@@ -13,6 +13,7 @@
                 <td class="hidden-xs">Owner</td>
                 <td class="hidden-xs">Other users</td>
                 <td>Add user</td>
+                <td>Plot</td>
                 <td>Fit</td>
                 <td>Delete</td>
             </tr>
@@ -34,10 +35,18 @@
                         </form>
                     </td>
                     <td>
+                        <form action="{% url 'enviro:measurefiles-plot' object.pk %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-default btn-sm ">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
                         <form action="{% url 'enviro:measurefiles-fit' object.pk %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm ">
-                                <span class="glyphicon glyphicon-asterisk"></span>
+                                <span class="glyphicon glyphicon-stats"></span>
                             </button>
                         </form>
                     </td>

@@ -160,7 +160,7 @@ class MeasureFileHandler(Handler):
                                                  title=measure_file_form.cleaned_data['title'],
                                                  measure_file=measure_file_form.cleaned_data['measure_file'])
                 measure_model.save()
-                return redirect('enviro:measurefiles-select')
+                return redirect('enviro:measurefiles-plot', measure_model.pk)
             else:
                 print('invalid')
                 return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
@@ -213,6 +213,17 @@ class MeasureFileHandler(Handler):
         ProbabilisticModel.objects.all().filter(pk=pk).delete()
         user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
         return render(request, 'enviro/measurefiles_select.html', {'context': user_files})
+
+    @staticmethod
+    def plot_file(request, pk):
+        """
+        The method plots a MeasureFile
+        :return:        HttpResponse.
+        """
+        measure_file_model = MeasureFileModel.objects.get(pk=pk)
+        var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
+        plot_data_set_as_scatter(request.user, measure_file_model, var_names)
+        return render(request, 'enviro/measurefiles_plot.html', {'user': request.user, 'measure_file_model':measure_file_model})
 
 
 class ProbabilisticModelHandler(Handler):

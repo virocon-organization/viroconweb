@@ -49,6 +49,8 @@ urlpatterns = [
 
     url(r'^measurefiles/(?P<pk>[0-9]+)/new/fit$', views.MeasureFileHandler.new_fit, name='measurefiles-new-fit'),
 
+    url(r'^measurefiles/(?P<pk>[0-9]+)/plot$', views.MeasureFileHandler.plot_file, name='measurefiles-plot'),
+
     # ------------------------------------------------------------------------------------------------------------------
     # Contour
 
