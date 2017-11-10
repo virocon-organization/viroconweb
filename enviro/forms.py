@@ -121,7 +121,8 @@ class VariablesForm(forms.Form):
             # scale
             dependency_id = 'scale_{}'.format(i)
             params_class = 'scale_param%s' % i
-            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '")'
+            dist_id = 'dist_{}'.format(i)
+            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
                                                                        label='scale dependency',
                                                                        widget=forms.Select(
@@ -131,7 +132,8 @@ class VariablesForm(forms.Form):
             for j in range(0, 3):
                 if j == 0:
                     self.fields['scale_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
-                                                                                 label='c%s' % str(j).translate(SUB),
+                                                                                 #label='c%s' % str(j).translate(SUB),
+                                                                                 label='constant value:',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -139,7 +141,8 @@ class VariablesForm(forms.Form):
                                                                                          'value': '1.489'}))
                 else:
                     self.fields['scale_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
-                                                                                 label='c%s' % str(j).translate(SUB),
+                                                                                 #label='c%s' % str(j).translate(SUB),
+                                                                                 label='',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -150,7 +153,8 @@ class VariablesForm(forms.Form):
             # shape
             dependency_id = 'shape_{}'.format(i)
             params_class = 'shape_param%s' % i
-            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '")'
+            dist_id = 'dist_{}'.format(i)
+            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
                                                                        label='shape dependency',
                                                                        widget=forms.Select(
@@ -160,7 +164,8 @@ class VariablesForm(forms.Form):
             for j in range(0, 3):
                 if j == 0:
                     self.fields['shape_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
-                                                                                 label="c%s" % str(j).translate(SUB),
+                                                                                 #label="c%s" % str(j).translate(SUB),
+                                                                                 label='constant value:',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -168,7 +173,8 @@ class VariablesForm(forms.Form):
                                                                                          'value': '1.489'}))
                 else:
                     self.fields['shape_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
-                                                                                 label="c%s" % str(j).translate(SUB),
+                                                                                 #label="c%s" % str(j).translate(SUB),
+                                                                                 label='',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -179,7 +185,8 @@ class VariablesForm(forms.Form):
             # location
             dependency_id = 'location_{}'.format(i)
             params_class = 'location_param%s' % i
-            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '")'
+            dist_id = 'dist_{}'.format(i)
+            func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
                                                                           label='location dependency',
                                                                           widget=forms.Select(
@@ -189,15 +196,16 @@ class VariablesForm(forms.Form):
             for j in range(0, 3):
                 if j == 0:
                     self.fields['location_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4, required=False,
-                                                                                    label='c%s' % str(j).translate(SUB),
+                                                                                    #label='c%s' % str(j).translate(SUB),
+                                                                                    label='constant value:',
                                                                                     widget=forms.NumberInput(
                                                                                         attrs={
                                                                                             'class': params_class,
-                                                                                            'style': 'display:none',
                                                                                             'value': '0'}))
                 else:
                     self.fields['location_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4, required=False,
-                                                                                    label='c%s' % str(j).translate(SUB),
+                                                                                    #label='c%s' % str(j).translate(SUB),
+                                                                                    label='',
                                                                                     widget=forms.NumberInput(
                                                                                         attrs={
                                                                                             'class': params_class,
