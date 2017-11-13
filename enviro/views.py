@@ -197,6 +197,7 @@ class MeasureFileHandler(Handler):
                 send_img = []
                 for img in img_list:
                     send_img.append(str(request.user) + '/' + img)
+                    print(img)
                 return render(request, 'enviro/fit_results.html', {'imgs': send_img, 'pk': var_man_pk})
             else:
                 return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})

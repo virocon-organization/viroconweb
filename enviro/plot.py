@@ -70,7 +70,9 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     plt.title(text)
     plt.xlabel(var_name)
     plt.ylabel('probability density [-]')
-    plt.savefig('enviro/static/' + str(user) + '/fit_' + str(main_index) + str(low_index) + '.png')
+    main_index_2_digits = str(main_index).zfill(2)
+    low_index_2_digits = str(low_index).zfill(2)
+    plt.savefig('enviro/static/' + str(user) + '/fit_' + main_index_2_digits + '_' + low_index_2_digits + '.png')
     plt.close(fig)
     return
 
