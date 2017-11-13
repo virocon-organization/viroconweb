@@ -183,8 +183,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
             else:
                 raise KeyError('{} is not a matching index of a parameter like shape location and scale'.format(
                     distribution.param))
-            print('spec param points:')
-            print(spec_param_points)
             if spec_param_points is not None:
                 for k, point in enumerate(spec_param_points[1]):
                     float_points.append(point)

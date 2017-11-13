@@ -14,13 +14,19 @@
                         <div class="row">
                             <div class="col-md-2"></div>
                             <div class="col-md-2"> {{ x.label_tag }}</div>
-                            <div class="col-md-4"> {{ x }}</div>
+                            {% if x.label == 'measurement file' %}
+                                <div class="col-md-4">
+                                    <label class="btn btn-default btn-file"> browse... {{ x }}</label>
+                                </div>
+                            {% else %}
+                                <div class="col-md-4"> {{ x }} </div>
+                            {% endif %}
                             <div class="col-md-3"><span class="text-danger small">{{ x.errors }}</span></div>
                         </div>
                     </div>
                 {% endfor %}
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success">OK</button>
+                    <button type="submit" class="btn btn-primary">OK</button>
                 </div>
                 <hr>
                 <div> csv. file structure with two data columns</div>

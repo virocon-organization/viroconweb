@@ -242,3 +242,7 @@ a:hover {
     background-color: red !important;
     font-size: 80px !important;
 }
+
+#id_measure_file {
+    display: none;
+}
