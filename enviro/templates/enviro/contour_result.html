@@ -1,9 +1,59 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    <script src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
+    contour results
+    <div class="page-header"></div>
+    <div style="text-align:center">
+        <div id="mygraph" class="img-responsive"></div>
+    </div>
 
+
+
+
+    {% if warn != 'None' %}
+        <br>
+        {% for w in warn %}
+            <span class="text-danger">{{ w.message }}</span>
+        {% endfor %}
+        <br>
+    {% endif %}
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-2">
+        {% if dim == 3 %}
+            <button type="button" class="btn btn-default" id="btn-interactive-visualization">interactive 3D Contour</button>
+        {% elif dim == 4 %}
+            <button type="button" class="btn btn-default">interactive 4D Contour</button>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-default" onclick="location='{% static path %}'">Download PDF</button>
+    </div>
+
+    <div class="col-md-4">
+
+    </div>
+
+    <br><br>
+
+    <object data="{% static path %}" type="application/pdf" style="width:80%;height:80%">
+        <a href="{% url 'enviro:download_pdf' %}">PDF laden</a>
+    </object>
+    <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
     <script type="text/javascript">
+        console.log('test');
+        console.log("{% static 'vis-4.20.1/dist/vis.js' %}");
+        dim_data_set = {{ dim }};
+        console.log(dim_data_set);
+        if (dim_data_set == 3){
+            console.log('is 3')
+            document.getElementById ("btn-interactive-visualization").addEventListener ("click", drawVisualization3D, false);
+        }
+        if (dim_data_set == 4){
+            console.log('is 4')
+            document.getElementById ("btn-interactive-visualization").addEventListener ("click", drawVisualization4D, false);
+        }
+
         var data = null;
         var graph = null;
 
@@ -158,43 +208,5 @@
             graph = new vis.Graph3d(container, data, options);
         }
     </script>
-    contour results
-    <div class="page-header"></div>
-    <center>
-        <div id="mygraph" class="img-responsive"></div>
-    </center>
-
-
-
-
-    {% if warn != 'None' %}
-        <br>
-        {% for w in warn %}
-            <span class="text-danger">{{ w.message }}</span>
-        {% endfor %}
-        <br>
-    {% endif %}
-    <div class="col-md-4">
-
-    </div>
-    <div class="col-md-2">
-        {% if dim == 3 %}
-            <button type="button" class="btn btn-default" onclick="drawVisualization3D();">interactive 3D Contour</button>
-        {% elif dim == 4 %}
-            <button type="button" class="btn btn-default" onclick="drawVisualization4D();">interactive 4D Contour</button>
-        {% endif %}
-    </div>
-    <div class="col-md-2">
-        <button type="button" class="btn btn-default" onclick="location='{% static path %}'">Download PDF</button>
-    </div>
-
-    <div class="col-md-4">
-
-    </div>
-
-    <br><br>
-
-    <object data="{% static path %}" type="application/pdf" style="width:80%;height:80%">
-        <a href="{% url 'enviro:download_pdf' %}">PDF laden</a>
-    </object>
+    <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
 {% endblock content %}
