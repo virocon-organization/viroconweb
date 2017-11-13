@@ -79,23 +79,25 @@ class VariablesForm(forms.Form):
 
         self.fields['variable_name_%s' % 0] = forms.CharField(min_length=3, label='1. variable name')
         self.fields['variable_symbol_%s' % 0] = forms.CharField(max_length=3, label='1. variable symbol', min_length=1)
+        i=0
+        func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS,
                                                                initial='Weibull', label='distribution',
                                                                widget=forms.Select(
                                                                    attrs={'class': 'distribution',
-                                                                          'id': 'dist_0'}))
+                                                                          'id': 'dist_0', 'onclick': func_call}))
         self.fields['scale_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                     label='scale'.translate(SUB),
+                                                                     label='scale (λ):'.translate(SUB),
                                                                      widget=forms.NumberInput(
                                                                          attrs={'value': '2.776',
                                                                                 'id': 'scale_0_0'}))
         self.fields['shape_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                     label='shape'.translate(SUB),
+                                                                     label='shape (k):'.translate(SUB),
                                                                      widget=forms.NumberInput(
                                                                          attrs={'value': '1.471',
                                                                                 'id': 'shape_0_0'}))
         self.fields['location_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                        label='location'.translate(SUB),
+                                                                        label='location (θ):'.translate(SUB),
                                                                         widget=forms.NumberInput(
                                                                             attrs={'value': '0.8888',
                                                                                    'id': 'loc_0_0'}))
@@ -124,7 +126,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='scale dependency',
+                                                                       label='scale (λ) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': dependency_id,
                                                                                   'onclick': func_call,
@@ -156,7 +158,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='shape dependency',
+                                                                       label='shape (k) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': dependency_id,
                                                                                   'onclick': func_call,
@@ -188,7 +190,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                          label='location dependency',
+                                                                          label='location (θ) dependency',
                                                                           widget=forms.Select(
                                                                               attrs={'id': dependency_id,
                                                                                      'onclick': func_call,
