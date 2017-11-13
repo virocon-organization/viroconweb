@@ -110,6 +110,9 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     for x1 in x:
         y.append(fit_func._value(x1))
 
+    if dist_name == 'Lognormal' and para_name == 'scale':
+        y = np.log(y)
+
     # plot generate data points
     ax.plot(x, y, color='#54889c')
 
@@ -195,6 +198,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
                     parameter_model = ParameterModel(function='None', x0=param._value(1), dependency='!',
                                                      distribution=distribution_model)
 
+            print(parameter_model)
             parameter_model.save()
 
             list_float_points.append(float_points)
