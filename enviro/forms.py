@@ -56,18 +56,18 @@ class MeasureFileFitForm(forms.Form):
                                                                                               'onclick': func_call}),
                                                                    label='distribution')
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='scale dependency')
+                                                                       label='scale (λ) dependency')
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='shape dependency',
+                                                                       label='shape (k) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': 'shape_%s' % i}))
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                          label='location dependency',
+                                                                          label='location (θ) dependency',
                                                                           widget=forms.Select(
                                                                               attrs={'id': 'loc_%s' % i}))
 
     title = forms.CharField(max_length=50, label='title')
-    number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '15'}), label='number of intervals')
+    number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '7'}), label='number of intervals')
 
 
 class VariablesForm(forms.Form):
