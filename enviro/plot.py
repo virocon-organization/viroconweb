@@ -55,13 +55,21 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
         text = form + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
     else:
         raise KeyError('No function match - {}'.format(form))
+
+    text = text + ' ('
     if symbol_parent_var:
-        text = text + ', ' + str(format(interval[0], '.3f')) + '<' + symbol_parent_var + '<' + str(
-            format(interval[1], '.3f'))
+        text = text + str(format(interval[0], '.3f')) + '<' + symbol_parent_var + '<' + str(
+            format(interval[1], '.3f')) + ', '
+    text = text + 'n=' + str(len(dist_points)) + ')'
 
     ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=form)
+    n_intervals_histogram = int(round(len(dist_points)/50.0))
+    if n_intervals_histogram > 100:
+        n_intervals_histogram = 100
+    if n_intervals_histogram < 10:
+        n_intervals_histogram = 10
 
-    ax.hist(dist_points, 100, normed=True, histtype='stepfilled', alpha=0.9, color='#54889c')
+    ax.hist(dist_points, n_intervals_histogram, normed=True, histtype='stepfilled', alpha=0.9, color='#54889c')
 
     ax.grid(True)
 

@@ -65,4 +65,4 @@ class ParameterModel(models.Model):
     distribution = models.ForeignKey(DistributionModel, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "parameter"
+        return "parameter object with: function=%r, x0=%r, x1=%r, x2=%r, dependency=%r, name=%r" % (self.function, self.x0, self.x1, self.x2, self.dependency, self.name)
