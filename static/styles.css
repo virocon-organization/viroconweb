@@ -87,7 +87,7 @@ a:hover {
 }
 
 /* Ausrichtungen der Elemente der NavBar & Footer-------------------------------*/
-.rechts {
+.rechts, .virocon-main-nav {
     float: right;
     margin-right: 70px;
 }
@@ -95,6 +95,17 @@ a:hover {
 .links {
     float: left;
     margin-left: 70px;
+}
+
+@media (max-width: 767px) {
+    .virocon-main-nav{
+        float: left;
+        margin-right: 0px;
+        padding-left: 15px;
+    }
+    .links {
+        margin-left: 15px;
+    }
 }
 
 /* Bearbeitung der Bootstrap Designs ---------------------------------------------*/
