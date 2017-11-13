@@ -55,8 +55,6 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
         text = form + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
     else:
         raise KeyError('No function match - {}'.format(form))
-    print('symbol_parent_var: ')
-    print(symbol_parent_var)
     if symbol_parent_var:
         text = text + ', ' + str(format(interval[0], '.3f')) + '<' + symbol_parent_var + '<' + str(
             format(interval[1], '.3f'))
@@ -88,8 +86,6 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     :param fit_func:        the fit function - polynomial, exponential ..
     :param user:            the user who starte the fit order.
     """
-    print(dist_name)
-    print(para_name)
     if dist_name == 'Lognormal':
         if para_name == 'scale':
             y_text = 'mu'
@@ -218,10 +214,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
                 symbol_parent_var = None
                 if type(get_first_number_of_tuple(fit.mul_var_dist.dependencies[i]))==int:
                     symbol_parent_var = var_symbols[get_first_number_of_tuple(fit.mul_var_dist.dependencies[i])]
-
-                print(fit.mul_var_dist.dependencies)
-                print(var_symbols)
-                print(symbol_parent_var)
 
                 plot_pdf_with_raw_data(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
                                        fit.mul_var_dist.distributions[i].name, dist_point, interval,
