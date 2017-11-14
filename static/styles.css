@@ -246,3 +246,9 @@ a:hover {
 #id_measure_file {
     display: none;
 }
+
+.btn-primary {
+    background-color: #28a745;
+}
+
+#home-enter-pm-directly:hover
