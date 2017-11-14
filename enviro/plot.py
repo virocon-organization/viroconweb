@@ -325,7 +325,6 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names):
     print('len varnames:')
     print(len(var_names))
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
-    plt.title('measurement file: ' + measure_file_model.title)
     for i in range(len(var_names)-1):
         ax = fig.add_subplot(len(var_names)-1,1,i+1)
         data_path = measure_file_model.measure_file.url
@@ -334,6 +333,8 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names):
         ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[i+1]))
+        if i==0:
+            plt.title('measurement file: ' + measure_file_model.title)
 
     short_path = str(user) + '/scatter.png'
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
