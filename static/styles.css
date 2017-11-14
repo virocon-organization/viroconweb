@@ -248,7 +248,31 @@ a:hover {
 }
 
 .btn-primary {
-    background-color: #28a745;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+
 }
 
-#home-enter-pm-directly:hover
+.btn-primary:hover {
+    background-color: #449d44;
+    border-color: #398439;
+}
+
+.panel-work-step {
+    border-color: #1A1A1A;
+    border-width: 2px;
+    background-color: white;
+}
+
+.panel-work-step > .panel-heading {
+    background-color: #c1d7e9 !important;
+}
+
+.panel-overview {
+    border-color: #1A1A1A;
+    border-width: 2px;
+    background-color: white;
+}
+
+.panel-overview > .panel-heading {
+}

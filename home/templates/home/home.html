@@ -25,11 +25,11 @@
         <div class="row">
             <div class="col-md-6">
                 <a href="{% url 'enviro:measurefiles-add' %}">
-                    <div class="panel panel-default" id="home-add-measurement-file">
+                    <div class="panel panel-default panel-work-step" id="home-add-measurement-file">
                         <div class="panel-heading">
                             <div class="app_icon"><span class="glyphicon glyphicon-open" aria-hidden="true"></span>
                             </div>
-                            add measurement file
+                            add data from measurement file
                         </div>
                         <div class="collapse" id="collapse-add-measurement-file">
                             Upload your own measurement data as coma seperated values (csv). The file will be
@@ -53,11 +53,11 @@
         <div class="row">
             <div class="col-md-6 overlap">
                 <a href="{% url 'enviro:measurefiles-select' %}">
-                    <div class="panel panel-default" id="home-fit-probabilistic-model">
+                    <div class="panel panel-default panel-work-step" id="home-fit-probabilistic-model">
                         <div class="panel-heading">
                             <div class="app_icon"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
                             </div>
-                            fit probabilistic model to measurement file
+                            fit probabilistic model to data
                         </div>
                         <div class="collapse" id="collapse-fit-probabilistic-model">
                             Fit a probabilistic model to your measured data. The fit will be visualized. If the
@@ -70,7 +70,7 @@
             <br class="visible-xs visible-sm">
             <div class="col-md-6">
                 <a href="{% url 'enviro:probabilistic_model-add' '02' %}">
-                    <div class="panel panel-default" id="home-enter-pm-directly">
+                    <div class="panel panel-default panel-work-step" id="home-enter-pm-directly">
                         <div class="panel-heading">
                             <div class="app_icon">
                                 <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
@@ -100,12 +100,12 @@
             </div>
             <div class="col-md-6">
                 <a href="{% url 'enviro:probabilistic_model-select' %}">
-                    <div class="panel panel-default" id="home-create-contour">
+                    <div class="panel panel-default panel-work-step" id="home-create-contour">
                         <div class="panel-heading">
 
                             <div class="app_icon"><span class="glyphicon glyphicon-globe"></span>
                             </div>
-                            create contour
+                            compute contour
                         </div>
                         <div class="collapse" id="collapse-create-contour">
                             Compute environmental contours using either the Highest Density Contour (HDC)
@@ -124,8 +124,7 @@
         <div class="row">
             <div class="col-md-6">
                 <a href="{% url 'enviro:measurefiles-overview' %}">
-                    <div class="panel panel-default" onmouseenter="$('#seeData').collapse('show')"
-                         onmouseleave="$('#seeData').collapse('hide')">
+                    <div class="panel panel-default panel-overview" id="home-measurefiles-overview">
                         <div class="panel-heading">
 
                             <div class="app_icon">
@@ -134,7 +133,7 @@
                             measurement files overview
                         </div>
 
-                        <div class="collapse" id="seeData">
+                        <div class="collapse" id="collapse-measurefiles-overview">
                             Delete or share your uploaded measurement files.
                         </div>
                     </div>
@@ -143,15 +142,13 @@
             </div>
             <div class="col-md-6">
                 <a href="{% url 'enviro:probabilistic_model-overview' %}">
-                    <div class="panel panel-default" onmouseenter="$('#mpm').collapse('show')"
-                         onmouseleave="$('#mpm').collapse('hide')">
+                    <div class="panel panel-default panel-overview" id="home-pm-overview">
                         <div class="panel-heading">
-
                             <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
                             </div>
                             probabilistic models overview
                         </div>
-                        <div class="collapse" id="mpm">
+                        <div class="collapse" id="collapse-pm-overview">
                             Delete or share your probabilistic models.
                         </div>
                     </div>
@@ -165,7 +162,6 @@
          function() {
             $( "#collapse-add-measurement-file" ).slideToggle(300);
           }, function() {
-             console.log('hide');
              $( "#collapse-add-measurement-file" ).slideToggle(300);
           }
         );
@@ -173,7 +169,6 @@
          function() {
             $( "#collapse-fit-probabilistic-model" ).slideToggle(300);
           }, function() {
-             console.log('hide');
              $( "#collapse-fit-probabilistic-model" ).slideToggle(300);
           }
         );
@@ -181,7 +176,6 @@
          function() {
             $( "#collapse-enter-pm-directly" ).slideToggle(300);
           }, function() {
-             console.log('hide');
              $( "#collapse-enter-pm-directly" ).slideToggle(300);
           }
         );
@@ -189,8 +183,21 @@
          function() {
             $( "#collapse-create-contour" ).slideToggle(300);
           }, function() {
-             console.log('hide');
              $( "#collapse-create-contour" ).slideToggle(300);
+          }
+        );
+        $("#home-measurefiles-overview").hover(
+         function() {
+            $( "#collapse-measurefiles-overview" ).slideToggle(300);
+          }, function() {
+             $( "#collapse-measurefiles-overview" ).slideToggle(300);
+          }
+        );
+        $("#home-pm-overview").hover(
+         function() {
+            $( "#collapse-pm-overview" ).slideToggle(300);
+          }, function() {
+             $( "#collapse-pm-overview" ).slideToggle(300);
           }
         );
     </script>
