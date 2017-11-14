@@ -17,7 +17,10 @@
     <div class="{% if not user.is_authenticated %}not-active{% endif %}">
         <div class="row">
             <div class="col-md-6 ">
-                <img src=" {% static 'images/arrow.png' %}" class="image-bar hidden-xs hidden-sm">
+                <div class="flow-chart-image hidden-xs hidden-sm">
+                    <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
+                    <p>start</p>
+                </div>
             </div>
             <div class="col-md-6">
             </div>
@@ -43,10 +46,13 @@
         </div>
         <div class="row">
             <div class="col-md-6 ">
-                <img src=" {% static 'images/bar.png' %}" class="image-bar hidden-xs hidden-sm">
+                <img src=" {% static 'images/FlowChartArrow_370px854px.png' %}" class="image-bar hidden-xs hidden-sm">
             </div>
             <div class="col-md-6">
-                <img src=" {% static 'images/arrow.png' %}" class="image-bar hidden-xs hidden-sm">
+                <div class="flow-chart-image  hidden-xs hidden-sm">
+                    <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
+                    <p>start</p>
+                </div>
             </div>
         </div>
         <br class="visible-xs  visible-sm">
@@ -88,10 +94,10 @@
         </div>
         <div class="row">
             <div class="col-md-6">
-                <img src=" {% static 'images/bar_angle.png' %}" class="image-bar-angle hidden-xs hidden-sm">
+                <img src=" {% static 'images/FlowChartArrowTurnsRight_370px854px.png' %}" class="image-bar-angle hidden-xs hidden-sm">
             </div>
             <div class="col-md-6">
-                <img src=" {% static 'images/bar_angle_2.png' %}" class="image-bar-angle hidden-xs hidden-sm">
+                <img src=" {% static 'images/FlowChartArrowTurnsLeft_370px854px.png' %}" class="image-bar-angle hidden-xs hidden-sm">
             </div>
         </div>
         <div class="row">

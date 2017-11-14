@@ -167,6 +167,18 @@ a:hover {
     z-index: 2;
 }
 
+.flow-chart-image {
+    position: relative;
+}
+
+.flow-chart-image > p {
+    position: absolute;
+    top: 14%;
+    left: 0;
+    width: 100%;
+    margin: 0px
+}
+
 .overlap {
     z-index: 1;
 }
