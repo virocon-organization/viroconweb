@@ -185,14 +185,14 @@ class MeasureFileHandler(Handler):
                 try:
                         fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
                                             var_number=var_number)
+                        var_man_pk = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
+                                               request.user, mfm_item)
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html',
                                   {'error_message': err,
                                    'text': 'Try it again with different settings please',
                                    'header': 'fit measurement file to probabilistic model',
                                    'return_url': 'enviro:measurefiles-select'})
-
-                var_man_pk = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'], request.user, mfm_item)
                 img_list = os.listdir('enviro/static/' + str(request.user))
                 send_img = []
                 for img in img_list:

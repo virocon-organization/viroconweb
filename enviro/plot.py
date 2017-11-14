@@ -207,6 +207,10 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
                                                      distribution=distribution_model)
 
             print(parameter_model)
+            MAX_VALID_VALUE_COEFF = 1000000
+            if parameter_model.x0 > MAX_VALID_VALUE_COEFF or parameter_model.x0 < -1*MAX_VALID_VALUE_COEFF:
+                raise ValueError('The value of the fitting coefficient is invalid. Maybe this was caused by having too'
+                                 ' little data for the fit. Or the wrong distribution was selected.') # These values could cause probblems in the data base see issue 19
             parameter_model.save()
 
             list_float_points.append(float_points)
@@ -318,15 +322,18 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
     plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names):
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    data_path = measure_file_model.measure_file.url
-    data_path = data_path[1:]
-    data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
-    ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
-    ax.set_xlabel('{}'.format(var_names[0]))
-    ax.set_ylabel('{}'.format(var_names[1]))
-
+    print('len varnames:')
+    print(len(var_names))
+    fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
+    plt.title('measurement file: ' + measure_file_model.title)
+    for i in range(len(var_names)-1):
+        ax = fig.add_subplot(len(var_names)-1,1,i+1)
+        data_path = measure_file_model.measure_file.url
+        data_path = data_path[1:]
+        data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+        ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
+        ax.set_xlabel('{}'.format(var_names[0]))
+        ax.set_ylabel('{}'.format(var_names[i+1]))
 
     short_path = str(user) + '/scatter.png'
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
