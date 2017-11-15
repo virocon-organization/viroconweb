@@ -1,10 +1,10 @@
 import pandas as pd
 from enviro.models import MeasureFileModel
-from ..models import ParameterModel, DistributionModel, ProbabilisticModel
-from .distributions import *
-from .contours import *
-from .params import *
-from .fitting import *
+from .models import ParameterModel, DistributionModel, ProbabilisticModel
+from .compute.compute.distributions import *
+from .compute.compute.contours import *
+from .compute.compute.params import *
+from .compute.compute.fitting import *
 import warnings
 
 class ComputeInterface:

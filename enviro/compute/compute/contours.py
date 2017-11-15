@@ -10,7 +10,7 @@ import numpy as np
 import scipy.stats as sts
 import scipy.ndimage as ndi
 
-from compute._n_sphere import NSphere
+from ._n_sphere import NSphere
 
 __all__ = ["Contour", "IFormContour", "HighestDensityContour"]
 

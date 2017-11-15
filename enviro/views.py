@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from .forms import *
 from .models import MeasureFileModel
-from .compute.ComputeInterface import ComputeInterface
+from .compute_interface import ComputeInterface
 from .plot import *
 import os
 import csv
