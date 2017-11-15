@@ -12,6 +12,7 @@
                 <td class="hidden-xs">Owner</td>
                 <td class="hidden-xs">Other users</td>
                 <td>Add user</td>
+                <td>Show</td>
                 <td>IFORM</td>
                 <td>HDC</td>
                 <td>Delete</td>
@@ -30,6 +31,14 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm ">
                                 <span class="glyphicon glyphicon-link"></span>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{% url 'enviro:probabilistic_model-show' object.pk %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-default btn-sm ">
+                                <span class="glyphicon glyphicon-eye-open"></span>
                             </button>
                         </form>
                     </td>

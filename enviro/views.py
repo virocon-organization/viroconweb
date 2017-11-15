@@ -462,6 +462,16 @@ class ProbabilisticModelHandler(Handler):
             return render(request, 'enviro/probabilistic_model_add.html',
                           {'form': variable_form, 'var_num_form': var_num_form})
 
+    @staticmethod
+    def show_model(request, pk):
+        """
+        The method shows a probabilistic model (name, equation of the joint pdf, information about the fit)
+        :return:        HttpResponse.
+        """
+        probabilistic_model = ProbabilisticModel.objects.get(pk=pk)
+        return render(request, 'enviro/probabilistic_model_show.html', {'user': request.user, 'probabilistic_model': probabilistic_model})
+
+
 
 def download_pdf(request):
     """
