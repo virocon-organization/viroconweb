@@ -16,3 +16,8 @@ user/migrations/__pycache__/
 *.log
 EngineeringApp/secret_key.txt
 EngineeringApp/email_host_password.txt
+*_build
+*_build/*
+enviro/static/*
+!enviro/static/vis-*
+!enviro/static/bullshit.js
