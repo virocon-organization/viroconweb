@@ -279,7 +279,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
         if (probabilistic_model.measure_file_model):
             data_path = probabilistic_model.measure_file_model.measure_file.url
             data_path = data_path[1:]
-            data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+            data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
             ax.scatter(data[:,0], data[:,1], s=5 ,c='k', label='measured/simulated data')
 
         # plot contour
@@ -322,14 +322,12 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
     plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names):
-    print('len varnames:')
-    print(len(var_names))
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
+    data_path = measure_file_model.measure_file.url
+    data_path = data_path[1:]
+    data = pd.read_csv(data_path, sep=';', header=0).as_matrix() #0 is right! 1 caused a bug where the first data row is ignored, see issue #20
     for i in range(len(var_names)-1):
         ax = fig.add_subplot(len(var_names)-1,1,i+1)
-        data_path = measure_file_model.measure_file.url
-        data_path = data_path[1:]
-        data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
         ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[i+1]))
