@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^probabilistic_model/set_variables_number/$', views.ProbabilisticModelHandler.set_variables_number,
         name='set-probabilistic_model-number'),
 
-    url(r'^probabilistic_model/(?P<pk>[0-9]+)/plot/$', views.ProbabilisticModelHandler.show_model,
+    url(r'^probabilistic_model/(?P<pk>[0-9]+)/$', views.ProbabilisticModelHandler.show_model,
         name='probabilistic_model-show'),
 
     # ------------------------------------------------------------------------------------------------------------------
