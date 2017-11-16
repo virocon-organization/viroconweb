@@ -10,7 +10,7 @@
     </p>
     {% if probabilistic_model.measure_file_model %}
         <h3>Associated measurement file</h3>
-        file: {{ probabilistic_model.measure_file_model.title }}
+        file: '{{ probabilistic_model.measure_file_model.title }}'
         <a class="btn btn-default" href="{% url 'enviro:measurefiles-plot' probabilistic_model.measure_file_model.pk %}">
             plot
         </a>
