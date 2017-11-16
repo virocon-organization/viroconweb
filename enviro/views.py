@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from .forms import *
 from .models import MeasureFileModel
 from .compute_interface import ComputeInterface
+from .compute_interface import setup_mul_dist
 from .plot import *
 import os
 import csv
@@ -469,7 +470,11 @@ class ProbabilisticModelHandler(Handler):
         :return:        HttpResponse.
         """
         probabilistic_model = ProbabilisticModel.objects.get(pk=pk)
-        return render(request, 'enviro/probabilistic_model_show.html', {'user': request.user, 'probabilistic_model': probabilistic_model})
+        multivariate_distribution = setup_mul_dist(probabilistic_model)
+        pdf_latex_string = multivariate_distribution.getPdfAsLatexString()
+        return render(request, 'enviro/probabilistic_model_show.html',
+                      {'user': request.user, 'probabilistic_model': probabilistic_model,
+                       'pdf_latex_string': pdf_latex_string})
 
 
 
