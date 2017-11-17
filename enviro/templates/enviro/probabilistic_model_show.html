@@ -1,12 +1,14 @@
 {% extends "../base.html" %}
 {% load static %}
+{% load latexify %}
 {% block content %}
     probabilistic model
     <div class="page-header"></div>
     <h2>{{probabilistic_model.collection_name}}</h2>
     <h3>Probability density function</h3>
     <p>
-        {{ pdf_latex_string }}
+        {% latexify pdf_latex_string math_inline=True %}
+        {% latexify 'f(x) = \sqrt{\frac{x^2}{2}}' math_inline=True %}
     </p>
     {% if probabilistic_model.measure_file_model %}
         <h3>Associated measurement file</h3>
@@ -21,4 +23,5 @@
         <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'I' %}">IFORM</a>
     <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'H' %}">HDC</a>
     </p>
+    {% include "latexify/scripts.html" %}
 {% endblock content %}

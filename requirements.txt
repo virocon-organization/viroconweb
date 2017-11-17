@@ -158,3 +158,4 @@ zict==0.1.2
 psycopg2==2.7.3.1
 Shapely==1.6.2post1
 descartes==1.1.0
+django-latexify==0.2.1

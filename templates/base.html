@@ -1,118 +1,116 @@
-<!--Grundgeruest der WebApp 
-    der block Bereich bis endblock wird von den einzelnen templates der Apps befuellt-->
-
-{% load static %}
-
-<! Bootstrap>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-<! Fonts>
-<link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Rajdhani:400" rel="stylesheet">
-
-
 <!DOCTYPE HTML>
 <html lang="de">
-<head>
-    <title>ViroCon</title>
-    <link rel="stylesheet" type="text/css" href="{% static './styles.css' %}"/>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Header -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#topNavBar">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <div class="links">
-                <a class="logo" href=" {% url 'home:home' %}">
-                    <img class="logo_desktop visible-lg-block visible-md-block visible-sm-block" alt="Logo "
-                         src=" {% static 'images/ViroVektorCA.png' %}">
-                    <img class="logo_mobile visible-xs-block" alt="Logo" src=" {% static 'images/ViroVektorCA.png' %}">
-                </a>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ViroCon</title>
+
+        {% load static %}
+
+        <! Bootstrap>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+        <! Fonts>
+        <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Rajdhani:400" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{% static './styles.css' %}"/>
+
+        {% include 'latexify/stylesheets.html' %}
+    </head>
+    <body>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#topNavBar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="links">
+                    <a class="logo" href=" {% url 'home:home' %}">
+                        <img class="logo_desktop visible-lg-block visible-md-block visible-sm-block" alt="Logo "
+                             src=" {% static 'images/ViroVektorCA.png' %}">
+                        <img class="logo_mobile visible-xs-block" alt="Logo" src=" {% static 'images/ViroVektorCA.png' %}">
+                    </a>
+                </div>
+            </div>
+            <!-- Items -->
+            <div class="collapse navbar-collapse" id="topNavBar">
+                <ul class="nav navbar-nav virocon-main-nav">
+                    {% if user.is_authenticated %}
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                               aria-expanded="false">
+                                <span class="glyphicon glyphicon-user"></span> {{ user.username }} <span
+                                    class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href=" {% url 'enviro:measurefiles-add' %}"> Add measurement file</a></li>
+                                <li><a href=" {% url 'enviro:measurefiles-overview' %}"> My measurement files</a></li>
+                                <li role="separator" class="divider"></li>
+                                 <li><a href="{% url 'enviro:probabilistic_model-add' '02' %}"> Enter probabilistic model</a></li>
+                                 <li><a href="{% url 'enviro:probabilistic_model-overview' %}"> My probabilistic models</a></li>
+                                 <li role="separator" class="divider"></li>
+                                <li><a href="{% url 'user:profile' %}">Profile</a></li>
+                                <li><a href="{% url 'user:logout' %}">Log out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'user:user' %}"> <span class="glyphicon glyphicon-user"></span>
+                                Login
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <a href="{% url 'contact:about' %}"> <span class="glyphicon glyphicon-info-sign"></span>
+                            About
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'contact:help' %}"> <span class="glyphicon glyphicon-question-sign"></span>
+                            Help
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
-        <!-- Items -->
-        <div class="collapse navbar-collapse" id="topNavBar">
-            <ul class="nav navbar-nav virocon-main-nav">
-                {% if user.is_authenticated %}
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                           aria-expanded="false">
-                            <span class="glyphicon glyphicon-user"></span> {{ user.username }} <span
-                                class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href=" {% url 'enviro:measurefiles-add' %}"> Add measurement file</a></li>
-                            <li><a href=" {% url 'enviro:measurefiles-overview' %}"> My measurement files</a></li>
-                            <li role="separator" class="divider"></li>
-                             <li><a href="{% url 'enviro:probabilistic_model-add' '02' %}"> Enter probabilistic model</a></li>
-                             <li><a href="{% url 'enviro:probabilistic_model-overview' %}"> My probabilistic models</a></li>
-                             <li role="separator" class="divider"></li>
-                            <li><a href="{% url 'user:profile' %}">Profile</a></li>
-                            <li><a href="{% url 'user:logout' %}">Log out</a></li>
-                        </ul>
-                    </li>
-                {% else %}
-                    <li>
-                        <a href="{% url 'user:user' %}"> <span class="glyphicon glyphicon-user"></span>
-                            Login
-                        </a>
-                    </li>
-                {% endif %}
-                <li>
-                    <a href="{% url 'contact:about' %}"> <span class="glyphicon glyphicon-info-sign"></span>
-                        About
+    </nav>
+    <div class="container">
+        <div class="jumbotron">
+            <div id="logo_center_top">
+                <p class="visible-lg-block visible-md-block visible-sm-block">
+                    <a href="{% url 'home:home' %}">
+                        <img class="start_img" src="{% static 'images/ViroVektorCA.png' %}">
                     </a>
-                </li>
+                </p>
+            </div>
+            <p> {% block content %}{% endblock %} </p>
+        </div>
+    </div>
+    <div class="container">
+        {% block start %}{% endblock %}
+    </div>
+    <nav class="navbar navbar-inverse navbar-bottom">
+        <div class="links">
+            <ul class="nav navbar-nav">
                 <li>
-                    <a href="{% url 'contact:help' %}"> <span class="glyphicon glyphicon-question-sign"></span>
-                        Help
+                    <a href="{% url 'contact:impressum' %}">Imprint</a>
+                </li>
+            </ul>
+        </div>
+        <div class="rechts">
+            <ul class="nav navbar-nav">
+                <li class="ps">
+                    <a class="" href="http://www.uni-bremen.de">
+                        <img class="unilogo" alt="Logo" src=" {% static 'images/unib.png' %}">
                     </a>
                 </li>
             </ul>
         </div>
-    </div>
-</nav>
-<div class="container">
-    <div class="jumbotron">
-        <div id="logo_center_top">
-            <p class="visible-lg-block visible-md-block visible-sm-block">
-                <a href="{% url 'home:home' %}">
-                    <img class="start_img" src="{% static 'images/ViroVektorCA.png' %}">
-                </a>
-            </p>
-        </div>
-        <p> {% block content %}{% endblock %} </p>
-    </div>
-</div>
-<div class="container">
-    {% block start %}{% endblock %}
-</div>
-<nav class="navbar navbar-inverse navbar-bottom">
-    <div class="links">
-        <ul class="nav navbar-nav">
-            <li>
-                <a href="{% url 'contact:impressum' %}">Imprint</a>
-            </li>
-        </ul>
-    </div>
-    <div class="rechts">
-        <ul class="nav navbar-nav">
-            <li class="ps">
-                <a class="" href="http://www.uni-bremen.de">
-                    <img class="unilogo" alt="Logo" src=" {% static 'images/unib.png' %}">
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
-</body>
+    </nav>
+    </body>
 </html>
