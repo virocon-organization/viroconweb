@@ -46,7 +46,7 @@ class DistributionModel(models.Model):
     DISTRIBUTIONS = (('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'),
                      ('Lognormal_2', 'Log-Normal'), ('KernelDensity', 'Kernel Density'))
     name = models.CharField(default="peak period", max_length=50)
-    symbol = models.CharField(default="p", max_length=5)
+    symbol = models.CharField(default="Tp", max_length=5)
     distribution = models.CharField(choices=DISTRIBUTIONS, max_length=15)
     probabilistic_model = models.ForeignKey(ProbabilisticModel, on_delete=models.CASCADE)
 

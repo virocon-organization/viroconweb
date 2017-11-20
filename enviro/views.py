@@ -470,8 +470,12 @@ class ProbabilisticModelHandler(Handler):
         :return:        HttpResponse.
         """
         probabilistic_model = ProbabilisticModel.objects.get(pk=pk)
+        dists_model = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+        var_symbols = []
+        for dist in dists_model:
+            var_symbols.append(dist.symbol)
         multivariate_distribution = setup_mul_dist(probabilistic_model)
-        latex_string_list = multivariate_distribution.getPdfAsLatexString(['Hss', 'Tp', 'V'])
+        latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
         return render(request, 'enviro/probabilistic_model_show.html',
                       {'user': request.user, 'probabilistic_model': probabilistic_model,
                        'latex_string_list': latex_string_list})
