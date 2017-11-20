@@ -6,8 +6,13 @@
     <div class="page-header"></div>
     <h2>{{probabilistic_model.collection_name}}</h2>
     <h3>Probability density function</h3>
+    {% for latex_string in latex_string_list %}
+        <p>
+            {% latexify latex_string math_block=True %}
+        </p>
+    {% endfor %}
     <p>
-        {% latexify pdf_latex_string math_block=True %}
+
     </p>
     {% if probabilistic_model.measure_file_model %}
         <h3>Associated measurement file</h3>

@@ -471,10 +471,10 @@ class ProbabilisticModelHandler(Handler):
         """
         probabilistic_model = ProbabilisticModel.objects.get(pk=pk)
         multivariate_distribution = setup_mul_dist(probabilistic_model)
-        pdf_latex_string = multivariate_distribution.getPdfAsLatexString(['Hss', 'Tp', 'V'])
+        latex_string_list = multivariate_distribution.getPdfAsLatexString(['Hss', 'Tp', 'V'])
         return render(request, 'enviro/probabilistic_model_show.html',
                       {'user': request.user, 'probabilistic_model': probabilistic_model,
-                       'pdf_latex_string': pdf_latex_string})
+                       'latex_string_list': latex_string_list})
 
 
 
