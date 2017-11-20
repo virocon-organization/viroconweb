@@ -186,7 +186,7 @@ class MeasureFileHandler(Handler):
                 try:
                         fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
                                             var_number=var_number)
-                        pk_probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
+                        probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
                                                request.user, mfm_item)
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html',
@@ -194,11 +194,14 @@ class MeasureFileHandler(Handler):
                                    'text': 'Try it again with different settings please',
                                    'header': 'fit measurement file to probabilistic model',
                                    'return_url': 'enviro:measurefiles-select'})
-                img_list = os.listdir('enviro/static/' + str(request.user) + '/' +  str(pk_probabilistic_model))
+                multivariate_distribution = setup_mul_dist(probabilistic_model)
+                latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+                img_list = os.listdir('enviro/static/' + str(request.user) + '/' +  str(probabilistic_model.pk))
                 send_img = []
                 for img in img_list:
-                    send_img.append(str(request.user) + '/' + str(pk_probabilistic_model) + '/' + img)
-                return render(request, 'enviro/fit_results.html', {'imgs': send_img, 'pk': pk_probabilistic_model})
+                    send_img.append(str(request.user) + '/' + str(probabilistic_model.pk) + '/' + img)
+                return render(request, 'enviro/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
+                                                                   'latex_string_list': latex_string_list})
             else:
                 return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})
         return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})

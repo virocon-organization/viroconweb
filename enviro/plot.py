@@ -21,7 +21,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
 
 def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name,
-                           symbol_parent_var, user, probabilistic_model_pk):
+                           symbol_parent_var, directory):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution). (needed to recognize the images later)
@@ -34,8 +34,7 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     :param interval:        interval of the plotted distribution.
     :param var_name:        the name of a single variable of the probabilistic model. 
     :param symbol_parent_var:      symbol of the variable on which the conditional variable is based.
-    :param user:            the user who started the request (to save image at unique path).
-    :param probabilistic_model_pk   the primary key of the probabilistic model (to save image at unique path)
+    :param directory        the directory where the figure should be saved
     :return: 
     """
     fig = plt.figure()
@@ -80,15 +79,12 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     plt.ylabel('probability density [-]')
     main_index_2_digits = str(main_index).zfill(2)
     low_index_2_digits = str(low_index).zfill(2)
-    directory = 'enviro/static/' + str(user) + '/' + str(probabilistic_model_pk)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
     plt.savefig(directory + '/fit_' + main_index_2_digits + '_' + low_index_2_digits + '.png')
     plt.close(fig)
     return
 
 
-def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, data_points, fit_func, user, dist_name):
+def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, data_points, fit_func, directory, dist_name):
     """
     The function plots an image which shows the fit of a function. 
     :param main_index:      index of the related distribution.
@@ -97,7 +93,8 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     :param para_name:       parameter name like shape, location, scale.
     :param data_points:     data point for every interval.
     :param fit_func:        the fit function - polynomial, exponential ..
-    :param user:            the user who starte the fit order.
+    :param directory:       directory where the figure should be saved.
+    :param dist_name        name of the distribution, e.g. "Lognormal"
     """
     if dist_name == 'Lognormal':
         if para_name == 'scale':
@@ -136,7 +133,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
-    plt.savefig('enviro/static/' + str(user) + '/fit_' + str(main_index) + para_name + '.png')
+    plt.savefig(directory + '/fit_' + str(main_index) + para_name + '.png')
     plt.close(fig)
 
 
@@ -158,9 +155,13 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
 
     # deletes the results form further fits for a specific user.
     path = 'enviro/static/' + str(user)
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-    os.makedirs(path)
+    #if os.path.isdir(path):
+        #shutil.rmtree(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    directory = 'enviro/static/' + str(user) + '/' + str(probabilistic_model.pk)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
     params = ['shape', 'location', 'scale']
     mult_float_points = []
@@ -193,7 +194,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
                     float_points.append(point)
                     intervals.append(spec_param_points[0][k])
                 plot_parameter_fit_overview(i, var_names[i], var_symbols[i], params[j], [spec_param_points[0], float_points],
-                                            param, user, distribution.name)
+                                            param, directory, distribution.name)
                 parameter_model = ParameterModel(function=param.func_name, x0=param.a, x1=param.b, x2=param.c,
                                                  dependency=fit.mul_var_dist.dependencies[i][j],
                                                  distribution=distribution_model)
@@ -238,12 +239,12 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
 
                 plot_pdf_with_raw_data(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
                                        fit.mul_var_dist.distributions[i].name, dist_point, interval,
-                                       var_names[i], symbol_parent_var, user, probabilistic_model.pk)
+                                       var_names[i], symbol_parent_var, directory)
                 finisher = k
             # acceleration
             if finisher == fit.n_steps - 1 or i == 0:
                 break
-    return probabilistic_model.pk
+    return probabilistic_model
 
 def get_first_number_of_tuple(x):
     """
@@ -271,9 +272,10 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
     """
 
     path = 'enviro/static/' + str(user)
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-    os.makedirs(path)
+    #if os.path.isdir(path):
+        #shutil.rmtree(path)
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     fig = plt.figure()
 
@@ -424,7 +426,7 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
         story.append(Spacer(1, .5 * inch))
     else:
         story.append(Paragraph("The table is not plotted since a maximum of 200 extreme environmental design conditions"
-                               " are supported. Based on your input we computed " + str(len(matrix[0][0])) + " conditions", styleN))
+                               " are supported. Based on your input we computed " + str(len(matrix[0][0])) + " conditions.", styleN))
         story.append(Spacer(1, .25 * inch))
 
     # build Story into Document Template
