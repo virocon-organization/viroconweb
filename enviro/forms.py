@@ -77,8 +77,12 @@ class VariablesForm(forms.Form):
     def __init__(self, variable_count=2, *args, **kwargs):
         super(VariablesForm, self).__init__(*args, **kwargs)
 
-        self.fields['variable_name_%s' % 0] = forms.CharField(min_length=3, label='1. variable name')
-        self.fields['variable_symbol_%s' % 0] = forms.CharField(max_length=3, label='1. variable symbol', min_length=1)
+        self.fields['variable_name_%s' % 0] = forms.CharField(min_length=3, label='1. variable name',
+                                                              widget=forms.TextInput(
+                                                                         attrs={'value': 'e.g. significant wave height [m]'}))
+        self.fields['variable_symbol_%s' % 0] = forms.CharField(min_length=1, max_length=3, label='1. variable symbol',
+                                                                widget=forms.TextInput(
+                                                                    attrs={'value': 'e.g. Hs'}))
         i=0
         func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS,

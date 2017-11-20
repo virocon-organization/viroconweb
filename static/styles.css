@@ -290,9 +290,21 @@ a:hover {
 }
 
 .probabilstic-model-show {
-    text-align: left
+    text-align: left;
 }
 
 .density-function-latex {
-    font-size: 16px
+    font-size: 16px;
+}
+
+.form-group > .col-sm-4 > select, .form-group > .col-sm-4 > input {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+}
+
+.input-additional-info {
+    font-size: 14px;
+    text-align: left;
+    padding-left: 6px
 }

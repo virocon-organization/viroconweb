@@ -98,7 +98,12 @@
                         <label class="col-sm-3"
                                id={{ x.html_initial_id }} for="{{ x.id_for_label }}">{{ x.label_tag }}</label>
                         <div class="col-sm-4"> {{ x }}</div>
-                        <div class="col-sm-3"><span class="text-danger small">{{ x.errors }}</span></div>
+                        <div class="col-sm-3 input-additional-info">
+                            {% if x.label == '1. variable symbol' %}
+                                The first characer should be capizalized. Further characters will be interpreted as
+                                subscripts
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}

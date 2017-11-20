@@ -476,8 +476,8 @@ class ProbabilisticModelHandler(Handler):
             var_symbols.append(dist.symbol)
         multivariate_distribution = setup_mul_dist(probabilistic_model)
         latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
-
         send_img = []
+
         directory = 'enviro/static/' + str(request.user) + '/' + str(pk)
         if os.path.isdir(directory):
             img_list = os.listdir(directory)
