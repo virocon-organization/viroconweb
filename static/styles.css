@@ -288,3 +288,11 @@ a:hover {
 
 .panel-overview > .panel-heading {
 }
+
+.probabilstic-model-show {
+    text-align: left
+}
+
+.density-function-latex {
+    font-size: 16px
+}

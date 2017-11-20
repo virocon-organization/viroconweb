@@ -4,28 +4,36 @@
 {% block content %}
     probabilistic model
     <div class="page-header"></div>
-    <h2>{{probabilistic_model.collection_name}}</h2>
-    <h3>Probability density function</h3>
-    {% for latex_string in latex_string_list %}
+    <div class="container-fluid probabilstic-model-show">
+        <h1>{{probabilistic_model.collection_name}}</h1>
+        <h2>Probability density function</h2>
+        {% for latex_string in latex_string_list %}
+            <p class="density-function-latex">
+                {% latexify latex_string math_inline=True %}
+            </p>
+        {% endfor %}
+        {% if probabilistic_model.measure_file_model %}
+            <h2>Associated measurement file</h2>
+            file: '{{ probabilistic_model.measure_file_model.title }}'
+            <a class="btn btn-default" href="{% url 'enviro:measurefiles-plot' probabilistic_model.measure_file_model.pk %}">
+                plot
+            </a>
+            {%  if imgs %}
+                <h2>Evaluation of the fit</h2>
+                <button class="btn btn-default" data-toggle="collapse" data-target="#fit-images">show fits</button>
+                <div id="fit-images" class="collapse">
+                    {% for img in imgs %}
+                        <img src="{% static img %}" class="img-responsive center-block">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+        <h2>Environmental contour</h2>
         <p>
-            {% latexify latex_string math_block=True %}
+            compute an environmental contour:
+            <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'I' %}">IFORM</a>
+        <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'H' %}">HDC</a>
         </p>
-    {% endfor %}
-    <p>
-
-    </p>
-    {% if probabilistic_model.measure_file_model %}
-        <h3>Associated measurement file</h3>
-        file: '{{ probabilistic_model.measure_file_model.title }}'
-        <a class="btn btn-default" href="{% url 'enviro:measurefiles-plot' probabilistic_model.measure_file_model.pk %}">
-            plot
-        </a>
-    {% endif %}
-    <h3>Environmental contour</h3>
-    <p>
-        compute an environmental contour:
-        <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'I' %}">IFORM</a>
-    <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'H' %}">HDC</a>
-    </p>
+    </div>
     {% include "latexify/scripts.html" %}
 {% endblock content %}

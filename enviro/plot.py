@@ -20,7 +20,8 @@ from descartes import PolygonPatch
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
 
-def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name, symbol_parent_var, user):
+def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name,
+                           symbol_parent_var, user, probabilistic_model_pk):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution). (needed to recognize the images later)
@@ -33,7 +34,8 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     :param interval:        interval of the plotted distribution.
     :param var_name:        the name of a single variable of the probabilistic model. 
     :param symbol_parent_var:      symbol of the variable on which the conditional variable is based.
-    :param user:            the user who started the request (to assign the images later).
+    :param user:            the user who started the request (to save image at unique path).
+    :param probabilistic_model_pk   the primary key of the probabilistic model (to save image at unique path)
     :return: 
     """
     fig = plt.figure()
@@ -78,7 +80,10 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     plt.ylabel('probability density [-]')
     main_index_2_digits = str(main_index).zfill(2)
     low_index_2_digits = str(low_index).zfill(2)
-    plt.savefig('enviro/static/' + str(user) + '/fit_' + main_index_2_digits + '_' + low_index_2_digits + '.png')
+    directory = 'enviro/static/' + str(user) + '/' + str(probabilistic_model_pk)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' + low_index_2_digits + '.png')
     plt.close(fig)
     return
 
@@ -146,7 +151,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
     :param var_symbols:     symbols of the variables of the probabilistic model
     :param title:           the title of the probabilistic model.
     :param user:            the user who started the request (to assign the images later).
-    :return:                the primary key of the created MeasureFileManager instance.
+    :return:                the primary key of the created probabilistic model instance.
     """
     probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title, measure_file_model=measure_file)
     probabilistic_model.save()
@@ -233,7 +238,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
 
                 plot_pdf_with_raw_data(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
                                        fit.mul_var_dist.distributions[i].name, dist_point, interval,
-                                       var_names[i], symbol_parent_var, user)
+                                       var_names[i], symbol_parent_var, user, probabilistic_model.pk)
                 finisher = k
             # acceleration
             if finisher == fit.n_steps - 1 or i == 0:
