@@ -3,7 +3,7 @@
 {% block content %}
     measurement file
     <div class="page-header"></div>
-    <img src=" {{static}}/static/{{user}}/scatter.png"
+    <img src="{%  static directory %}/scatter.png"
          class="img-fluid" alt="scatter plot">
     <br>
     <a class="btn btn-primary" href="{% url 'enviro:measurefiles-fit' measure_file_model.pk %}">fit probabilistic model</a>

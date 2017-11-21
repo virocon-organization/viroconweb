@@ -186,8 +186,11 @@ class MeasureFileHandler(Handler):
                 try:
                         fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
                                             var_number=var_number)
+                        directory_prefix = 'enviro/static/'
+                        directory_after_static = str(request.user) + '/prob_model/'
+                        directory = directory_prefix + directory_after_static
                         probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
-                                               request.user, mfm_item)
+                                               request.user, mfm_item, directory)
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html',
                                   {'error_message': err,
@@ -196,10 +199,10 @@ class MeasureFileHandler(Handler):
                                    'return_url': 'enviro:measurefiles-select'})
                 multivariate_distribution = setup_mul_dist(probabilistic_model)
                 latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
-                img_list = os.listdir('enviro/static/' + str(request.user) + '/' +  str(probabilistic_model.pk))
+                img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                 send_img = []
                 for img in img_list:
-                    send_img.append(str(request.user) + '/' + str(probabilistic_model.pk) + '/' + img)
+                    send_img.append(directory_after_static + str(probabilistic_model.pk) + '/' + img)
                 return render(request, 'enviro/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
                                                                    'latex_string_list': latex_string_list})
             else:
@@ -226,8 +229,13 @@ class MeasureFileHandler(Handler):
         """
         measure_file_model = MeasureFileModel.objects.get(pk=pk)
         var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
-        plot_data_set_as_scatter(request.user, measure_file_model, var_names)
-        return render(request, 'enviro/measurefiles_plot.html', {'user': request.user, 'measure_file_model':measure_file_model})
+        directory_prefix = 'enviro/static/'
+        directory_after_static = str(request.user) + '/measurement/' + str(pk)
+        directory = directory_prefix + directory_after_static
+        plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
+        return render(request, 'enviro/measurefiles_plot.html', {'user': request.user,
+                                                                 'measure_file_model':measure_file_model,
+                                                                 'directory': directory_after_static})
 
 
 class ProbabilisticModelHandler(Handler):
@@ -481,15 +489,22 @@ class ProbabilisticModelHandler(Handler):
         latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
         send_img = []
 
-        directory = 'enviro/static/' + str(request.user) + '/' + str(pk)
+        directory_prefix = 'enviro/static/'
+        directory_after_static = str(request.user) + '/prob_model/' + str(pk)
+        directory = directory_prefix + directory_after_static
         if os.path.isdir(directory):
             img_list = os.listdir(directory)
             for img in img_list:
-                send_img.append(str(request.user) + '/' + str(pk) + '/' + img)
+                send_img.append(directory_after_static + '/' + img)
+        directory_measure_plot_after_prefix = ''
+        if probabilistic_model.measure_file_model:
+            directory_measure_plot_after_prefix = str(request.user) + '/measurement/'\
+                                                  + str(probabilistic_model.measure_file_model.pk) + '/scatter.png'
 
         return render(request, 'enviro/probabilistic_model_show.html',
                       {'user': request.user, 'probabilistic_model': probabilistic_model,
-                       'latex_string_list': latex_string_list, 'imgs': send_img})
+                       'latex_string_list': latex_string_list, 'imgs': send_img,
+                      'directory_measure_plot_after_prefix': directory_measure_plot_after_prefix})
 
 
 

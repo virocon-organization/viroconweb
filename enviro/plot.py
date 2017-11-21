@@ -137,7 +137,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     plt.close(fig)
 
 
-def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
+def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory):
     """
     The function distributes the information given by the parameters and starts the plot assignment. 
     The Distribution of the parameters depends on the dependencies between the variables of a probabilistic model. 
@@ -148,18 +148,19 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file):
     :param var_symbols:     symbols of the variables of the probabilistic model
     :param title:           the title of the probabilistic model.
     :param user:            the user who started the request (to assign the images later).
+    :param directory:       directory where the figures should be saved (the primary key will be added as a subfolder)
     :return:                the primary key of the created probabilistic model instance.
     """
     probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title, measure_file_model=measure_file)
     probabilistic_model.save()
 
     # deletes the results form further fits for a specific user.
-    path = 'enviro/static/' + str(user)
+    #path = 'enviro/static/' + str(user)
     #if os.path.isdir(path):
-        #shutil.rmtree(path)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    directory = 'enviro/static/' + str(user) + '/' + str(probabilistic_model.pk)
+    #    shutil.rmtree(path)
+    #if not os.path.exists(path):
+    #    os.makedirs(path)
+    directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -328,7 +329,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names, var
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
     plt.close(fig)
 
-def plot_data_set_as_scatter(user, measure_file_model, var_names):
+def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
     data_path = measure_file_model.measure_file.url
     data_path = data_path[1:]
@@ -340,9 +341,11 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names):
         ax.set_ylabel('{}'.format(var_names[i+1]))
         if i==0:
             plt.title('measurement file: ' + measure_file_model.title)
-
-    short_path = str(user) + '/scatter.png'
-    plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    plt.savefig(directory + '/scatter.png', bbox_inches='tight')
+    print('plotting scatter at:')
+    print(directory)
     plt.close(fig)
 
 def data_to_table(matrix, var_names):

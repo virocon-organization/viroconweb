@@ -14,10 +14,17 @@
         {% endfor %}
         {% if probabilistic_model.measure_file_model %}
             <h2>Associated measurement file</h2>
-            file: '{{ probabilistic_model.measure_file_model.title }}'
-            <a class="btn btn-default" href="{% url 'enviro:measurefiles-plot' probabilistic_model.measure_file_model.pk %}">
-                plot
-            </a>
+            <p>
+                file: '{{ probabilistic_model.measure_file_model.title }}'
+            </p>
+            {% if directory_measure_plot_after_prefix  %}
+                <p>
+                    <button class="btn btn-default" data-toggle="collapse" data-target="#measure-file-plot">show plot</button>
+                    <div id="measure-file-plot" class="collapse">
+                        <img src="{% static directory_measure_plot_after_prefix %}" class="img-responsive center-block">
+                    </div>
+                </p>
+            {% endif %}
             {%  if imgs %}
                 <h2>Evaluation of the fit</h2>
                 <button class="btn btn-default" data-toggle="collapse" data-target="#fit-images">show fits</button>
