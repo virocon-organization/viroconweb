@@ -201,14 +201,13 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
                                                  distribution=distribution_model)
 
             else:
-
                 if param is None:
-                    for k in range(fit.n_steps):
+                    for k in range(fit.input_dist_descriptions[i].get('number_of_bins')):
                         float_points.append(0)
                     parameter_model = ParameterModel(function='None', x0=0, dependency='!',
                                                      distribution=distribution_model)
                 else:
-                    for k in range(fit.n_steps):
+                    for k in range(fit.input_dist_descriptions[i].get('number_of_bins')):
                         float_points.append(param._value(1))
                     parameter_model = ParameterModel(function='None', x0=param._value(1), dependency='!',
                                                      distribution=distribution_model)

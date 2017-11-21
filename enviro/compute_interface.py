@@ -27,7 +27,9 @@ class ComputeInterface:
             if i == 0:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
-                     'dependency': (None, None, None)})
+                     'dependency': (None, None, None),
+                     'number_of_bins': int(fit_settings['number_of_intervals'])
+                     })
             else:
 
                 dists.append(
@@ -37,8 +39,10 @@ class ComputeInterface:
                                     adjust(fit_settings['scale_dependency_%s' % i][0])),
                      'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))})
-        fit = Fit(dates, dists, n_steps=int(fit_settings['number_of_intervals']))
+                                   adjust(fit_settings['scale_dependency_%s' % i][1:])),
+                     'number_of_bins': int(fit_settings['number_of_intervals'])
+                     })
+        fit = Fit(dates, dists)
         return fit
 
     @staticmethod
