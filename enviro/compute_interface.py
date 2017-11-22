@@ -27,20 +27,33 @@ class ComputeInterface:
             if i == 0:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
-                     'dependency': (None, None, None),
-                     'number_of_bins': int(fit_settings['number_of_intervals'])
+                     'number_of_intervals': None,#int(fit_settings['number_of_intervals_%s' % i]),
+                     'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]),
+                     'dependency': (None, None, None)
                      })
-            else:
-
+            elif i == (var_number-1): #last variable
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
+                     'number_of_intervals': None,
+                     'width_of_intervals': None,
                      'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
                                     adjust(fit_settings['location_dependency_%s' % i][0]),
                                     adjust(fit_settings['scale_dependency_%s' % i][0])),
                      'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:])),
-                     'number_of_bins': int(fit_settings['number_of_intervals'])
+                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
+                     })
+            else:
+                dists.append(
+                    {'name': fit_settings['distribution_%s' % i],
+                     'number_of_interval': None, #int(fit_settings['number_of_intervals_%s' % i]),
+                     'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]), #None,
+                     'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
+                                    adjust(fit_settings['location_dependency_%s' % i][0]),
+                                    adjust(fit_settings['scale_dependency_%s' % i][0])),
+                     'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
+                                   adjust(fit_settings['location_dependency_%s' % i][1:]),
+                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
                      })
         fit = Fit(dates, dists)
         return fit

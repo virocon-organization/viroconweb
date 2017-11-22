@@ -32,14 +32,26 @@ class MeasureFileFitForm(forms.Form):
     DISTRIBUTIONS = (('Weibull', 'Weibull'),('Normal', 'Normal'),
                      ('Lognormal_2', 'Log-Normal'))
 
+    # probabilistic model as a whole
+    title = forms.CharField(max_length=50, label='title')
+    #number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '7'}),
+    #                                         label='number of intervals')
+
     def __init__(self, variable_names, variable_count=2, *args, **kwargs):
         super(MeasureFileFitForm, self).__init__(*args, **kwargs)
 
+        # first variable
         self.fields['_%s' % variable_names[0]] = forms.CharField(widget=forms.TextInput(attrs={'value': 'name'}),
                                                                  max_length=50)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS, widget=forms.Select,
                                                                initial='Weibull', label='distribution')
+        self.fields['width_of_intervals_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
+                                                                      widget=forms.NumberInput(attrs={'value': '2'}),
+                                                                      label='width of intervals')
+        #self.fields['number_of_intervals_%s' % 0] = forms.IntegerField(widget=forms.NumberInput(attrs={'value': ''}),
+        #                                         label='or: number of intervals')
 
+        # additional variables
         for i in range(1, variable_count):
             condition = []
             condition.append(('!None', 'none'))
@@ -55,6 +67,13 @@ class MeasureFileFitForm(forms.Form):
                                                                    widget=forms.Select(attrs={'id': 'dist_%s' % i,
                                                                                               'onclick': func_call}),
                                                                    label='distribution')
+            if i < (variable_count-1):
+                self.fields['width_of_intervals_%s' % i] = forms.DecimalField(decimal_places=4, min_value=0.0001,
+                                                                              widget=forms.NumberInput(
+                                                                                  attrs={'value': '2'}),
+                                                                              label='width of intervals')
+                #self.fields['number_of_intervals_%s' % i] = forms.IntegerField(widget=forms.NumberInput(
+                #    attrs={'value': '7'}), label='number of intervals')
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
                                                                        label='scale (λ) dependency')
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
@@ -66,8 +85,6 @@ class MeasureFileFitForm(forms.Form):
                                                                           widget=forms.Select(
                                                                               attrs={'id': 'loc_%s' % i}))
 
-    title = forms.CharField(max_length=50, label='title')
-    number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '7'}), label='number of intervals')
 
 
 class VariablesForm(forms.Form):

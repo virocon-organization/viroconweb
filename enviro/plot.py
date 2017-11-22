@@ -20,16 +20,17 @@ from descartes import PolygonPatch
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
 
-def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_points, interval, var_name,
+def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scale, distribution_type, dist_points, interval, var_name,
                            symbol_parent_var, directory):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution). (needed to recognize the images later)
-    :param low_index:       the index of the step parameter. (needed to recognize the images later)
+    :param parent_index     the index of the variable on which the conditional is based (when no condition: None)
+    :param low_index:       the index of the interval. (needed to recognize the images later)
     :param shape:           the value of the shape parameter.
     :param loc:             the value of the loc parameter. (location)
     :param scale:           the value of the scale paramter.
-    :param form:            the form of the distribution. (example: weibull)
+    :param distribution_type:   Type / name of the distribution, must be "Normal", "Weibull" or "Lognormal"
     :param dist_points:     the dates for the histogram.
     :param interval:        interval of the plotted distribution.
     :param var_name:        the name of a single variable of the probabilistic model. 
@@ -40,22 +41,22 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    if form == 'Normal':
+    if distribution_type == 'Normal':
         x = np.linspace(norm.ppf(0.0001, loc, scale), norm.ppf(0.9999, loc, scale), 100)
         y = norm.pdf(x, loc, scale)
-        text = form + ', ' + 'mu: ' + str(format(loc, '.3f')) + ' sigma: ' + str(format(scale, '.3f'))
-    elif form == 'Weibull':
+        text = distribution_type + ', ' + 'mu: ' + str(format(loc, '.3f')) + ' sigma: ' + str(format(scale, '.3f'))
+    elif distribution_type == 'Weibull':
         x = np.linspace(weibull_min.ppf(0.0001, shape, loc, scale), weibull_min.ppf(0.9999, shape, loc, scale), 100)
         y = weibull_min.pdf(x, shape, loc, scale)
-        text = form + ', ' + 'shape: ' + str(format(shape, '.3f')) + ' loc: ' + str(
+        text = distribution_type + ', ' + 'shape: ' + str(format(shape, '.3f')) + ' loc: ' + str(
             format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
-    elif form == 'Lognormal':
+    elif distribution_type == 'Lognormal':
         scale = np.exp(scale)
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale), lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
-        text = form + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
+        text = distribution_type + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
     else:
-        raise KeyError('No function match - {}'.format(form))
+        raise KeyError('No function match - {}'.format(distribution_type))
 
     text = text + ' ('
     if symbol_parent_var:
@@ -63,7 +64,7 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
             format(interval[1], '.3f')) + ', '
     text = text + 'n=' + str(len(dist_points)) + ')'
 
-    ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=form)
+    ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=distribution_type)
     n_intervals_histogram = int(round(len(dist_points)/50.0))
     if n_intervals_histogram > 100:
         n_intervals_histogram = 100
@@ -78,8 +79,11 @@ def plot_pdf_with_raw_data(main_index, low_index, shape, loc, scale, form, dist_
     plt.xlabel(var_name)
     plt.ylabel('probability density [-]')
     main_index_2_digits = str(main_index).zfill(2)
+    parent_index_2_digits = str(parent_index).zfill(2)
     low_index_2_digits = str(low_index).zfill(2)
-    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' + low_index_2_digits + '.png')
+    # convention for name: fit_01_00_02.png (would mean a plot of the second variable (01) which is conditional on the
+    # first variable (00) and this is the third (02) fit
+    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' + parent_index_2_digits + '_' + low_index_2_digits + '.png')
     plt.close(fig)
     return
 
@@ -202,17 +206,16 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
 
             else:
                 if param is None:
-                    for k in range(fit.input_dist_descriptions[i].get('number_of_bins')):
+                    for k in range(fit.dist_descriptions[i].get('used_number_of_intervals')):
                         float_points.append(0)
                     parameter_model = ParameterModel(function='None', x0=0, dependency='!',
                                                      distribution=distribution_model)
                 else:
-                    for k in range(fit.input_dist_descriptions[i].get('number_of_bins')):
+                    for k in range(fit.dist_descriptions[i].get('used_number_of_intervals')):
                         float_points.append(param._value(1))
                     parameter_model = ParameterModel(function='None', x0=param._value(1), dependency='!',
                                                      distribution=distribution_model)
 
-            print(parameter_model)
             MAX_VALID_VALUE_COEFF = 1000000
             if parameter_model.x0 > MAX_VALID_VALUE_COEFF or parameter_model.x0 < -1*MAX_VALID_VALUE_COEFF:
                 raise ValueError('The value of the fitting coefficient is invalid. Maybe this was caused by having too'
@@ -223,28 +226,50 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
         mult_float_points.append(list_float_points)
 
     # prepare data to plot a distribution
-    for i, dist_points in enumerate(fit.mul_dist_points):
-        for j, spec_dist_points in enumerate(dist_points):
-            finisher = 0
-            for k, dist_point in enumerate(spec_dist_points):
+    for i, dist_points in enumerate(fit.mul_dist_points): # i = the variable index
+        print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
+        for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
+            print('spec_dist_points type: ' + str(type(spec_dist_points)) + ', of length: ' + str(len(spec_dist_points)))
+            for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
                 if i == 0 or len(intervals) < 2:
                     interval = [min(intervals), max(intervals)]
                 else:
                     interval = [intervals[k], intervals[k + 1]]
 
-
+                print('i: ' + str(i) + ', j: ' + str(j) + ', k: ' + str(k))
+                parent_index = fit.mul_var_dist.dependencies[i][j]
                 symbol_parent_var = None
-                if type(get_first_number_of_tuple(fit.mul_var_dist.dependencies[i]))==int:
-                    symbol_parent_var = var_symbols[get_first_number_of_tuple(fit.mul_var_dist.dependencies[i])]
-
-                plot_pdf_with_raw_data(i, k, mult_float_points[i][0][k], mult_float_points[i][1][k], mult_float_points[i][2][k],
-                                       fit.mul_var_dist.distributions[i].name, dist_point, interval,
-                                       var_names[i], symbol_parent_var, directory)
-                finisher = k
-            # acceleration
-            if finisher == fit.n_steps - 1 or i == 0:
-                break
+                if parent_index is not None:
+                    symbol_parent_var = var_symbols[parent_index]
+                print('distribution name: ' + str(fit.mul_var_dist.distributions[i].name))
+                if is_legit_distribution_parameter_index(fit.mul_var_dist.distributions[i].name, j):
+                    plot_pdf_with_raw_data(i, parent_index, k, mult_float_points[i][0][k], mult_float_points[i][1][k],
+                                               mult_float_points[i][2][k], fit.mul_var_dist.distributions[i].name, dist_point, interval,
+                                               var_names[i], symbol_parent_var, directory)
+                if i == 0: # first variable has no dependencies --> no need to check
+                    break
     return probabilistic_model
+
+def is_legit_distribution_parameter_index(distribution_name, index):
+    """
+    Check if the distribution has this kind of parameter index (0 = shape, 1 = loc, 2 = scale)
+    """
+    if distribution_name=='Normal':
+        if index == 0:
+            return False
+        else:
+            return True
+    elif distribution_name == 'Weibull':
+        return True
+    elif distribution_name == 'Lognormal':
+        if index == 1:
+            return False
+        else:
+            return True
+    else:
+        warnings.warn("The distribution name you used to call is_legit_distribution_parameter_index() is not supported")
+        return False
+
 
 def get_first_number_of_tuple(x):
     """
@@ -343,8 +368,6 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + '/scatter.png', bbox_inches='tight')
-    print('plotting scatter at:')
-    print(directory)
     plt.close(fig)
 
 def data_to_table(matrix, var_names):
