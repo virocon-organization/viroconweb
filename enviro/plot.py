@@ -19,6 +19,7 @@ from .plot_generic import *
 from descartes import PolygonPatch
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
+from pprint import pprint
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scale, distribution_type, dist_points, interval, var_name,
                            symbol_parent_var, directory):
@@ -51,10 +52,10 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scal
         text = distribution_type + ', ' + 'shape: ' + str(format(shape, '.3f')) + ' loc: ' + str(
             format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
-        scale = np.exp(scale)
+        scale = np.exp(scale) # scale parameter for python lognorm = e^\mu, however in the django data base we save mu as the sacle parameter
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale), lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
-        text = distribution_type + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(scale, '.3f'))
+        text = distribution_type + ', ' + 'sigma: ' + str(format(shape, '.3f')) + ' mu: ' + str(format(np.log(scale), '.3f'))
     else:
         raise KeyError('No function match - {}'.format(distribution_type))
 
@@ -124,8 +125,8 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     for x1 in x:
         y.append(fit_func._value(x1))
 
-    if dist_name == 'Lognormal' and para_name == 'scale':
-        y = np.log(y)
+    #if dist_name == 'Lognormal' and para_name == 'scale':
+        #y = np.log(y)
 
     # plot generate data points
     ax.plot(x, y, color='#54889c')
@@ -190,7 +191,11 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
             elif j == 1:
                 param = distribution.loc
             elif j == 2:
-                param = distribution.scale
+                print('in plot_fits: Current distribution name is ' + name)
+                if name == 'Lognormal_2':
+                    param = distribution.mu
+                else:
+                    param = distribution.scale
             else:
                 raise KeyError('{} is not a matching index of a parameter like shape location and scale'.format(
                     distribution.param))
@@ -227,21 +232,21 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
 
     # prepare data to plot a distribution
     for i, dist_points in enumerate(fit.mul_dist_points): # i = the variable index
-        print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
+        #print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
         for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
-            print('spec_dist_points type: ' + str(type(spec_dist_points)) + ', of length: ' + str(len(spec_dist_points)))
+            #print('spec_dist_points type: ' + str(type(spec_dist_points)) + ', of length: ' + str(len(spec_dist_points)))
             for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
                 if i == 0 or len(intervals) < 2:
                     interval = [min(intervals), max(intervals)]
                 else:
                     interval = [intervals[k], intervals[k + 1]]
 
-                print('i: ' + str(i) + ', j: ' + str(j) + ', k: ' + str(k))
+                #print('i: ' + str(i) + ', j: ' + str(j) + ', k: ' + str(k))
                 parent_index = fit.mul_var_dist.dependencies[i][j]
                 symbol_parent_var = None
                 if parent_index is not None:
                     symbol_parent_var = var_symbols[parent_index]
-                print('distribution name: ' + str(fit.mul_var_dist.distributions[i].name))
+                #print('distribution name: ' + str(fit.mul_var_dist.distributions[i].name))
                 if is_legit_distribution_parameter_index(fit.mul_var_dist.distributions[i].name, j):
                     plot_pdf_with_raw_data(i, parent_index, k, mult_float_points[i][0][k], mult_float_points[i][1][k],
                                                mult_float_points[i][2][k], fit.mul_var_dist.distributions[i].name, dist_point, interval,

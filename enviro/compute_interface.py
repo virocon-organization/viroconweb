@@ -46,7 +46,7 @@ class ComputeInterface:
             else:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
-                     'number_of_interval': None, #int(fit_settings['number_of_intervals_%s' % i]),
+                     'number_of_intervals': None, #int(fit_settings['number_of_intervals_%s' % i]),
                      'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]), #None,
                      'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
                                     adjust(fit_settings['location_dependency_%s' % i][0]),
@@ -55,7 +55,11 @@ class ComputeInterface:
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
                                    adjust(fit_settings['scale_dependency_%s' % i][1:]))
                      })
+            print('distribution of variable '+ str(i) + ":")
+            print(dists[i])
+        print('calling Fit() from compute_interface.fit_curves')
         fit = Fit(dates, dists)
+        print('done with Fit() from compute_interface.fit_curves')
         return fit
 
     @staticmethod

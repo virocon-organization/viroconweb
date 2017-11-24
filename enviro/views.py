@@ -184,20 +184,31 @@ class MeasureFileHandler(Handler):
             if fit_form.is_valid():
                 ci = ComputeInterface()
                 try:
-                        fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
-                                            var_number=var_number)
-                        directory_prefix = 'enviro/static/'
-                        directory_after_static = str(request.user) + '/prob_model/'
-                        directory = directory_prefix + directory_after_static
-                        probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
-                                               request.user, mfm_item, directory)
+                    fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
+                                        var_number=var_number)
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html',
                                   {'error_message': err,
-                                   'text': 'Try it again with different settings please',
+                                   'text': 'Error occured while fitting a probabliistic model to the file.'
+                                           'Try it again with different settings please',
                                    'header': 'fit measurement file to probabilistic model',
                                    'return_url': 'enviro:measurefiles-select'})
+                #try:
+                directory_prefix = 'enviro/static/'
+                directory_after_static = str(request.user) + '/prob_model/'
+                directory = directory_prefix + directory_after_static
+                probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
+                                       request.user, mfm_item, directory)
+                #except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    #return render(request, 'enviro/error.html',
+                    #              {'error_message': err,
+                    #               'text': 'Error occured while plotting the fit.'
+                    #                       'Try it again with different settings please',
+                    #               'header': 'fit measurement file to probabilistic model',
+                    #               'return_url': 'enviro:measurefiles-select'})
+                print('Calling setup_mul_dist(probabilistic_model)')
                 multivariate_distribution = setup_mul_dist(probabilistic_model)
+                print('Done with setup_mul_dist(probabilistic_model)')
                 latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
                 img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                 send_img = []
