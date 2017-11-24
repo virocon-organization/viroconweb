@@ -365,7 +365,7 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
     data = pd.read_csv(data_path, sep=';', header=0).as_matrix() #0 is right! 1 caused a bug where the first data row is ignored, see issue #20
     for i in range(len(var_names)-1):
         ax = fig.add_subplot(len(var_names)-1,1,i+1)
-        ax.scatter(data[:, 0], data[:, 1], s=5, c='k')
+        ax.scatter(data[:, 0], data[:, i+1], s=5, c='k')
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[i+1]))
         if i==0:
