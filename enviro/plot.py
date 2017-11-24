@@ -191,7 +191,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
             elif j == 1:
                 param = distribution.loc
             elif j == 2:
-                print('in plot_fits: Current distribution name is ' + name)
                 if name == 'Lognormal_2':
                     param = distribution.mu
                 else:

@@ -163,7 +163,6 @@ class MeasureFileHandler(Handler):
                 measure_model.save()
                 return redirect('enviro:measurefiles-plot', measure_model.pk)
             else:
-                print('invalid')
                 return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
         else:
             return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
@@ -206,9 +205,7 @@ class MeasureFileHandler(Handler):
                     #                       'Try it again with different settings please',
                     #               'header': 'fit measurement file to probabilistic model',
                     #               'return_url': 'enviro:measurefiles-select'})
-                print('Calling setup_mul_dist(probabilistic_model)')
                 multivariate_distribution = setup_mul_dist(probabilistic_model)
-                print('Done with setup_mul_dist(probabilistic_model)')
                 latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
                 img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                 send_img = []
@@ -332,7 +329,6 @@ class ProbabilisticModelHandler(Handler):
         :return:            a graph with table (pdf) or error message.
         """
         item = ProbabilisticModel.objects.get(pk=pk)
-        print(item)
         var_names = []
         var_symbols = []
         dists_model = DistributionModel.objects.filter(probabilistic_model=item)
