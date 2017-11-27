@@ -61,7 +61,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scal
 
     text = text + ' ('
     if symbol_parent_var:
-        text = text + str(format(interval[0], '.3f')) + '<' + symbol_parent_var + '<' + str(
+        text = text + str(format(interval[0], '.3f')) + '≤' + symbol_parent_var + '<' + str(
             format(interval[1], '.3f')) + ', '
     text = text + 'n=' + str(len(dist_points)) + ')'
 
@@ -171,8 +171,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
 
     params = ['shape', 'location', 'scale']
     mult_float_points = []
-    intervals = []
-    intervals.append(0.00)
+    interval_centers = []
 
     # prepare data to plot a function and save the data into the database tables
     for i, param_points in enumerate(fit.mul_param_points):
@@ -201,7 +200,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
             if spec_param_points is not None:
                 for k, point in enumerate(spec_param_points[1]):
                     float_points.append(point)
-                    intervals.append(spec_param_points[0][k])
+                    interval_centers.append(spec_param_points[0][k])
                 plot_parameter_fit_overview(i, var_names[i], var_symbols[i], params[j], [spec_param_points[0], float_points],
                                             param, directory, distribution.name)
                 parameter_model = ParameterModel(function=param.func_name, x0=param.a, x1=param.b, x2=param.c,
@@ -235,10 +234,11 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
         for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
             #print('spec_dist_points type: ' + str(type(spec_dist_points)) + ', of length: ' + str(len(spec_dist_points)))
             for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
-                if i == 0 or len(intervals) < 2:
-                    interval = [min(intervals), max(intervals)]
+                if i == 0 or len(interval_centers) < 2:
+                    interval_limits = [min(interval_centers), max(interval_centers)]
                 else:
-                    interval = [intervals[k], intervals[k + 1]]
+                    interval_width = interval_centers[1] - interval_centers[0] # assuming constant interval width
+                    interval_limits = [interval_centers[k] - 0.5 * interval_width, interval_centers[k] + 0.5*interval_width]
 
                 #print('i: ' + str(i) + ', j: ' + str(j) + ', k: ' + str(k))
                 parent_index = fit.mul_var_dist.dependencies[i][j]
@@ -248,7 +248,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
                 #print('distribution name: ' + str(fit.mul_var_dist.distributions[i].name))
                 if is_legit_distribution_parameter_index(fit.mul_var_dist.distributions[i].name, j):
                     plot_pdf_with_raw_data(i, parent_index, k, mult_float_points[i][0][k], mult_float_points[i][1][k],
-                                               mult_float_points[i][2][k], fit.mul_var_dist.distributions[i].name, dist_point, interval,
+                                               mult_float_points[i][2][k], fit.mul_var_dist.distributions[i].name, dist_point, interval_limits,
                                                var_names[i], symbol_parent_var, directory)
                 if i == 0: # first variable has no dependencies --> no need to check
                     break
