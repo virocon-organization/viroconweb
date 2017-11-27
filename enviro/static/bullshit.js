@@ -1,1 +1,0 @@
-console.log('HAHAH BULLSHIT. Change! This is just a test that javascript can be loaded correctly.');

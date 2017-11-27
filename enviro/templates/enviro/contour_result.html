@@ -42,12 +42,8 @@
     <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
     <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
-        console.log('test');
-        console.log("{% static 'vis-4.20.1/dist/vis.js' %}");
         dim_data_set = {{ dim }};
-        console.log(dim_data_set);
         if (dim_data_set == 3){
-            console.log('is 3')
             document.getElementById ("btn-interactive-visualization").addEventListener ("click", drawVisualization3D, false);
         }
         if (dim_data_set == 4){
