@@ -48,12 +48,9 @@
                                     class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href=" {% url 'enviro:measurefiles-add' %}"> Add measurement file</a></li>
                                 <li><a href=" {% url 'enviro:measurefiles-overview' %}"> My measurement files</a></li>
+                                <li><a href="{% url 'enviro:probabilistic_model-overview' %}"> My probabilistic models</a></li>
                                 <li role="separator" class="divider"></li>
-                                 <li><a href="{% url 'enviro:probabilistic_model-add' '02' %}"> Enter probabilistic model</a></li>
-                                 <li><a href="{% url 'enviro:probabilistic_model-overview' %}"> My probabilistic models</a></li>
-                                 <li role="separator" class="divider"></li>
                                 <li><a href="{% url 'user:profile' %}">Profile</a></li>
                                 <li><a href="{% url 'user:logout' %}">Log out</a></li>
                             </ul>
