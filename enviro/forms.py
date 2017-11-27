@@ -75,13 +75,13 @@ class MeasureFileFitForm(forms.Form):
                 #self.fields['number_of_intervals_%s' % i] = forms.IntegerField(widget=forms.NumberInput(
                 #    attrs={'value': '7'}), label='number of intervals')
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='scale (λ) dependency')
+                                                                       label='λ (scale) dependency')
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='shape (k) dependency',
+                                                                       label='k (shape) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': 'shape_%s' % i}))
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                          label='location (θ) dependency',
+                                                                          label='θ (location) dependency',
                                                                           widget=forms.Select(
                                                                               attrs={'id': 'loc_%s' % i}))
 
@@ -147,7 +147,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='scale (λ) dependency',
+                                                                       label='λ (scale) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': dependency_id,
                                                                                   'onclick': func_call,
@@ -179,7 +179,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                       label='shape (k) dependency',
+                                                                       label='k (shape) dependency',
                                                                        widget=forms.Select(
                                                                            attrs={'id': dependency_id,
                                                                                   'onclick': func_call,
@@ -211,7 +211,7 @@ class VariablesForm(forms.Form):
             dist_id = 'dist_{}'.format(i)
             func_call = 'dependentChooser("' + dependency_id + '", "' + params_class + '", "' + dist_id + '")'.format(i)
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
-                                                                          label='location (θ) dependency',
+                                                                          label='θ (location) dependency',
                                                                           widget=forms.Select(
                                                                               attrs={'id': dependency_id,
                                                                                      'onclick': func_call,

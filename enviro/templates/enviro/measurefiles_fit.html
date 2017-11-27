@@ -100,15 +100,15 @@
                 document.getElementById('shape_'.concat(var_number)).style.display = 'none';
                 document.getElementById('loc_'.concat(var_number)).style.display = 'block';
                 document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '';
-                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = 'location (&mu;) dependency';
-                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = 'scale (&sigma;) dependency';
+                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = ' &mu; (location) dependency';
+                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&sigma; (scale) dependency';
             }
             else {
                 document.getElementById('loc_'.concat(var_number)).style.display = 'block';
                 document.getElementById('shape_'.concat(var_number)).style.display = 'block';
-                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = 'shape (k) dependency';
-                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = 'scale (&lambda;) dependency';
-                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = 'location (&theta;) dependency';
+                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = 'k (shape) dependency';
+                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&lambda; (scale) dependency';
+                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '&theta; (location) dependency';
             }
         }
 

@@ -101,18 +101,25 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, dat
     :param directory:       directory where the figure should be saved.
     :param dist_name        name of the distribution, e.g. "Lognormal"
     """
-    if dist_name == 'Lognormal':
-        if para_name == 'scale':
-            y_text = 'mu'
-        elif para_name == 'shape':
-            y_text = 'sigma'
+    if dist_name == 'Weibull':
+        if para_name == 'shape':
+            y_text = 'k (shape)'
+        elif para_name == 'location':
+            y_text = 'θ (location)'
+        elif para_name == 'scale':
+            y_text = 'λ (scale)'
+    elif dist_name == 'Lognormal':
+        if para_name == 'shape':
+            y_text = 'σ (sigma)'
+        elif para_name == 'scale':
+            y_text = 'μ (mu)'
     elif dist_name == 'Normal':
         if para_name == 'shape':
             return
         elif para_name == 'location':
-            y_text = 'mu (mean)'
+            y_text = 'μ (mean)'
         elif para_name == 'scale':
-            y_text = 'sigma (variance)'
+            y_text = 'σ (standard deviation)'
     else:
         y_text = para_name
 
@@ -232,20 +239,16 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
     for i, dist_points in enumerate(fit.mul_dist_points): # i = the variable index
         #print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
         for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
-            #print('spec_dist_points type: ' + str(type(spec_dist_points)) + ', of length: ' + str(len(spec_dist_points)))
             for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
                 if i == 0 or len(interval_centers) < 2:
                     interval_limits = [min(interval_centers), max(interval_centers)]
                 else:
                     interval_width = interval_centers[1] - interval_centers[0] # assuming constant interval width
                     interval_limits = [interval_centers[k] - 0.5 * interval_width, interval_centers[k] + 0.5*interval_width]
-
-                #print('i: ' + str(i) + ', j: ' + str(j) + ', k: ' + str(k))
                 parent_index = fit.mul_var_dist.dependencies[i][j]
                 symbol_parent_var = None
                 if parent_index is not None:
                     symbol_parent_var = var_symbols[parent_index]
-                #print('distribution name: ' + str(fit.mul_var_dist.distributions[i].name))
                 if is_legit_distribution_parameter_index(fit.mul_var_dist.distributions[i].name, j):
                     plot_pdf_with_raw_data(i, parent_index, k, mult_float_points[i][0][k], mult_float_points[i][1][k],
                                                mult_float_points[i][2][k], fit.mul_var_dist.distributions[i].name, dist_point, interval_limits,
