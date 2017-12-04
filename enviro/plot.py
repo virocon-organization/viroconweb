@@ -436,7 +436,8 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     styleN = styles['Normal']
 
     # add title for graph
-    story.append(Paragraph("<strong>Results: Environmental contour</strong>", styleN))
+    story.append(Paragraph("<strong>1. Results</strong>", styleN))
+    story.append(Paragraph("<strong>1.1 Environmental contour</strong>", styleN))
     story.append(Spacer(1, .25 * inch))
 
     # add graph
@@ -445,7 +446,7 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     story.append(Spacer(1, .5 * inch))
 
     # add title for extreme environmental conditions
-    story.append(Paragraph("<strong>Results: Extreme environmental design conditions</strong>", styleN))
+    story.append(Paragraph("<strong>1.2 Extreme environmental design conditions</strong>", styleN))
     story.append(Spacer(1, .25 * inch))
 
     # add table
@@ -460,6 +461,14 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
         story.append(Paragraph("The table is not plotted since a maximum of 200 extreme environmental design conditions"
                                " are supported. Based on your input we computed " + str(len(matrix[0][0])) + " conditions.", styleN))
         story.append(Spacer(1, .25 * inch))
+
+    story.append(Paragraph("<strong>2. Methods </strong>", styleN))
+    story.append(Paragraph("<strong>2.1. Associated measurement file</strong>", styleN))
+    story.append(Paragraph("<strong>2.2. Fitting</strong>", styleN))
+    story.append(Paragraph("<strong>2.2.1 Probability density function</strong>", styleN))
+    story.append(Paragraph("<strong>2.2.2 Goodness of fit</strong>", styleN))
+    story.append(Paragraph("<strong>2.3. Probabilistic model</strong>", styleN))
+    story.append(Paragraph("<strong>2.4. Environmental contour</strong>", styleN))
 
     # build Story into Document Template
     short_path = user + '/contour_table.pdf'
