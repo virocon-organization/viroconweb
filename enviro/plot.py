@@ -21,6 +21,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
 from pprint import pprint
 
+IMAGE_FULL_WIDTH_REPORT = 16.26  # in cm
+IMAGE_FULL_HEIGHT_REPORT = 12.19  # in cm
+
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scale, distribution_type, dist_points, interval, var_name,
                            symbol_parent_var, directory):
     """
@@ -429,6 +432,7 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     :param var_symbols: symbols of the variables of the probabilistic model
     :return:            the path to the user related pdf.
     """
+
     plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
 
     story = []
@@ -441,8 +445,8 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     story.append(Spacer(1, .25 * inch))
 
     # add graph
-    short_path = user + '/contour.png'
-    story.append(Image('enviro/static/' + short_path, width=16.26 * cm, height=12.19 * cm))
+    file_path_contour = 'enviro/static/' + user + '/contour.png'
+    story.append(Image(file_path_contour, width=IMAGE_FULL_WIDTH_REPORT * cm, height=IMAGE_FULL_HEIGHT_REPORT * cm))
     story.append(Spacer(1, .5 * inch))
 
     # add title for extreme environmental conditions
@@ -464,17 +468,36 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
 
     story.append(Paragraph("<strong>2. Methods </strong>", styleN))
     story.append(Paragraph("<strong>2.1. Associated measurement file</strong>", styleN))
+    if probabilistic_model.measure_file_model:
+        story.append(Paragraph("File: '" + probabilistic_model.measure_file_model.title +"'", styleN))
+        file_path_scatter = 'enviro/static/' + user + '/scatter.png'
+        story.append(Image(file_path_scatter, width=IMAGE_FULL_WIDTH_REPORT * cm, height=IMAGE_FULL_HEIGHT_REPORT * cm))
+        story.append(Spacer(1, .25 * inch))
+    else:
+        story.append(Paragraph("There is no associated measurement file.", styleN))
     story.append(Paragraph("<strong>2.2. Fitting</strong>", styleN))
-    story.append(Paragraph("<strong>2.2.1 Probability density function</strong>", styleN))
-    story.append(Paragraph("<strong>2.2.2 Goodness of fit</strong>", styleN))
+    if probabilistic_model.measure_file_model:
+        story.append(Paragraph("<strong>2.2.1 Probability density function</strong>", styleN))
+        story.append(Paragraph("<strong>2.2.2 Goodness of fit</strong>", styleN))
+        directory_prefix = 'enviro/static/'
+        directory_after_static = user + '/prob_model/' + str(probabilistic_model.pk)
+        directory = directory_prefix + directory_after_static
+        if os.path.isdir(directory):
+            img_list = os.listdir(directory)
+            for img in img_list:
+                story.append(Image(directory + '/' + img, width=0.65*IMAGE_FULL_WIDTH_REPORT * cm, height=0.65*IMAGE_FULL_HEIGHT_REPORT * cm))
+                story.append(Spacer(1, .25 * inch))
+    else:
+        story.append(Paragraph("There is no fit.", styleN))
+
     story.append(Paragraph("<strong>2.3. Probabilistic model</strong>", styleN))
     story.append(Paragraph("<strong>2.4. Environmental contour</strong>", styleN))
 
     # build Story into Document Template
-    short_path = user + '/contour_table.pdf'
-    doc = BaseDocTemplate(filename='enviro/static/' + short_path)
+    short_file_path_report = user + '/contour_table.pdf'
+    doc = BaseDocTemplate(filename='enviro/static/' + short_file_path_report)
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height - 2 * cm, )
     template = PageTemplate(id='test', frames=frame, onPage=define_header_and_footer)
     doc.addPageTemplates([template])
     doc.build(story)
-    return short_path
+    return short_file_path_report
