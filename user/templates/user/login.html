@@ -1,33 +1,26 @@
-{% extends "../base.html"%}
+{% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    Accounting
+    Login
     <div class="page-header"></div>
     <br>
-
-<div class="container fluid">
-    <div class="row">
-        <div class="col-sm-12 col-md-7">
-            <div class="panel panel-default">
-                <div class="panel-body">
-
-                    {{error}}
-                    <h3>Login</h3>
-                    <form class="form-horizontal" action='' method="post">{%csrf_token%}
-                        {{ form.as_p }}
-
-                        {{ form.fieldname.errors }}
-                        <div class="form-group">
-                            <div class="col-sm-offset-2 col-sm-10">
-                                <button class="btn btn-primary">Login</button>
-                                 <a href="{% url 'user:create' %}" class="btn btn-default">Register</a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Login</h3>
+            </div>
+            <div class="panel-body">
+            <div class="text-danger small">{{ form.non_field_errors }}</div>
+                {% for item in form %}
+                    <div class="row">
+                        <div class="col-sm-3">{{ item.label_tag }}</div>
+                        <div class="col-sm-7">{{ item }}</div>
+                    </div>
+                    <br>
+                {% endfor %}
+                <button class="btn btn-success">Submit</button>
             </div>
         </div>
-    </div>
-</div>
-
-{% endblock content%}
+    </form>
+{% endblock content %}

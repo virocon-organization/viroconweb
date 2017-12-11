@@ -10,15 +10,14 @@ from django.contrib.auth import update_session_auth_hash
 
 # Method will be opened when login button is pressed and opens the login html
 def authentication(request):
-    form = AuthenticationForm
+    form = AuthenticationForm()
     if request.method == 'POST':
         form = AuthenticationForm(None, request.POST or None)
-        error_text = "Login Fehlgeschlagen"
         if form.is_valid():
             auth.login(request, form.get_user())
             return HttpResponseRedirect('/home')
         else:
-            return render(request, 'user/login.html', {'error': error_text, 'form': form})
+            return render(request, 'user/login.html', {'form': form})
 
     return render(request, 'user/login.html', {'form': form})
 
