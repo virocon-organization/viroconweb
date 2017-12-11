@@ -17,9 +17,11 @@ matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/i
 import matplotlib.pyplot as plt
 from .plot_generic import *
 from descartes import PolygonPatch
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.tri as mtri
-from pprint import pprint
+from django.http import HttpResponse
+from django.template import Context
+from django.template.loader import get_template
+from subprocess import Popen, PIPE
+import tempfile
 
 IMAGE_FULL_WIDTH_REPORT = 16.26  # in cm
 IMAGE_FULL_HEIGHT_REPORT = 12.19  # in cm
@@ -500,4 +502,75 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     template = PageTemplate(id='test', frames=frame, onPage=define_header_and_footer)
     doc.addPageTemplates([template])
     doc.build(story)
+
     return short_file_path_report
+
+def create_latex_report(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
+    plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
+    file_path_contour = 'enviro/static/' + user + '/contour.png'
+
+    latex_content = r"""\section{Results}
+                \subsection{Environmental contour}
+                \includegraphics[width=\textwidth]{""" + file_path_contour + r"""}
+                \subsection{Extreme environmental design conditions}"""\
+                    + get_latex_eedc_table(var_names, var_symbols, matrix) + r"""
+                \section{Methods}
+                \subsection{Associated measurement file}
+                \subsection{Fitting}
+                \subsection{Probabilistic model}
+                \subsection{Environmental contour}"""
+    print("latex_content:")
+    print(latex_content)
+    render_dict = dict(
+        content=latex_content
+        )
+    template = get_template('enviro/latex_report.tex')
+    rendered_tpl = template.render(render_dict).encode('utf-8')
+    # Python3 only. For python2 check out the docs!
+    with tempfile.TemporaryDirectory() as tempdir:
+        # Create subprocess, supress output with PIPE and
+        # run latex twice to generate the TOC properly.
+        # Finally read the generated pdf.
+        for i in range(2):
+            process = Popen(
+                ['pdflatex', '-output-directory', tempdir],
+                stdin=PIPE,
+                stdout=PIPE,
+            )
+            process.communicate(rendered_tpl)
+        with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
+            pdf = f.read()
+
+
+        short_file_path_report = user + '/latex_report.pdf'
+        full_file_path_report = 'enviro/static/' + short_file_path_report
+        with open(full_file_path_report, 'wb') as f:
+            f.write(pdf)
+
+    return short_file_path_report
+
+def get_latex_eedc_table(var_names, var_symbols, matrix):
+    table_string = r"\begin{tabular}{"
+    for i in range(len(var_names) + 1):
+        table_string += r" l"
+    table_string += r" }"
+
+    table_string += r"EEDC & "
+    for i, x in enumerate(var_names):
+        table_string += x
+        if i == len(var_names) - 1:
+            table_string += r"\\"
+        else:
+            table_string += r" & "
+
+    for i in range(len(matrix[0][1])):
+        table_string += r"" + str(i) + r" & "
+        for j in range(len(var_names)):
+            table_string += "{0:.2f}".format(matrix[0][j][i]) # thanks to https://stackoverflow.com/questions/455612/limiting-floats-to-two-decimal-points
+            if j == len(var_names) - 1:
+                table_string += r"\\"
+            else:
+                table_string += r" & "
+    table_string += r"\end{tabular}"
+
+    return table_string

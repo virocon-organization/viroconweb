@@ -1,0 +1,7 @@
+{% autoescape on %}
+\documentclass{article}
+\usepackage{graphicx}
+\begin{document}
+  {{ content|safe }}
+\end{document}
+{% endautoescape %}

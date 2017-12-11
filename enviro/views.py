@@ -369,9 +369,13 @@ class ProbabilisticModelHandler(Handler):
                                                                  'header': 'calculate Contour',
                                                                  'return_url': 'enviro:probabilistic_model-select'})
 
-                path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
+                #path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
+                #                str(iform_form.cleaned_data['return_period']),
+                #                ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
+                path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                 str(iform_form.cleaned_data['return_period']),
-                                ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
+                               ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
+
 
                 #probabilistic_model.measure_file_model.measure_file
                 # if matrix 4dim - send data for 4dim interactive plot.
