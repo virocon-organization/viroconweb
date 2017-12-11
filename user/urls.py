@@ -14,5 +14,5 @@ urlpatterns = [
 
     url(r'^edit/$', views.edit, name='edit'),
 
-    url(r'^edit_password/$', views.edit_password, name='edit_password'),
+    url(r'^change-password/$', views.change_password, name='change-password'),
 ]

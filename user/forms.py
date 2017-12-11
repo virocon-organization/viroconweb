@@ -19,6 +19,14 @@ class CustomUserChangeForm(UserChangeForm):
         fields = '__all__'
 
 
+class CustomUserEditForm(UserChangeForm):
+    password = None
+
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'organisation', 'type_of_use')
+
+
 class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
 

@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.contrib import auth
 from django.http import HttpResponseRedirect
 from .forms import CustomUserCreationForm
-from .forms import CustomUserChangeForm
-from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm, AuthenticationForm
+from .forms import CustomUserEditForm
+from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 
 
@@ -57,17 +57,17 @@ def profile(request):
 
 def edit(request):
     if request.method == 'POST':
-        form = CustomUserChangeForm(request.POST, instance=request.user)
+        form = CustomUserEditForm(request.POST, instance=request.user)
 
         if form.is_valid():
             form.save()
             return redirect(reverse('user:profile'))
     else:
-        form = CustomUserChangeForm(instance=request.user)
+        form = CustomUserEditForm(instance=request.user)
         return render(request, 'user/edit.html', {'form': form})
 
 
-def edit_password(request):
+def change_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(data=request.POST, user=request.user)
 
@@ -76,8 +76,7 @@ def edit_password(request):
             update_session_auth_hash(request, form.user)
             return redirect(reverse('user:profile'))
         else:
-            return redirect('/user/change-password')
+            return render(request, 'user/change_password.html', {'form': form})
     else:
         form = PasswordChangeForm(user=request.user)
-        args = {'form': form}
-        return render(request, 'user/change_password.html', args)
+        return render(request, 'user/change_password.html', {'form': form})
