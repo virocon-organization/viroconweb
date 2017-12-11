@@ -34,9 +34,22 @@
                 <div class="col-sm-4">{{ user.email }}</div>
                 <div class="col-sm-2"></div>
             </div>
+            <div>
+                <div class="col-sm-2"></div>
+                <div class="col-sm-4">organisation: </div>
+                <div class="col-sm-4">{{ user.organisation }}</div>
+                <div class="col-sm-2"></div>
+            </div>
+            <div>
+                <div class="col-sm-2"></div>
+                <div class="col-sm-4">type of use: </div>
+                <div class="col-sm-4">{{ user.type_of_use }}</div>
+                <div class="col-sm-2"></div>
+            </div>
 
-            <a href="/user/profile/edit" class="btn btn-default">edit profile</a>
-            <a href="/user/profile/password" class="btn btn-default">change password</a>
+
+            <a href="{% url 'user:edit' %}" class="btn btn-default">edit profile</a>
+            <a href="{% url 'user:edit_password' %}" class="btn btn-default">change password</a>
             <br>
             <br>
         </div>

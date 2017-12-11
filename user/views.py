@@ -2,24 +2,25 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .forms import RegistrationForm, LoginForm, EditProfileForm
-from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
+from .forms import CustomUserCreationForm
+from .forms import CustomUserChangeForm
+from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 
 
 # Method will be opened when login button is pressed and opens the login html
-def login(request):
-    login_form = LoginForm()
+def authentication(request):
+    form = AuthenticationForm
     if request.method == 'POST':
-        auth_form = LoginForm(None, request.POST or None)
+        form = AuthenticationForm(None, request.POST or None)
         error_text = "Login Fehlgeschlagen"
-        if auth_form.is_valid():
-            auth.login(request, auth_form.get_user())
+        if form.is_valid():
+            auth.login(request, form.get_user())
             return HttpResponseRedirect('/home')
         else:
-            return render(request, 'user/user_login.html', {'error': error_text, 'form': login_form})
+            return render(request, 'user/login.html', {'error': error_text, 'form': form})
 
-    return render(request, 'user/user_login.html', {'form': login_form})
+    return render(request, 'user/login.html', {'form': form})
 
 
 # Method is called after userdata is entered and checks database for verification
@@ -28,32 +29,19 @@ def authentic(request, username, password):
     auth.login(request, user)
 
 
-# Method is called after opening the registration html
-def register_user(request):
-    # opens after second call
-    # processes data, input by user in the fields
+def create(request):
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         # user will be saved in db, if input is form-compliant, else a error site opens
-        print(form)
         if form.is_valid():
             form.save()
             authentic(request, username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
             return HttpResponseRedirect('/home')
         else:
-            return render(request, 'user/user_registration.html', {'form': form})
+            return render(request, 'user/create.html', {'form': form})
     # provides fields to be filled
     else:
-        return render(request, 'user/user_registration.html', {'form': RegistrationForm()})
-
-
-# Manages both html-files and redirects to correct site, depending on success or fail of registration
-def register_form(request, err):
-    if err is False:
-        return render(request, 'user/user_registration.html', {'form': RegistrationForm()})
-    else:
-        return render(request, 'user/user_registration.html', {'form': RegistrationForm(),
-            'error': "Register failed"} )
+        return render(request, 'user/create.html', {'form': CustomUserCreationForm()})
 
 
 # Method called at logout and logs user off
@@ -64,26 +52,22 @@ def logout(request):
 
 # Method shows user profile
 def profile(request):
-    return render(request, 'user/user_profile.html')
+    return render(request, 'user/profile.html')
 
 
-# Method makes user profile editable
-def edit_profile(request):
+def edit(request):
     if request.method == 'POST':
-        form = EditProfileForm(request.POST, instance=request.user)
+        form = CustomUserChangeForm(request.POST, instance=request.user)
 
         if form.is_valid():
             form.save()
             return redirect(reverse('user:profile'))
     else:
-        form = EditProfileForm(instance=request.user)
-        args = {'form': form}
-        for fields in form:
-            print(fields)
-        return render(request, 'user/user_edit_profile.html', args)
+        form = CustomUserChangeForm(instance=request.user)
+        return render(request, 'user/edit.html', {'form': form})
 
 
-def change_password(request):
+def edit_password(request):
     if request.method == 'POST':
         form = PasswordChangeForm(data=request.POST, user=request.user)
 
@@ -96,4 +80,4 @@ def change_password(request):
     else:
         form = PasswordChangeForm(user=request.user)
         args = {'form': form}
-        return render(request, 'user/user_change_password.html', args)
+        return render(request, 'user/change_password.html', args)
