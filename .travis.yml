@@ -4,6 +4,12 @@ python:
 
 script: python -m unittest discover --start-directory ./enviro/compute_tests
 
+env:
+    global:
+    - ENCRYPTION_LABEL: "2d371be78117"
+    - COMMIT_AUTHOR_EMAIL: "virocon@uni-bremen.de"
+    
+
 notifications:
   email:
     - a.haselsteiner@uni-bremen.de
