@@ -8,18 +8,27 @@ from django.contrib.auth.forms import UserCreationForm
 
 
 class CustomUserCreationForm(UserCreationForm):
+    """
+    The class represents a form the create a new user.
+    """
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name', 'organisation', 'type_of_use',)
 
 
 class CustomUserChangeForm(UserChangeForm):
+    """
+    The class represents a form to change attributes of a user. The Form is used in the admin area.
+    """
     class Meta(UserChangeForm.Meta):
         model = User
         fields = '__all__'
 
 
 class CustomUserEditForm(UserChangeForm):
+    """
+    The class represents a form to change attributes of a user by himself.
+    """
     password = None
 
     class Meta(UserChangeForm.Meta):
@@ -28,6 +37,9 @@ class CustomUserEditForm(UserChangeForm):
 
 
 class CustomUserAdmin(UserAdmin):
+    """
+    The class provides which fields are seen in the admin area.
+    """
     form = CustomUserChangeForm
 
     fieldsets = UserAdmin.fieldsets + (
