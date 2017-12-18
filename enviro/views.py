@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from django.contrib.auth.models import User
+from .models import User
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from .forms import *

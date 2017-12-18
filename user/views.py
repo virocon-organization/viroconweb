@@ -37,10 +37,10 @@ def create(request):
             authentic(request, username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
             return HttpResponseRedirect('/home')
         else:
-            return render(request, 'user/create.html', {'form': form})
+            return render(request, 'user/edit.html', {'form': form})
     # provides fields to be filled
     else:
-        return render(request, 'user/create.html', {'form': CustomUserCreationForm()})
+        return render(request, 'user/edit.html', {'form': CustomUserCreationForm()})
 
 
 # Method called at logout and logs user off
@@ -75,7 +75,7 @@ def change_password(request):
             update_session_auth_hash(request, form.user)
             return redirect(reverse('user:profile'))
         else:
-            return render(request, 'user/change_password.html', {'form': form})
+            return render(request, 'user/edit.html', {'form': form})
     else:
         form = PasswordChangeForm(user=request.user)
-        return render(request, 'user/change_password.html', {'form': form})
+        return render(request, 'user/edit.html', {'form': form})
