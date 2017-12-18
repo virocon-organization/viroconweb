@@ -6,7 +6,7 @@ make html
 cd ../..
 
 # move to /out dir
-mv enviro/compute_docs/_build/html/ ./out
+mv -f enviro/compute_docs/_build/html/ out
 
 # delete unnecessary stuff in _build folder
 rm -rf enviro/compute_docs/_build/
