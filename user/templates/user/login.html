@@ -15,7 +15,8 @@
                 {% for item in form %}
                     <div class="row">
                         <div class="col-sm-2"></div>
-                        <div class="col-sm-3">{{ item.label_tag }}</div>
+                        <label class="col-sm-3"
+                               id={{ item.html_initial_id }} for="{{ item.id_for_label }}">{{ item.label_tag }}</label>
                         <div class="col-sm-4">{{ item }}</div>
                         <div class="col-sm-2 text-danger small">{{ item.errors }}</div>
                     </div>
@@ -24,17 +25,16 @@
                 <div class="row">
                     <div class="col-sm-4"></div>
                     <div class="col-sm-4">
-                        <button class="btn btn-default btn-block">Login</button>
+                        <button class="btn btn-primary btn-block">Login</button>
                     </div>
                     <div class="col-sm-4"></div>
                 </div>
                 <hr>
                 <div class="row">
-
                     <div class="col-sm-4"></div>
                     <div class="col-sm-4">
                         <a type="button" href="{% url 'user:create' %}">
-                            <button type="button" class="btn btn-default btn-block">create ViroCon account</button>
+                            <button type="button" class="btn btn-default btn-block">Create ViroCon account</button>
                         </a>
                     </div>
                     <div class="col-sm-4"></div>
