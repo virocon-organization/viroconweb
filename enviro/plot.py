@@ -507,7 +507,13 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
 
 def create_latex_report(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
     plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
-    file_path_contour = 'enviro/static/' + user + '/contour.png'
+    directory_prefix = 'enviro/static/'
+    file_path_contour = directory_prefix + user + '/contour.png'
+    directory_fit_images = directory_prefix + user + '/prob_model/'
+    img_list = os.listdir(directory_fit_images + '/' + str(probabilistic_model.pk))
+
+    for img in img_list:
+        print(img)
 
     latex_content = r"""\section{Results}
                 \subsection{Environmental contour}
@@ -516,9 +522,18 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
                     + get_latex_eedc_table(var_names, var_symbols, matrix) + r"""
                 \section{Methods}
                 \subsection{Associated measurement file}
-                \subsection{Fitting}
-                \subsection{Probabilistic model}
+                \subsection{Fitting}"""
+    for img in img_list:
+        img_name = directory_fit_images + str(probabilistic_model.pk) + "/" + img
+        print("img_name: " + img_name)
+        latex_content += r"""\begin{figure}[H]"""
+        latex_content += r"""\includegraphics[width=\textwidth]{""" + img_name + r"""}"""
+        latex_content += r"""\end{figure}"""
+    latex_content += r"""\subsection{Probabilistic model}
                 \subsection{Environmental contour}"""
+
+    print("file_path_contour: " + file_path_contour)
+
     print("latex_content:")
     print(latex_content)
     render_dict = dict(
@@ -564,7 +579,7 @@ def get_latex_eedc_table(var_names, var_symbols, matrix):
             table_string += r" & "
 
     for i in range(len(matrix[0][1])):
-        table_string += r"" + str(i) + r" & "
+        table_string += r"" + str(i+1) + r" & "
         for j in range(len(var_names)):
             table_string += "{0:.2f}".format(matrix[0][j][i]) # thanks to https://stackoverflow.com/questions/455612/limiting-floats-to-two-decimal-points
             if j == len(var_names) - 1:
