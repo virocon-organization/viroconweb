@@ -74,9 +74,11 @@ def logout(request):
     ------
     HttpResponseRedirect to home.
     """
-    auth.logout(request)
-    return HttpResponseRedirect('/home')
-
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/home')
+    else:
+        auth.logout(request)
+        return HttpResponseRedirect('/home')
 
 
 def profile(request):
@@ -91,7 +93,10 @@ def profile(request):
     -------
     HttpResponse
     """
-    return render(request, 'user/profile.html')
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/home')
+    else:
+        return render(request, 'user/profile.html')
 
 
 def edit(request):
@@ -106,15 +111,18 @@ def edit(request):
     -------
     HttpResponse
     """
-    if request.method == 'POST':
-        form = CustomUserEditForm(request.POST, instance=request.user)
-
-        if form.is_valid():
-            form.save()
-            return redirect(reverse('user:profile'))
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/home')
     else:
-        form = CustomUserEditForm(instance=request.user)
-        return render(request, 'user/edit.html', {'form': form})
+        if request.method == 'POST':
+            form = CustomUserEditForm(request.POST, instance=request.user)
+
+            if form.is_valid():
+                form.save()
+                return redirect(reverse('user:profile'))
+        else:
+            form = CustomUserEditForm(instance=request.user)
+            return render(request, 'user/edit.html', {'form': form})
 
 
 def change_password(request):
@@ -129,15 +137,18 @@ def change_password(request):
     -------
     HttpResponse
     """
-    if request.method == 'POST':
-        form = PasswordChangeForm(data=request.POST, user=request.user)
-
-        if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, form.user)
-            return redirect(reverse('user:profile'))
-        else:
-            return render(request, 'user/edit.html', {'form': form})
+    if request.user.is_anonymous:
+        return HttpResponseRedirect('/home')
     else:
-        form = PasswordChangeForm(user=request.user)
-        return render(request, 'user/edit.html', {'form': form})
+        if request.method == 'POST':
+            form = PasswordChangeForm(data=request.POST, user=request.user)
+
+            if form.is_valid():
+                form.save()
+                update_session_auth_hash(request, form.user)
+                return redirect(reverse('user:profile'))
+            else:
+                return render(request, 'user/edit.html', {'form': form})
+        else:
+            form = PasswordChangeForm(user=request.user)
+            return render(request, 'user/edit.html', {'form': form})
