@@ -18,7 +18,7 @@ class User(AbstractUser):
     type_of_use : for which purpose the user uses ViroCon.
 
     """
-    TYPES = (('academic', 'academic'), ('commercial', 'commercial'), ('other', 'other'))
+    TYPES = (('academic', 'academic'), ('commercial', 'commercial'))
     username = models.CharField('user name', max_length=30, unique=True,
                                 help_text=('Required. 30 characters or fewer. Letters, digits and '
                                            '@/./+/-/_ only.'),
