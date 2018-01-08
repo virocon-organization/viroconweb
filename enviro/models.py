@@ -55,7 +55,7 @@ class DistributionModel(models.Model):
 
 
 class ParameterModel(models.Model):
-    FUNCTIONS = ((None, 'None'), ('polynomial', 'polynomial'), ('exponential', 'exponential'), ('exppoly', 'exppoly'))
+    FUNCTIONS = ((None, 'None'), ('f1', 'power function'), ('f2', 'exponential'))
     function = models.CharField(choices=FUNCTIONS, max_length=6)
     x0 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10, null=True)
     x1 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10, null=True)
