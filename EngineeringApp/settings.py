@@ -29,6 +29,9 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# select own user model
+AUTH_USER_MODEL = 'user.User'
+
 ALLOWED_HOSTS = []
 
 # Application definition

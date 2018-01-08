@@ -1,51 +1,43 @@
-from django.contrib.auth.models import User
-from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
+from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
 
 
-class LoginForm(AuthenticationForm):
-    pass
-
-
-# Represents the form of the user class
-class RegistrationForm(UserCreationForm):
-    # Adds a field for the user-email-address
-    email = forms.EmailField(required=True)
-
-    # Extends the password confirmation field of the UserCreationForm-class
-    password2 = forms.CharField(
-        label="Password confirmation",
-        widget=forms.PasswordInput,
-        strip=False,
-    )
-
-    username = forms.CharField(required=True)
-
-    # Summarizes the fields of the User class to a model
-    class Meta:
+class CustomUserCreationForm(UserCreationForm):
+    """
+    This class represents a form the create a new user.
+    """
+    class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email", "first_name", "last_name", "password1", "password2")
-
-    # extends the save method of the UserCreationForm class and adds the defined fields
-    def save(self, commit=True):
-        user = super(RegistrationForm, self).save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.username = self.cleaned_data['username']
-
-        if commit:
-            user.save()
-
-        return user
+        fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name', 'organisation', 'type_of_use',)
 
 
-# Class defines the clean GUI-view at user/profile/edit
-class EditProfileForm(UserChangeForm):
-    # the "no-raw-password-message" isn't shown anymore
+class CustomUserChangeForm(UserChangeForm):
+    """
+    This class represents a form to change attributes of a user. The Form is used in the admin area.
+    """
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = '__all__'
+
+
+class CustomUserEditForm(UserChangeForm):
+    """
+    This class represents a form to change attributes of a user by himself.
+    """
     password = None
 
-    # defines fields to be shown to the user to change
-    class Meta:
+    class Meta(UserChangeForm.Meta):
         model = User
-        fields = ("email", "first_name", "last_name")
+        fields = ('username', 'first_name', 'last_name', 'email', 'organisation', 'type_of_use')
+
+
+class CustomUserAdmin(UserAdmin):
+    """
+    This class provides which fields are seen in the admin area.
+    """
+    form = CustomUserChangeForm
+
+    fieldsets = UserAdmin.fieldsets + (
+        (None, {'fields': ('organisation', 'type_of_use',)}),)

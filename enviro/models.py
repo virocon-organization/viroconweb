@@ -2,7 +2,7 @@ from django.utils import timezone
 from .validators import validate_file_extension
 from django.db import models
 from django.dispatch import receiver
-from django.contrib.auth.models import User
+from user.models import User
 import os
 
 
