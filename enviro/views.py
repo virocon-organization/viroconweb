@@ -361,7 +361,8 @@ class ProbabilisticModelHandler(Handler):
                 try:
                     contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
                                               iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
-                    method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']))
+                    method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']),
+                    iform_form.cleaned_data['sea_state'], {"Number of points on the contour": iform_form.cleaned_data['n_steps']})
                 # catch and allocate errors caused by calculating iform.
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html', {'error_message': err,
@@ -374,7 +375,7 @@ class ProbabilisticModelHandler(Handler):
                 #                ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
                 path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                 str(iform_form.cleaned_data['return_period']),
-                               ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
+                               ' years, Inverse First Order Reliability Mehtod (IFORM)']), probabilistic_model, var_names, var_symbols, method)
 
 
                 #probabilistic_model.measure_file_model.measure_file
@@ -433,7 +434,8 @@ class ProbabilisticModelHandler(Handler):
                     with warnings.catch_warnings(record=True) as warn:
                         contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
                                                 hdc_form.cleaned_data['sea_state'], limits, deltas)
-                        method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']))
+                        method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
+                                        hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                 # catch and allocate errors caused by calculating hdc.
                 except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     return render(request, 'enviro/error.html', {'error_message': err,
@@ -442,7 +444,7 @@ class ProbabilisticModelHandler(Handler):
                                                                  'return_url': 'enviro:probabilistic_model-select'})
 
                 # generate path to the user specific pdf.
-                path = plot_pdf(contour_matrix, str(request.user),  ''.join(['T = ',
+                path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ', # old report method: plot_pdf(...)
                                 str(hdc_form.cleaned_data['n_years']),
                                 ' years, Highest Density Contour (HDC)']),
                                 probabilistic_model, var_names, var_symbols, method)
@@ -550,8 +552,9 @@ def get_info_from_file(url):
         return var_names, var_symbols
 
 class Method:
-    def __init__(self, fitting_method, contour_method, return_period):
+    def __init__(self, fitting_method, contour_method, return_period, state_duration, additional_options=None):
         self.fitting_method = fitting_method
         self.contour_method = contour_method
         self.return_period = return_period
-
+        self.state_duration = state_duration
+        self.additional_options = additional_options

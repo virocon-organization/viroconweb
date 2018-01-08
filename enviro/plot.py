@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
+from .compute_interface import setup_mul_dist
 import tempfile
 
 IMAGE_FULL_WIDTH_REPORT = 16.26  # in cm
@@ -512,8 +513,8 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
     directory_fit_images = directory_prefix + user + '/prob_model/'
     img_list = os.listdir(directory_fit_images + '/' + str(probabilistic_model.pk))
 
-    for img in img_list:
-        print(img)
+
+    print("measure file: " + probabilistic_model.measure_file_model.title)
 
     latex_content = r"""\section{Results}
                 \subsection{Environmental contour}
@@ -521,16 +522,43 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
                 \subsection{Extreme environmental design conditions}"""\
                     + get_latex_eedc_table(var_names, var_symbols, matrix) + r"""
                 \section{Methods}
-                \subsection{Associated measurement file}
+                \subsection{Associated measurement file}"""
+    if probabilistic_model.measure_file_model:
+        latex_content += r"""file: '\verb|""" + probabilistic_model.measure_file_model.title + r"""|'
                 \subsection{Fitting}"""
-    for img in img_list:
-        img_name = directory_fit_images + str(probabilistic_model.pk) + "/" + img
-        print("img_name: " + img_name)
-        latex_content += r"""\begin{figure}[H]"""
-        latex_content += r"""\includegraphics[width=\textwidth]{""" + img_name + r"""}"""
-        latex_content += r"""\end{figure}"""
-    latex_content += r"""\subsection{Probabilistic model}
-                \subsection{Environmental contour}"""
+        for img in img_list:
+            img_name = directory_fit_images + str(probabilistic_model.pk) + "/" + img
+            latex_content += r"""\begin{figure}[H]"""
+            latex_content += r"""\includegraphics[width=\textwidth]{""" + img_name + r"""}"""
+            latex_content += r"""\end{figure}"""
+    else:
+        latex_content += r"""No associated file. The model was created by direct input."""
+
+    latex_content += r"""\subsection{Probabilistic model}"""
+
+    # get the equation in latex style
+    dists_model = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+    var_symbols = []
+    for dist in dists_model:
+        var_symbols.append(dist.symbol)
+    multivariate_distribution = setup_mul_dist(probabilistic_model)
+    latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+
+    for latex_string in latex_string_list:
+        latex_content += r"""\begin{equation*}"""
+        latex_content += latex_string
+        latex_content += r"""\end{equation*}"""
+    latex_content += r"""\subsection{Environmental contour}
+        \begin{itemize}"""
+    #    \item Fitting method: """
+    #latex_content += method.fitting_method
+    latex_content += r"""\item Contour method: """
+    latex_content += method.contour_method
+    latex_content += r"""\item Return period: """
+    latex_content += str(method.return_period) + " years"
+    for key, val in method.additional_options.items():
+        latex_content += r"""\item """ + key + ": " + str(val)
+    latex_content += r"""\end{itemize}"""
 
     print("file_path_contour: " + file_path_contour)
 
