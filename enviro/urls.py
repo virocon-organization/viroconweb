@@ -6,7 +6,7 @@ app_name = 'enviro'
 
 urlpatterns = [
 
-    # URL to reach the plot_pdf
+    # URL to download the latex-based pdf report
     url(r'^download_pdf$', views.download_pdf, name='download_pdf'),
 
 

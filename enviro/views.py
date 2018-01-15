@@ -370,9 +370,6 @@ class ProbabilisticModelHandler(Handler):
                                                                  'header': 'calculate Contour',
                                                                  'return_url': 'enviro:probabilistic_model-select'})
 
-                #path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
-                #                str(iform_form.cleaned_data['return_period']),
-                #                ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
                 path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                 str(iform_form.cleaned_data['return_period']),
                                ' years, Inverse First Order Reliability Mehtod (IFORM)']), probabilistic_model, var_names, var_symbols, method)
@@ -444,7 +441,7 @@ class ProbabilisticModelHandler(Handler):
                                                                  'return_url': 'enviro:probabilistic_model-select'})
 
                 # generate path to the user specific pdf.
-                path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ', # old report method: plot_pdf(...)
+                path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
                                 str(hdc_form.cleaned_data['n_years']),
                                 ' years, Highest Density Contour (HDC)']),
                                 probabilistic_model, var_names, var_symbols, method)
