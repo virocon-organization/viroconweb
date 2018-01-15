@@ -507,20 +507,56 @@ def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_sym
     return short_file_path_report
 
 def create_latex_report(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
+    """
+    Creates a latex-based pdf report describing the performed environmental contour calculation.
+
+    Makes use of the 'latex_report.tex' template where the document class and packages are defined.
+
+    Parameters
+    ----------
+    matrix : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform()
+
+    user : Django User instance
+
+    method_label : string
+        Will be used as the title of the contour plot,
+        e.g.  "Tom's wave model, T = 2 years, Highest Density Contour (HDC)"
+
+    probabilistic_model : ProbabilisticModel instance
+
+    var_names : list of strings
+        Names of the environmental variables used in the probabilistic model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+    var_symbols : list of strings
+        Symbols of the environental variables used in the probabilistic model,
+        e.g. ['V', 'Hs']
+
+    method : views.Method instance
+        Contains all the information used to create the environmental contour
+        Has among other the attributes method.contour_method and method.return_period
+
+    Returns
+    -------
+    short_file_path_report : string,
+        The path where the pdf, generated based latex, is saved
+        The path continues after 'enviro/static/'
+
+    """
+
     plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
     directory_prefix = 'enviro/static/'
     file_path_contour = directory_prefix + user + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
     img_list = os.listdir(directory_fit_images + '/' + str(probabilistic_model.pk))
 
-
-    print("measure file: " + probabilistic_model.measure_file_model.title)
-
     latex_content = r"""\section{Results}
                 \subsection{Environmental contour}
                 \includegraphics[width=\textwidth]{""" + file_path_contour + r"""}
                 \subsection{Extreme environmental design conditions}"""\
-                    + get_latex_eedc_table(var_names, var_symbols, matrix) + r"""
+                    + get_latex_eedc_table(matrix, var_names, var_symbols) + r"""
                 \section{Methods}
                 \subsection{Associated measurement file}"""
     if probabilistic_model.measure_file_model:
@@ -550,8 +586,6 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
         latex_content += r"""\end{equation*}"""
     latex_content += r"""\subsection{Environmental contour}
         \begin{itemize}"""
-    #    \item Fitting method: """
-    #latex_content += method.fitting_method
     latex_content += r"""\item Contour method: """
     latex_content += method.contour_method
     latex_content += r"""\item Return period: """
@@ -592,19 +626,38 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
 
     return short_file_path_report
 
-def get_latex_eedc_table(var_names, var_symbols, matrix):
-    table_string = r"\begin{tabular}{"
-    for i in range(len(var_names) + 1):
-        table_string += r" l"
-    table_string += r" }"
+def get_latex_eedc_table(matrix, var_names, var_symbols):
+    """
+        Creates a latex string containing a table listing the contour's extreme environmental conditions.
 
-    table_string += r"EEDC & "
-    for i, x in enumerate(var_names):
-        table_string += x
-        if i == len(var_names) - 1:
-            table_string += r"\\"
-        else:
-            table_string += r" & "
+        Parameters
+        ----------
+        matrix : n-dimensional matrix
+            The coordinates of the environmental contour.
+            The format is defined by compute_interface.iform()
+
+        var_names : list of strings
+            Names of the environmental variables used in the probabilistic model,
+            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+        var_symbols : list of strings
+            Symbols of the environental variables used in the probabilistic model,
+            e.g. ['V', 'Hs']
+
+        Returns
+        -------
+        table_string : string,
+            A string in latex format containing a table, which lists the first X extreme environmental design conditions
+
+        """
+
+    MAX_EEDCS_TO_LIST_IN_TABLE = 100
+    LINES_FOR_PAGE_BREAK = 40
+
+    reached_max_eedc_number = 0
+
+    table_string = r"\begin{tabular}{"
+    table_string += get_latex_eedc_table_head_line(var_names)
 
     for i in range(len(matrix[0][1])):
         table_string += r"" + str(i+1) + r" & "
@@ -614,6 +667,54 @@ def get_latex_eedc_table(var_names, var_symbols, matrix):
                 table_string += r"\\"
             else:
                 table_string += r" & "
-    table_string += r"\end{tabular}"
+        if i % LINES_FOR_PAGE_BREAK == 0 and i > 0:
+            table_string += r"\end{tabular}"
+            table_string += r"\newpage"
+            table_string += r"\begin{tabular}{"
+            table_string += get_latex_eedc_table_head_line(var_names)
+        if i == MAX_EEDCS_TO_LIST_IN_TABLE - 1:
+            reached_max_eedc_number = 1
+            break
+
+    table_string += r"\end{tabular} \vspace{1em} \newline "
+    if reached_max_eedc_number:
+        table_string += "Only the first " + str(MAX_EEDCS_TO_LIST_IN_TABLE) + " out of " + str(len(matrix[0][1])) + " EEDCs are listed."
 
     return table_string
+
+def get_latex_eedc_table_head_line(var_names):
+    """
+        Creates a latex string containing a the first line of a table.
+
+        The table lists the contour's extreme environmental conditions.
+
+        Parameters
+        ----------
+        var_names : list of strings
+            Names of the environmental variables used in the probabilistic model,
+            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+
+        Returns
+        -------
+        head_line_string : string,
+            A string in latex format containing the first row of the table,
+            e.g. "EEDC & significant wave height [m] & peak period [s]\\"
+
+        """
+
+    head_line_string = ""
+
+    for i in range(len(var_names) + 1):
+        head_line_string += r" l"
+    head_line_string += r" }"
+
+    head_line_string += r"EEDC & "
+    for i, x in enumerate(var_names):
+        head_line_string += x
+        if i == len(var_names) - 1:
+            head_line_string += r"\\"
+        else:
+            head_line_string += r" & "
+
+    return head_line_string
