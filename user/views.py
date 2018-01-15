@@ -6,7 +6,7 @@ from .forms import CustomUserCreationForm
 from .forms import CustomUserEditForm
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
-
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
 
 def authentication(request):
     """
@@ -120,6 +120,8 @@ def edit(request):
             if form.is_valid():
                 form.save()
                 return redirect(reverse('user:profile'))
+            else:
+                return render(request, 'user/edit.html', {'form': form})
         else:
             form = CustomUserEditForm(instance=request.user)
             return render(request, 'user/edit.html', {'form': form})
@@ -152,3 +154,23 @@ def change_password(request):
         else:
             form = PasswordChangeForm(user=request.user)
             return render(request, 'user/edit.html', {'form': form})
+
+
+class ResetView(PasswordResetView):
+    template_name = 'user/password_reset/form.html'
+    email_template_name = 'user/password_reset/email.html'
+    subject_template_name = 'user/password_reset/subject.txt'
+    success_url = 'user:authentication'
+
+
+class ResetDoneView(PasswordResetDoneView):
+    template_name = 'user/password_reset/done.html'
+
+
+class ResetConfirmView(PasswordResetConfirmView):
+    template_name = 'user/password_reset/confirm.html'
+
+
+class ResetCompleteView(PasswordResetCompleteView):
+    template_name = 'user/password_reset/complete.html'
+    # not valid !!

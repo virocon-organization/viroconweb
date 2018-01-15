@@ -32,8 +32,6 @@ DEBUG = True
 # select own user model
 AUTH_USER_MODEL = 'user.User'
 
-ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -160,16 +158,18 @@ MEDIA_URL = '/enviro/MeasureCSV/'
 # EMAIL_PORT = 1025
 
 # comment out this if debug smtp should be executed:
-DEFAULT_FROM_EMAIL = 'virocon@gmx.de'
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'mail.gmx.net'
+# DEFAULT_FROM_EMAIL = ''
+
+EMAIL_HOST = 'smtp.uni-bremen.de'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'virocon@gmx.de'
+EMAIL_HOST_USER = 'virocon@uni-bremen.de'
+EMAIL_USE_TLS = True
 key_exists = "EMAIL_HOST_PASSWORD" in os.environ
 if not key_exists:
     print('Warning: EMAIL_HOST_PASSWORD is not set')
 else:
     EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
+
 
 # see https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.
