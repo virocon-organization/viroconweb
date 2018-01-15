@@ -57,7 +57,7 @@ class MeasureFileFitForm(forms.Form):
             condition.append(('!None', 'none'))
             for j in range(0, variable_count):
                 if j < i:
-                    condition.append((str(j) + 'f1', variable_names[j] + ' - polynomial'))
+                    condition.append((str(j) + 'f1', variable_names[j] + ' - power function'))
                     condition.append((str(j) + 'f2', variable_names[j] + ' - exponential'))
 
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
@@ -128,7 +128,7 @@ class VariablesForm(forms.Form):
             condition.append(('!None', 'none'))
             for j in range(0, variable_count):
                 if j < i:
-                    condition.append((str(j) + 'f1', str(j + 1) + '. variable - <h1>Hallo<h1>'))
+                    condition.append((str(j) + 'f1', str(j + 1) + '. variable - power function'))
                     condition.append((str(j) + 'f2', str(j + 1) + '. variable - exponential'))
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
             self.fields['variable_name_%s' % i] = forms.CharField(min_length=3, label=str(i + 1) + '. variable name')

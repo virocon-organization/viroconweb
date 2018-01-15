@@ -24,61 +24,39 @@
             </div>
         </div>
     </form>
-    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <br>
+    <div class="panel panel-default">
         <div class="panel-heading">
-            <a href="" id="help-einausblenden" class="btn btn-default"><i class="glyphicon glyphicon-question-sign"></i>
-                Images of distributions and formulas of dependencies <i
-                        class="glyphicon glyphicon-question-sign"></i></a>
+            <h3 class="panel-title">Distributions</h3>
         </div>
-        <div id="helpPanel" style="display: none">
-            <div class="helpPictures">
-                <center>
-                    <br>
-                    <br>
-                    <br>
-                    <div><strong>Distributions:</strong></div>
-                    <br>
-                    <div><h4>Normal Distribution</h4><br><img class="img-responsive"
-                                                              src="{% static 'images/Normal_PDF.png' %}" width="500">
-                    </div>
-                    <br>
-                    <div><h4>Weibull Distribution</h4><br><img class="img-responsive"
-                                                               src="{% static 'images/Weibull_PDF.png' %}" width="500">
-                    </div>
-                    <br>
-                    <div><h4>Logarithmic Normal Distribution</h4><br><img class="img-responsive"
-                                                                          src="{% static 'images/Log_Normal_PDF.png' %}"
-                                                                          width="500"></div>
-                    <br>
-                </center>
+        <div class="panel-body">
+            <div class="col-sm-4">Normal Distribution
+                <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
             </div>
-            <div class="helpPictures">
-                <div><strong>Dependencies:</strong></div>
-                <div>
-                    <div class="col-sm-2">
-
-                    </div>
-                    <div class="col-sm-4">
-                        <h4>Exponential Dependency</h4>
-                        <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
-                    </div>
-                    <div class="col-sm-4">
-                        <h4>Polynomial Dependency</h4>
-                        <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
-                    </div>
-                    <div class="col-sm-2">
-
-                    </div>
-                </div>
+            <div class="col-sm-4">Weibull Distribution
+                <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
             </div>
-            <br>
-            <br>
-            <br>
-            <br>
+            <div class="col-sm-4">Logarithmic Normal Distribution
+                <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+            </div>
         </div>
-    </form>
-
+        <div class="panel-heading">
+            <h3 class="panel-title">Dependencies function</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-4">
+                <h4>Exponential</h4>
+                <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+            </div>
+            <div class="col-sm-4">
+                <h4>Power function</h4>
+                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+    </div>
+    <br>
     <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
@@ -89,7 +67,8 @@
             {% for x in form %}
                 {% if 'variable_name' in x.name %}
                     <div class="panel-heading">
-                        <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>{# thanks to: https://stackoverflow.com/questions/28979148/substring-in-a-django-template #}
+                        <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>
+                        {# thanks to: https://stackoverflow.com/questions/28979148/substring-in-a-django-template #}
                     </div>
                 {% endif %}
                 <div class="panel-body">
