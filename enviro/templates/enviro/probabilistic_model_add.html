@@ -24,35 +24,39 @@
             </div>
         </div>
     </form>
-    <div>Distributions:</div>
     <br>
-    <div><h4>Normal Distribution</h4><br><img class="img-responsive"
-                                              src="{% static 'images/Normal_PDF.png' %}" width="500">
-    </div>
-    <br>
-    <div><h4>Weibull Distribution</h4><br><img class="img-responsive"
-                                               src="{% static 'images/Weibull_PDF.png' %}" width="500">
-    </div>
-    <br>
-    <div><h4>Logarithmic Normal Distribution</h4><br><img class="img-responsive"
-                                                          src="{% static 'images/Log_Normal_PDF.png' %}"
-                                                          width="500"></div>
-    <div><strong>Dependencies:</strong></div>
-    <div>
-        <div class="col-sm-2"></div>
-        <div class="col-sm-4">
-            <h4>Exponential</h4>
-            <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Distributions</h3>
         </div>
-        <div class="col-sm-4">
-            <h4>Power function</h4>
-            <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+        <div class="panel-body">
+            <div class="col-sm-4">Normal Distribution
+                <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+            </div>
+            <div class="col-sm-4">Weibull Distribution
+                <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+            </div>
+            <div class="col-sm-4">Logarithmic Normal Distribution
+                <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+            </div>
         </div>
-        <div class="col-sm-2"></div>
+        <div class="panel-heading">
+            <h3 class="panel-title">Dependencies function</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-4">
+                <h4>Exponential</h4>
+                <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+            </div>
+            <div class="col-sm-4">
+                <h4>Power function</h4>
+                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
     </div>
     <br>
-    <br>
-
     <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
