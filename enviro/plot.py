@@ -233,7 +233,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
 
     # prepare data to plot a distribution
     for i, dist_points in enumerate(fit.mul_dist_points): # i = the variable index
-        #print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
         for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
             for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
                 if i == 0 or len(interval_centers) < 2:
@@ -482,10 +481,6 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
         latex_content += r"""\item """ + key + ": " + str(val)
     latex_content += r"""\end{itemize}"""
 
-    print("file_path_contour: " + file_path_contour)
-
-    print("latex_content:")
-    print(latex_content)
     render_dict = dict(
         content=latex_content
         )
