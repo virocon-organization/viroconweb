@@ -1,9 +1,4 @@
 import pandas as pd
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import cm, inch
-from reportlab.platypus import Paragraph, Spacer, Image, Table, TableStyle, Frame, BaseDocTemplate, PageTemplate
-from reportlab.platypus.flowables import KeepTogether
 import numpy as np
 import os
 import shutil
@@ -17,15 +12,10 @@ matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/i
 import matplotlib.pyplot as plt
 from .plot_generic import *
 from descartes import PolygonPatch
-from django.http import HttpResponse
-from django.template import Context
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
 from .compute_interface import setup_mul_dist
 import tempfile
-
-IMAGE_FULL_WIDTH_REPORT = 16.26  # in cm
-IMAGE_FULL_HEIGHT_REPORT = 12.19  # in cm
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scale, distribution_type, dist_points, interval, var_name,
                            symbol_parent_var, directory):
