@@ -157,7 +157,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
     :param title:           the title of the probabilistic model.
     :param user:            the user who started the request (to assign the images later).
     :param directory:       directory where the figures should be saved (the primary key will be added as a subfolder)
-    :return:                the primary key of the created probabilistic model instance.
+    :return:                the primary key of the created ProbabilisticModel instance.
     """
     probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title, measure_file_model=measure_file)
     probabilistic_model.save()
@@ -426,13 +426,13 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
         The coordinates of the environmental contour.
         The format is defined by compute_interface.iform()
 
-    user : Django User instance
+    user : django.contrib.auth.models.User
 
     method_label : string
         Will be used as the title of the contour plot,
         e.g.  "Tom's wave model, T = 2 years, Highest Density Contour (HDC)"
 
-    probabilistic_model : ProbabilisticModel instance
+    probabilistic_model : enviro.models.ProbabilisticModel
 
     var_names : list of strings
         Names of the environmental variables used in the probabilistic model,
@@ -442,7 +442,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
         Symbols of the environental variables used in the probabilistic model,
         e.g. ['V', 'Hs']
 
-    method : views.Method instance
+    method : enviro.views.Method
         Contains all the information used to create the environmental contour
         Has among other the attributes method.contour_method and method.return_period
 
@@ -536,7 +536,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model, var_nam
 
 def get_latex_eedc_table(matrix, var_names, var_symbols):
     """
-        Creates a latex string containing a table listing the contour's extreme environmental conditions.
+        Creates a latex string containing a table listing the contour's extreme environmental design conditions (EEDCs).
 
         Parameters
         ----------
@@ -594,7 +594,7 @@ def get_latex_eedc_table_head_line(var_names):
     """
         Creates a latex string containing a the first line of a table.
 
-        The table lists the contour's extreme environmental conditions.
+        The table lists the contour's extreme environmental design conditions (EEDCs).
 
         Parameters
         ----------
