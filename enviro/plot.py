@@ -394,26 +394,6 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
-
-# TODO @Felix docstrings!
-def define_header_and_footer(canvas, doc):
-    """
-
-    :param canvas: 
-    :param doc: 
-    :return: 
-    """
-    canvas.saveState()
-    #header_content = Image('static/images/ViroVektorCWithDevelopedBy.jpg', width=8 * cm, height=3.819 * cm)
-    header_content = Image('static/images/ViroVektorC.jpg', width=5 * cm, height=1.375 * cm)
-    #footer_content = Image('static/images/Footy2.jpg', width=21 * cm, height=3 * cm)
-    #w, h = footer_content.wrap(doc.width, doc.bottomMargin)
-    #footer_content.drawOn(canvas, 0, 0)
-    w, h = header_content.wrap(doc.width, doc.topMargin)
-    header_content.drawOn(canvas, 8 * cm, doc.height + doc.topMargin - h)
-    canvas.restoreState()
-
-
 def create_latex_report(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
     """
     Creates a latex-based pdf report describing the performed environmental contour calculation.
