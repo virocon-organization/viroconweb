@@ -73,7 +73,7 @@ class ComputeInterface:
         :return:                    a matrix with x and y coordinates which represents the contour.
         """
         mul_dist = setup_mul_dist(probabilistic_model)
-        contour = IFormContour(mul_dist, int(return_period), int(sea_state), int(n_steps))
+        contour = IFormContour(mul_dist, return_period, sea_state, n_steps)
         return contour.coordinates
 
     @staticmethod
