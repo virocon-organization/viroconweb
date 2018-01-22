@@ -1,1 +1,1 @@
-TestResetMail
+ViroCon reset e-mail
