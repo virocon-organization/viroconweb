@@ -20,12 +20,12 @@ urlpatterns = [
     # reset password url's
     url(r'^password_reset/$', views.ResetView.as_view(), name='password_reset'),
 
-    url(r'^password_reset_done/$', views.ResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^password_reset/done/$', views.ResetDoneView.as_view(), name='password_reset_done'),
 
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.ResetConfirmView.as_view(), name='password_reset_confirm'),
 
-    url(r'^password_reset_complete/$', views.ResetCompleteView.as_view(), name='password_reset_complete'),
+    url(r'^reset/done$', views.ResetCompleteView.as_view(), name='password_reset_complete'),
 
     # es muss die set password methode gesetzt werden
 
