@@ -387,48 +387,51 @@ class ProbabilisticModelHandler(Handler):
         :param probabilistic_model: which is used to create a contour. 
         :return:                    HttpResponse with the generated graphic (pdf) or error message.
         """
-        iform_form = IFormForm()
-        cs = ComputeInterface
-        if request.method == 'POST':
-            iform_form = IFormForm(data=request.POST)
-            if iform_form.is_valid():
-                try:
-                    contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
-                                              iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
-                    method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']),
-                    iform_form.cleaned_data['sea_state'], {"Number of points on the contour": iform_form.cleaned_data['n_steps']})
-                # catch and allocate errors caused by calculating iform.
-                except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                    return render(request, 'enviro/error.html', {'error_message': err,
-                                                                 'text': 'Try it again with other settings please',
-                                                                 'header': 'calculate Contour',
-                                                                 'return_url': 'enviro:probabilistic_model-select'})
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/home')
+        else:
+            iform_form = IFormForm()
+            cs = ComputeInterface
+            if request.method == 'POST':
+                iform_form = IFormForm(data=request.POST)
+                if iform_form.is_valid():
+                    try:
+                        contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
+                                                  iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
+                        method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']),
+                        iform_form.cleaned_data['sea_state'], {"Number of points on the contour": iform_form.cleaned_data['n_steps']})
+                    # catch and allocate errors caused by calculating iform.
+                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                        return render(request, 'enviro/error.html', {'error_message': err,
+                                                                     'text': 'Try it again with other settings please',
+                                                                     'header': 'calculate Contour',
+                                                                     'return_url': 'enviro:probabilistic_model-select'})
 
-                path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
-                                str(iform_form.cleaned_data['return_period']),
-                               ' years, Inverse First Order Reliability Mehtod (IFORM)']), probabilistic_model, var_names, var_symbols, method)
+                    path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
+                                    str(iform_form.cleaned_data['return_period']),
+                                   ' years, Inverse First Order Reliability Mehtod (IFORM)']), probabilistic_model, var_names, var_symbols, method)
 
 
-                #probabilistic_model.measure_file_model.measure_file
-                # if matrix 4dim - send data for 4dim interactive plot.
-                if len(contour_matrix[0]) == 4:
-                    dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
-                    labels = []
-                    for dist in dists:
-                        labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                    return render(request, 'enviro/contour_result.html',
-                                  {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
-                                   'z': contour_matrix[0][2].tolist(), 'u': contour_matrix[0][3].tolist(), 'dim': 4,
-                                   'labels': labels})
-                # if matrix 3dim - send data for 3dim interactive plot
-                elif len(contour_matrix[0]) == 3:
-                    dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
-                    labels = []
-                    for dist in dists:
-                        labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                    return render(request, 'enviro/contour_result.html',
-                                  {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
-                                   'z': contour_matrix[0][2].tolist(), 'dim': 3, 'labels': labels})
+                    #probabilistic_model.measure_file_model.measure_file
+                    # if matrix 4dim - send data for 4dim interactive plot.
+                    if len(contour_matrix[0]) == 4:
+                        dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        labels = []
+                        for dist in dists:
+                            labels.append('{} [{}]'.format(dist.name, dist.symbol))
+                        return render(request, 'enviro/contour_result.html',
+                                      {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
+                                       'z': contour_matrix[0][2].tolist(), 'u': contour_matrix[0][3].tolist(), 'dim': 4,
+                                       'labels': labels})
+                    # if matrix 3dim - send data for 3dim interactive plot
+                    elif len(contour_matrix[0]) == 3:
+                        dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        labels = []
+                        for dist in dists:
+                            labels.append('{} [{}]'.format(dist.name, dist.symbol))
+                        return render(request, 'enviro/contour_result.html',
+                                      {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
+                                       'z': contour_matrix[0][2].tolist(), 'dim': 3, 'labels': labels})
 
                     elif len(contour_matrix) < 3:
                         return render(request, 'enviro/contour_result.html', {'path': path, 'dim': 2})
@@ -447,38 +450,41 @@ class ProbabilisticModelHandler(Handler):
         :param probabilistic_model: which is used to create a contour. 
         :return:                    HttpResponse with the generated graphic (pdf) or error message.
         """
-        hdc_form = HDCForm(var_names=var_names)
-        cs = ComputeInterface()
-        if request.method == 'POST':
-            hdc_form = HDCForm(data=request.POST, var_names=var_names)
-            if hdc_form.is_valid():
-                limits = []
-                deltas = []
-                warn = None
-                contour_matrix = None
-                for i in range(len(var_names)):
-                    limits.append(
-                        (int(hdc_form.cleaned_data['limit_%s' % i + '_1']),
-                         int(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
-                    deltas.append(float(hdc_form.cleaned_data['delta_%s' % i]))
-                try:
-                    with warnings.catch_warnings(record=True) as warn:
-                        contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
-                                                hdc_form.cleaned_data['sea_state'], limits, deltas)
-                        method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
-                                        hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
-                # catch and allocate errors caused by calculating hdc.
-                except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                    return render(request, 'enviro/error.html', {'error_message': err,
-                                                                 'text': 'Try it again with other settings please',
-                                                                 'header': 'calculate Contour',
-                                                                 'return_url': 'enviro:probabilistic_model-select'})
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/home')
+        else:
+            hdc_form = HDCForm(var_names=var_names)
+            cs = ComputeInterface()
+            if request.method == 'POST':
+                hdc_form = HDCForm(data=request.POST, var_names=var_names)
+                if hdc_form.is_valid():
+                    limits = []
+                    deltas = []
+                    warn = None
+                    contour_matrix = None
+                    for i in range(len(var_names)):
+                        limits.append(
+                            (int(hdc_form.cleaned_data['limit_%s' % i + '_1']),
+                             int(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
+                        deltas.append(float(hdc_form.cleaned_data['delta_%s' % i]))
+                    try:
+                        with warnings.catch_warnings(record=True) as warn:
+                            contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
+                                                    hdc_form.cleaned_data['sea_state'], limits, deltas)
+                            method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
+                                            hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
+                    # catch and allocate errors caused by calculating hdc.
+                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                        return render(request, 'enviro/error.html', {'error_message': err,
+                                                                     'text': 'Try it again with other settings please',
+                                                                     'header': 'calculate Contour',
+                                                                     'return_url': 'enviro:probabilistic_model-select'})
 
-                # generate path to the user specific pdf.
-                path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
-                                str(hdc_form.cleaned_data['n_years']),
-                                ' years, Highest Density Contour (HDC)']),
-                                probabilistic_model, var_names, var_symbols, method)
+                    # generate path to the user specific pdf.
+                    path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
+                                    str(hdc_form.cleaned_data['n_years']),
+                                    ' years, Highest Density Contour (HDC)']),
+                                    probabilistic_model, var_names, var_symbols, method)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
                     if len(contour_matrix[0]) > 2:
