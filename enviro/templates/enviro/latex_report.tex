@@ -1,0 +1,10 @@
+{% autoescape on %}
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\begin{document}
+  {{ content|safe }}
+\end{document}
+{% endautoescape %}

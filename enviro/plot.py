@@ -1,9 +1,4 @@
 import pandas as pd
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import cm, inch
-from reportlab.platypus import Paragraph, Spacer, Image, Table, TableStyle, Frame, BaseDocTemplate, PageTemplate
-from reportlab.platypus.flowables import KeepTogether
 import numpy as np
 import os
 import shutil
@@ -17,9 +12,10 @@ matplotlib.use('Agg') # thanks to https://stackoverflow.com/questions/41319082/i
 import matplotlib.pyplot as plt
 from .plot_generic import *
 from descartes import PolygonPatch
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.tri as mtri
-from pprint import pprint
+from django.template.loader import get_template
+from subprocess import Popen, PIPE
+from .compute_interface import setup_mul_dist
+import tempfile
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc, scale, distribution_type, dist_points, interval, var_name,
                            symbol_parent_var, directory):
@@ -161,7 +157,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
     :param title:           the title of the probabilistic model.
     :param user:            the user who started the request (to assign the images later).
     :param directory:       directory where the figures should be saved (the primary key will be added as a subfolder)
-    :return:                the primary key of the created probabilistic model instance.
+    :return:                the primary key of the created ProbabilisticModel instance.
     """
     probabilistic_model = ProbabilisticModel(primary_user=user, collection_name=title, measure_file_model=measure_file)
     probabilistic_model.save()
@@ -237,7 +233,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file, directory)
 
     # prepare data to plot a distribution
     for i, dist_points in enumerate(fit.mul_dist_points): # i = the variable index
-        #print ('dist_points type: ' + str(type(dist_points)) + ', of length: ' + str(len(dist_points)))
         for j, spec_dist_points in enumerate(dist_points): # j = 0-2 (shape, loc, scale)
             for k, dist_point in enumerate(spec_dist_points): # k = number of intervals
                 if i == 0 or len(interval_centers) < 2:
@@ -398,74 +393,211 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
+def create_latex_report(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
+    """
+    Creates a latex-based pdf report describing the performed environmental contour calculation.
 
-# TODO @Felix docstrings!
-def define_header_and_footer(canvas, doc):
+    Makes use of the 'latex_report.tex' template where the document class and packages are defined.
+
+    Parameters
+    ----------
+    matrix : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform()
+
+    user : django.contrib.auth.models.User
+
+    method_label : string
+        Will be used as the title of the contour plot,
+        e.g.  "Tom's wave model, T = 2 years, Highest Density Contour (HDC)"
+
+    probabilistic_model : enviro.models.ProbabilisticModel
+
+    var_names : list of strings
+        Names of the environmental variables used in the probabilistic model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+    var_symbols : list of strings
+        Symbols of the environental variables used in the probabilistic model,
+        e.g. ['V', 'Hs']
+
+    method : enviro.views.Method
+        Contains all the information used to create the environmental contour
+        Has among other the attributes method.contour_method and method.return_period
+
+    Returns
+    -------
+    short_file_path_report : string,
+        The path where the pdf, generated based latex, is saved
+        The path continues after 'enviro/static/'
+
     """
 
-    :param canvas: 
-    :param doc: 
-    :return: 
-    """
-    canvas.saveState()
-    #header_content = Image('static/images/ViroVektorCWithDevelopedBy.jpg', width=8 * cm, height=3.819 * cm)
-    header_content = Image('static/images/ViroVektorC.jpg', width=5 * cm, height=1.375 * cm)
-    #footer_content = Image('static/images/Footy2.jpg', width=21 * cm, height=3 * cm)
-    #w, h = footer_content.wrap(doc.width, doc.bottomMargin)
-    #footer_content.drawOn(canvas, 0, 0)
-    w, h = header_content.wrap(doc.width, doc.topMargin)
-    header_content.drawOn(canvas, 8 * cm, doc.height + doc.topMargin - h)
-    canvas.restoreState()
-
-
-def plot_pdf(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method):
-    """
-    The function generates a pdf. The pdf includes an image of the contour and a table with the data points.
-    :param matrix:      data points supported by compute. 
-    :param user:        who starts the order. 
-    :param method_label:      e.g. "T = 25 years, IFORM"
-    :param probabilistic_model:       probabilistic model object.
-    :param var_names:   names of the variables.
-    :param var_symbols: symbols of the variables of the probabilistic model
-    :return:            the path to the user related pdf.
-    """
     plot_contour(matrix, user, method_label, probabilistic_model, var_names, var_symbols, method)
+    directory_prefix = 'enviro/static/'
+    file_path_contour = directory_prefix + user + '/contour.png'
+    directory_fit_images = directory_prefix + user + '/prob_model/'
+    img_list = os.listdir(directory_fit_images + '/' + str(probabilistic_model.pk))
 
-    story = []
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-
-    # add title for graph
-    story.append(Paragraph("<strong>Results: Environmental contour</strong>", styleN))
-    story.append(Spacer(1, .25 * inch))
-
-    # add graph
-    short_path = user + '/contour.png'
-    story.append(Image('enviro/static/' + short_path, width=16.26 * cm, height=12.19 * cm))
-    story.append(Spacer(1, .5 * inch))
-
-    # add title for extreme environmental conditions
-    story.append(Paragraph("<strong>Results: Extreme environmental design conditions</strong>", styleN))
-    story.append(Spacer(1, .25 * inch))
-
-    # add table
-    if len(matrix[0][0])<=200:
-        table_data = data_to_table(matrix, var_names)
-        t = Table(table_data, 100, 25)
-        grid_style = TableStyle([('GRID', (0, 0), (-1, -1), 0.25, colors.black), ('ALIGN', (1, 1), (-1, -1), 'RIGHT')])
-        t.setStyle(grid_style)
-        story.append(KeepTogether(t))
-        story.append(Spacer(1, .5 * inch))
+    latex_content = r"""\section{Results}
+                \subsection{Environmental contour}
+                \includegraphics[width=\textwidth]{""" + file_path_contour + r"""}
+                \subsection{Extreme environmental design conditions}"""\
+                    + get_latex_eedc_table(matrix, var_names, var_symbols) + r"""
+                \section{Methods}
+                \subsection{Associated measurement file}"""
+    if probabilistic_model.measure_file_model:
+        latex_content += r"""file: '\verb|""" + probabilistic_model.measure_file_model.title + r"""|'
+                \subsection{Fitting}"""
+        for img in img_list:
+            img_name = directory_fit_images + str(probabilistic_model.pk) + "/" + img
+            latex_content += r"""\begin{figure}[H]"""
+            latex_content += r"""\includegraphics[width=\textwidth]{""" + img_name + r"""}"""
+            latex_content += r"""\end{figure}"""
     else:
-        story.append(Paragraph("The table is not plotted since a maximum of 200 extreme environmental design conditions"
-                               " are supported. Based on your input we computed " + str(len(matrix[0][0])) + " conditions.", styleN))
-        story.append(Spacer(1, .25 * inch))
+        latex_content += r"""No associated file. The model was created by direct input."""
 
-    # build Story into Document Template
-    short_path = user + '/contour_table.pdf'
-    doc = BaseDocTemplate(filename='enviro/static/' + short_path)
-    frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height - 2 * cm, )
-    template = PageTemplate(id='test', frames=frame, onPage=define_header_and_footer)
-    doc.addPageTemplates([template])
-    doc.build(story)
-    return short_path
+    latex_content += r"""\subsection{Probabilistic model}"""
+
+    # get the equation in latex style
+    dists_model = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+    var_symbols = []
+    for dist in dists_model:
+        var_symbols.append(dist.symbol)
+    multivariate_distribution = setup_mul_dist(probabilistic_model)
+    latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+
+    for latex_string in latex_string_list:
+        latex_content += r"""\begin{equation*}"""
+        latex_content += latex_string
+        latex_content += r"""\end{equation*}"""
+    latex_content += r"""\subsection{Environmental contour}
+        \begin{itemize}"""
+    latex_content += r"""\item Contour method: """
+    latex_content += method.contour_method
+    latex_content += r"""\item Return period: """
+    latex_content += str(method.return_period) + " years"
+    for key, val in method.additional_options.items():
+        latex_content += r"""\item """ + key + ": " + str(val)
+    latex_content += r"""\end{itemize}"""
+
+    render_dict = dict(
+        content=latex_content
+        )
+    template = get_template('enviro/latex_report.tex')
+    rendered_tpl = template.render(render_dict).encode('utf-8')
+    # Python3 only. For python2 check out the docs!
+    with tempfile.TemporaryDirectory() as tempdir:
+        # Create subprocess, supress output with PIPE and
+        # run latex twice to generate the TOC properly.
+        # Finally read the generated pdf.
+        for i in range(2):
+            process = Popen(
+                ['pdflatex', '-output-directory', tempdir],
+                stdin=PIPE,
+                stdout=PIPE,
+            )
+            process.communicate(rendered_tpl)
+        with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
+            pdf = f.read()
+
+
+        short_file_path_report = user + '/latex_report.pdf'
+        full_file_path_report = 'enviro/static/' + short_file_path_report
+        with open(full_file_path_report, 'wb') as f:
+            f.write(pdf)
+
+    return short_file_path_report
+
+def get_latex_eedc_table(matrix, var_names, var_symbols):
+    """
+        Creates a latex string containing a table listing the contour's extreme environmental design conditions (EEDCs).
+
+        Parameters
+        ----------
+        matrix : n-dimensional matrix
+            The coordinates of the environmental contour.
+            The format is defined by compute_interface.iform()
+
+        var_names : list of strings
+            Names of the environmental variables used in the probabilistic model,
+            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+        var_symbols : list of strings
+            Symbols of the environental variables used in the probabilistic model,
+            e.g. ['V', 'Hs']
+
+        Returns
+        -------
+        table_string : string,
+            A string in latex format containing a table, which lists the first X extreme environmental design conditions
+
+        """
+
+    MAX_EEDCS_TO_LIST_IN_TABLE = 100
+    LINES_FOR_PAGE_BREAK = 40
+
+    reached_max_eedc_number = 0
+
+    table_string = r"\begin{tabular}{"
+    table_string += get_latex_eedc_table_head_line(var_names)
+
+    for i in range(len(matrix[0][1])):
+        table_string += r"" + str(i+1) + r" & "
+        for j in range(len(var_names)):
+            table_string += "{0:.2f}".format(matrix[0][j][i]) # thanks to https://stackoverflow.com/questions/455612/limiting-floats-to-two-decimal-points
+            if j == len(var_names) - 1:
+                table_string += r"\\"
+            else:
+                table_string += r" & "
+        if i % LINES_FOR_PAGE_BREAK == 0 and i > 0:
+            table_string += r"\end{tabular}"
+            table_string += r"\newpage"
+            table_string += r"\begin{tabular}{"
+            table_string += get_latex_eedc_table_head_line(var_names)
+        if i == MAX_EEDCS_TO_LIST_IN_TABLE - 1:
+            reached_max_eedc_number = 1
+            break
+
+    table_string += r"\end{tabular} \vspace{1em} \newline "
+    if reached_max_eedc_number:
+        table_string += "Only the first " + str(MAX_EEDCS_TO_LIST_IN_TABLE) + " out of " + str(len(matrix[0][1])) + " EEDCs are listed."
+
+    return table_string
+
+def get_latex_eedc_table_head_line(var_names):
+    """
+        Creates a latex string containing a the first line of a table.
+
+        The table lists the contour's extreme environmental design conditions (EEDCs).
+
+        Parameters
+        ----------
+        var_names : list of strings
+            Names of the environmental variables used in the probabilistic model,
+            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+
+
+        Returns
+        -------
+        head_line_string : string,
+            A string in latex format containing the first row of the table,
+            e.g. "EEDC & significant wave height [m] & peak period [s]\\"
+
+        """
+
+    head_line_string = ""
+
+    for i in range(len(var_names) + 1):
+        head_line_string += r" l"
+    head_line_string += r" }"
+
+    head_line_string += r"EEDC & "
+    for i, x in enumerate(var_names):
+        head_line_string += x
+        if i == len(var_names) - 1:
+            head_line_string += r"\\"
+        else:
+            head_line_string += r" & "
+
+    return head_line_string
