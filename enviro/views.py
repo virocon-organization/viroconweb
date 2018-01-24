@@ -224,7 +224,7 @@ class MeasureFileHandler(Handler):
                         #               'header': 'fit measurement file to probabilistic model',
                         #               'return_url': 'enviro:measurefiles-select'})
                     multivariate_distribution = setup_mul_dist(probabilistic_model)
-                    latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+                    latex_string_list = multivariate_distribution.latex_repr(var_symbols)
                     img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                     send_img = []
                     for img in img_list:
@@ -396,10 +396,17 @@ class ProbabilisticModelHandler(Handler):
                 iform_form = IFormForm(data=request.POST)
                 if iform_form.is_valid():
                     try:
-                        contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
-                                                  iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
-                        method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']),
-                        iform_form.cleaned_data['sea_state'], {"Number of points on the contour": iform_form.cleaned_data['n_steps']})
+                        contour_matrix = cs.iform(
+                            probabilistic_model,
+                            float(iform_form.cleaned_data['return_period']),
+                            float(iform_form.cleaned_data['sea_state']),
+                            iform_form.cleaned_data['n_steps'])
+                        method = Method(
+                            "", "IFORM",
+                            float(iform_form.cleaned_data['return_period']),
+                            float(iform_form.cleaned_data['sea_state']),
+                            {"Number of points on the contour":
+                                 iform_form.cleaned_data['n_steps']})
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
@@ -464,13 +471,16 @@ class ProbabilisticModelHandler(Handler):
                     contour_matrix = None
                     for i in range(len(var_names)):
                         limits.append(
-                            (int(hdc_form.cleaned_data['limit_%s' % i + '_1']),
-                             int(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
+                            (float(hdc_form.cleaned_data['limit_%s' % i + '_1']),
+                             float(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
                         deltas.append(float(hdc_form.cleaned_data['delta_%s' % i]))
                     try:
                         with warnings.catch_warnings(record=True) as warn:
-                            contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
-                                                    hdc_form.cleaned_data['sea_state'], limits, deltas)
+                            contour_matrix = cs.hdc(
+                                probabilistic_model,
+                                float(hdc_form.cleaned_data['n_years']),
+                                float(hdc_form.cleaned_data['sea_state']),
+                                limits, deltas)
                             method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
                                             hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                     # catch and allocate errors caused by calculating hdc.
@@ -542,7 +552,7 @@ class ProbabilisticModelHandler(Handler):
             for dist in dists_model:
                 var_symbols.append(dist.symbol)
             multivariate_distribution = setup_mul_dist(probabilistic_model)
-            latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+            latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
             directory_prefix = 'enviro/static/'
