@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-import shutil
 from .models import ProbabilisticModel, DistributionModel, ParameterModel
 from scipy.stats import weibull_min
 from scipy.stats import lognorm
@@ -190,12 +189,6 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
                                              measure_file_model=measure_file)
     probabilistic_model.save()
 
-    # deletes the results form further fits for a specific user.
-    #path = 'enviro/static/' + str(user)
-    #if os.path.isdir(path):
-    #    shutil.rmtree(path)
-    #if not os.path.exists(path):
-    #    os.makedirs(path)
     directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -362,8 +355,6 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
     """
 
     path = 'enviro/static/' + str(user)
-    #if os.path.isdir(path):
-        #shutil.rmtree(path)
     if not os.path.exists(path):
         os.makedirs(path)
 
