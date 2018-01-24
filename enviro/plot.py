@@ -172,13 +172,18 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     dependencies between the variables of a probabilistic model. There are 9
     possibilities. The structure of the possibilities is like a truth table.
     :param fit:             fit results
-                            distribution. (Further information in the doc from compute)
-    :param var_names:       the names of the single variables of the probabilistic model.
+                            distribution. (Further information in the doc
+                            from compute)
+    :param var_names:       the names of the single variables of the
+    probabilistic model.
     :param var_symbols:     symbols of the variables of the probabilistic model
     :param title:           the title of the probabilistic model.
-    :param user:            the user who started the request (to assign the images later).
-    :param directory:       directory where the figures should be saved (the primary key will be added as a subfolder)
-    :return:                the primary key of the created ProbabilisticModel instance.
+    :param user:            the user who started the request (to assign the
+    images later).
+    :param directory:       directory where the figures should be saved (the
+    primary key will be added as a subfolder)
+    :return:                the primary key of the created ProbabilisticModel
+    instance.
     """
     probabilistic_model = ProbabilisticModel(primary_user=user,
                                              collection_name=title,
@@ -203,9 +208,11 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     for i, param_points in enumerate(fit.mul_param_points):
         distribution = fit.mul_var_dist.distributions[i]
         list_float_points = []
-        name = 'Lognormal_2' if (distribution.name == 'Lognormal') else distribution.name
-        distribution_model = DistributionModel(name=var_names[i], distribution=name,
-                                               symbol=var_symbols[i], probabilistic_model=probabilistic_model)
+        name = 'Lognormal_2' if (distribution.name == 'Lognormal') \
+            else distribution.name
+        distribution_model = DistributionModel(
+            name=var_names[i], distribution=name, symbol=var_symbols[i],
+            probabilistic_model=probabilistic_model)
         distribution_model.save()
 
         for j, spec_param_points in enumerate(param_points):
@@ -275,7 +282,8 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
             # k = number of intervals
             for k, dist_point in enumerate(spec_dist_points):
                 if i == 0 or len(interval_centers) < 2:
-                    interval_limits = [min(interval_centers), max(interval_centers)]
+                    interval_limits = [min(interval_centers),
+                                       max(interval_centers)]
                 else:
                     # Calculate interval width assuming constant interval width.
                     interval_width = interval_centers[1] - interval_centers[0]
@@ -403,7 +411,8 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
     else:
         ax = fig.add_subplot(111)
         plt.figtext(0.5, 0.5, '4-Dim plot is not supported')
-        warnings.warn("4-Dim plot or higher is not supported", DeprecationWarning, stacklevel=2)
+        warnings.warn("4-Dim plot or higher is not supported",
+                      DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
     plt.title(probabilistic_model.collection_name + ': ' + method_label)
