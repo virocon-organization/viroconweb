@@ -547,8 +547,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     for dist in dists_model:
         var_symbols.append(dist.symbol)
     multivariate_distribution = setup_mul_dist(probabilistic_model)
-    latex_string_list = multivariate_distribution.getPdfAsLatexString(
-        var_symbols)
+    latex_string_list = multivariate_distribution.latex_repr(var_symbols)
 
     for latex_string in latex_string_list:
         latex_content += r"\begin{equation*}"
@@ -585,10 +584,10 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
             pdf = f.read()
 
 
-        short_file_path_report = user + '/latex_report.pdf'
-        full_file_path_report = 'enviro/static/' + short_file_path_report
-        with open(full_file_path_report, 'wb') as f:
-            f.write(pdf)
+    short_file_path_report = user + '/latex_report.pdf'
+    full_file_path_report = 'enviro/static/' + short_file_path_report
+    with open(full_file_path_report, 'wb') as f:
+        f.write(pdf)
 
     return short_file_path_report
 
@@ -625,10 +624,11 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
     reached_max_eedc_number = 0
 
     table_string = r"\begin{tabular}{"
-    table_string += get_latex_eedc_table_head_line(var_names)
+    table_head_line = get_latex_eedc_table_head_line(var_names)
+    table_string += table_head_line
 
     for i in range(len(matrix[0][1])):
-        table_string += r"" + str(i+1) + r" & "
+        table_string += str(i+1) + r" & "
         for j in range(len(var_names)):
 
             # The formating is taken from https://stackoverflow.com/questions/
@@ -643,7 +643,7 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
             table_string += r"\end{tabular}"
             table_string += r"\newpage"
             table_string += r"\begin{tabular}{"
-            table_string += get_latex_eedc_table_head_line(var_names)
+            table_string += table_head_line
         if i == MAX_EEDCS_TO_LIST_IN_TABLE - 1:
             reached_max_eedc_number = 1
             break
@@ -658,9 +658,10 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
 
 def get_latex_eedc_table_head_line(var_names):
     """
-        Creates a latex string containing a the first line of a table.
+        Creates a latex string containing the first line of a table.
 
-        The table lists the contour's extreme environmental design conditions (EEDCs).
+        The table lists the contour's extreme environmental design
+        conditions (EEDCs).
 
         Parameters
         ----------

@@ -206,7 +206,7 @@ class MeasureFileHandler(Handler):
                     #               'header': 'fit measurement file to probabilistic model',
                     #               'return_url': 'enviro:measurefiles-select'})
                 multivariate_distribution = setup_mul_dist(probabilistic_model)
-                latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+                latex_string_list = multivariate_distribution.latex_repr(var_symbols)
                 img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                 send_img = []
                 for img in img_list:
@@ -499,7 +499,7 @@ class ProbabilisticModelHandler(Handler):
         for dist in dists_model:
             var_symbols.append(dist.symbol)
         multivariate_distribution = setup_mul_dist(probabilistic_model)
-        latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+        latex_string_list = multivariate_distribution.latex_repr(var_symbols)
         send_img = []
 
         directory_prefix = 'enviro/static/'
