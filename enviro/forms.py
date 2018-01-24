@@ -247,26 +247,69 @@ class HDCForm(forms.Form):
     def __init__(self, var_names, *args, **kwargs):
         super(HDCForm, self).__init__(*args, **kwargs)
         for i, name in enumerate(var_names):
-            self.fields['limit_%s' % i + '_1'] = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '0'}),
-                                                                    label=name + ' lower limit')
-            self.fields['limit_%s' % i + '_2'] = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '20'}),
-                                                                    label=name + ' upper limit')
-            self.fields['delta_%s' % i] = forms.DecimalField(widget=forms.NumberInput(attrs={'value': '0.5'}),
-                                                             label=name + ' grid size ')
+            self.fields['limit_%s' % i + '_1'] = forms.DecimalField(label=name + ' lower limit',
+                                                    required=True,
+                                                    decimal_places=4,
+                                                    min_value=0,
+                                                    max_value=10000,
+                                                    widget=forms.NumberInput(attrs={'value': '0',
+                                                                                    'class': 'contour_input_field'}))
+            self.fields['limit_%s' % i + '_2'] = forms.DecimalField(label=name + ' upper limit',
+                                                    required=True,
+                                                    decimal_places=4,
+                                                    min_value=0.01,
+                                                    max_value=10000,
+                                                    widget=forms.NumberInput(attrs={'value': '20',
+                                                                                    'class': 'contour_input_field'}))
+            self.fields['delta_%s' % i] = forms.DecimalField(label=name + ' grid size ',
+                                                     required=True,
+                                                     decimal_places=4,
+                                                     min_value=0.01,
+                                                     max_value=1000,
+                                                     widget=forms.NumberInput(attrs={'value': '0.5',
+                                                                                     'class': 'contour_input_field'}))
         pass
 
-    n_years = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '25'}), label='return period [years]')
-
-    sea_state = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '3'}),
-                                   label='environmental state duration [hours]')
+    n_years = forms.DecimalField(label='return period [years]',
+                                        required=True,
+                                        decimal_places=2,
+                                        min_value=0.01,
+                                        max_value=10000,
+                                        widget=forms.NumberInput(
+                                            attrs={'value': '1.0',
+                                                   'class': 'contour_input_field'}))
+    sea_state = forms.DecimalField(label='environmental state duration [hours]',
+                                   required=True,
+                                   decimal_places=2,
+                                   min_value=0.01,
+                                   max_value=1000,
+                                        widget=forms.NumberInput(
+                                            attrs={'value': '3.0',
+                                                   'class': 'contour_input_field'}))
     method = 'HDC'
 
 
 class IFormForm(forms.Form):
-    return_period = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '25'}),
-                                       label='return period [years]')
-    sea_state = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '3'}),
-                                   label='environmental state duration [hours]')
-    n_steps = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '50'}),
-                                 label='number of points on the contour')
+    return_period = forms.DecimalField(label='return period [years]',
+                                        required=True,
+                                        decimal_places=2,
+                                        min_value=0.01,
+                                        max_value=10000,
+                                        widget=forms.NumberInput(
+                                            attrs={'value': '1.0',
+                                                   'class': 'contour_input_field'}))
+    sea_state = forms.DecimalField(label='environmental state duration [hours]',
+                                   required=True,
+                                   decimal_places=2,
+                                   min_value=0.01,
+                                   max_value=1000,
+                                        widget=forms.NumberInput(
+                                            attrs={'value': '3.0',
+                                                   'class': 'contour_input_field'}))
+    n_steps = forms.IntegerField(label='number of points on the contour',
+                                 required=True,
+                                 min_value=5,
+                                 max_value=10000,
+                                 widget=forms.NumberInput(attrs={'value': '50',
+                                                                 'class': 'contour_input_field'}))
     method = 'IFORM'
