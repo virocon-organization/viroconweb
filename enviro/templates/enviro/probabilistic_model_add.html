@@ -54,13 +54,11 @@
             <h3 class="panel-title">Dependencies function</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-2"><h4>Exponential</h4></div>
-            <div class="col-sm-4">
-                 {% latexify '= c_1 + c_2*exp{x}' math_inline=True %}
+            <div class="col-sm-6">
+                 Exponential {% latexify '= c_0 + c_1 \cdot e^{x+c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-2"><h4>Power function</h4></div>
-            <div class="col-sm-4">
-                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+            <div class="col-sm-6">
+                Power function {% latexify '= c_0 + c_1 \cdot e^{c_2}' math_inline=True %}
             </div>
 
         </div>

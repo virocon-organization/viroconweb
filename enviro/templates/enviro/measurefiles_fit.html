@@ -1,6 +1,7 @@
 <!--HTML-Seite um CSV-Dateien der MeasureFile Datenbank hinzuzufügen -->
 {% extends "../base.html" %}
 {% load static %}
+{% load latexify %}
 {% block content %}
     fit probabilistic model to measurement file
     <div class="page-header"></div>
@@ -11,29 +12,35 @@
         </div>
         <div class="panel-body">
             <div class="col-sm-4">Normal Distribution
-                <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+                <a href="{% static 'images/example_normal.svg'%}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Normal Distribution">
+                    <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+                </a>
             </div>
             <div class="col-sm-4">Weibull Distribution
+                <a href="{% static 'images/example_weibull.svg'%}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Weibull Distribution">
                 <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+                </a>
             </div>
-            <div class="col-sm-4">Logarithmic Normal Distribution
+            <div class="col-sm-4">Log-Normal Distribution
+                <a href="{% static 'images/example_normal.svg'%}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Log-Normal Distribution">
                 <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+                </a>
             </div>
         </div>
         <div class="panel-heading">
             <h3 class="panel-title">Dependencies function</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-2"></div>
-            <div class="col-sm-4">
-                <h4>Exponential</h4>
-                <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+            <div class="col-sm-6">
+                 Exponential {% latexify '= c_0 + c_1 \cdot e^{x+c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-4">
-                <h4>Power function</h4>
-                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+            <div class="col-sm-6">
+                Power function {% latexify '= c_0 + c_1 \cdot e^{c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-2"></div>
+
         </div>
     </div>
     <br>
@@ -69,7 +76,7 @@
             </div>
         </div>
     </form>
-
+    {% include "latexify/scripts.html" %}
     <!--Le JavaScript-->
     <script>
         function dist_select(dist_id, var_number) {
