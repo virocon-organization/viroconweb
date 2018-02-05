@@ -208,7 +208,7 @@ class MeasureFileHandler(Handler):
                                       {'error_message': err,
                                        'text': 'Error occured while fitting a probabliistic model to the file.'
                                                'Try it again with different settings please',
-                                       'header': 'fit measurement file to probabilistic model',
+                                       'header': 'Fit measurement file to probabilistic model',
                                        'return_url': 'enviro:measurefiles-select'})
                     #try:
                     directory_prefix = 'enviro/static/'
@@ -411,7 +411,7 @@ class ProbabilisticModelHandler(Handler):
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
-                                                                     'header': 'calculate Contour',
+                                                                     'header': 'Calculate Contour',
                                                                      'return_url': 'enviro:probabilistic_model-select'})
 
                     path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
@@ -487,7 +487,7 @@ class ProbabilisticModelHandler(Handler):
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
-                                                                     'header': 'calculate Contour',
+                                                                     'header': 'Calculate Contour',
                                                                      'return_url': 'enviro:probabilistic_model-select'})
 
                     # generate path to the user specific pdf.
