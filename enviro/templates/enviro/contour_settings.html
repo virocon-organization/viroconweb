@@ -1,12 +1,12 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    contour settings
+    Contour settings
     <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">reliability level</h3>
+                <h3 class="panel-title">Reliability level</h3>
             </div>
             {% for x in form %}
                 <div class="panel-body">
@@ -20,7 +20,7 @@
                 </div>
                 {% if x.name == 'sea_state'%}
                     <div class="panel-heading">
-                        <h3 class="panel-title">numerical computation</h3>
+                        <h3 class="panel-title">Numerical computation</h3>
                     </div>
                     {% if form.method == 'HDC' %}
                         <span style="color: #737373;"><small>

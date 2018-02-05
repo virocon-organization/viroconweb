@@ -24,8 +24,8 @@ class SecUserForm(ModelForm):
 
 
 class MeasureFileForm(forms.Form):
-    title = forms.CharField(max_length=50, label='title')
-    measure_file = forms.FileField(label='measurement file', max_length=255)
+    title = forms.CharField(max_length=50, label='Title')
+    measure_file = forms.FileField(label='Measurement file', max_length=255)
 
 
 class MeasureFileFitForm(forms.Form):
@@ -33,7 +33,7 @@ class MeasureFileFitForm(forms.Form):
                      ('Lognormal_2', 'Log-Normal'))
 
     # probabilistic model as a whole
-    title = forms.CharField(max_length=50, label='title')
+    title = forms.CharField(max_length=50, label='Title')
     #number_of_intervals = forms.IntegerField(widget=forms.NumberInput(attrs={'value': '7'}),
     #                                         label='number of intervals')
 
@@ -44,10 +44,10 @@ class MeasureFileFitForm(forms.Form):
         self.fields['_%s' % variable_names[0]] = forms.CharField(widget=forms.TextInput(attrs={'value': 'name'}),
                                                                  max_length=50)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS, widget=forms.Select,
-                                                               initial='Weibull', label='distribution')
+                                                               initial='Weibull', label='Distribution')
         self.fields['width_of_intervals_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
                                                                       widget=forms.NumberInput(attrs={'value': '2'}),
-                                                                      label='width of intervals')
+                                                                      label='Width of intervals')
         #self.fields['number_of_intervals_%s' % 0] = forms.IntegerField(widget=forms.NumberInput(attrs={'value': ''}),
         #                                         label='or: number of intervals')
 
@@ -66,12 +66,12 @@ class MeasureFileFitForm(forms.Form):
             self.fields['distribution_%s' % i] = forms.ChoiceField(choices=self.DISTRIBUTIONS, initial='Weibull',
                                                                    widget=forms.Select(attrs={'id': 'dist_%s' % i,
                                                                                               'onclick': func_call}),
-                                                                   label='distribution')
+                                                                   label='Distribution')
             if i < (variable_count-1):
                 self.fields['width_of_intervals_%s' % i] = forms.DecimalField(decimal_places=4, min_value=0.0001,
                                                                               widget=forms.NumberInput(
                                                                                   attrs={'value': '2'}),
-                                                                              label='width of intervals')
+                                                                              label='Width of intervals')
                 #self.fields['number_of_intervals_%s' % i] = forms.IntegerField(widget=forms.NumberInput(
                 #    attrs={'value': '7'}), label='number of intervals')
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(choices=condition, required=False,
@@ -103,22 +103,22 @@ class VariablesForm(forms.Form):
         i=0
         func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(choices=self.DISTRIBUTIONS,
-                                                               initial='Weibull', label='distribution',
+                                                               initial='Weibull', label='Distribution',
                                                                widget=forms.Select(
                                                                    attrs={'class': 'distribution',
                                                                           'id': 'dist_0', 'onclick': func_call}))
         self.fields['scale_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                     label='scale (λ):'.translate(SUB),
+                                                                     label='Scale (λ):'.translate(SUB),
                                                                      widget=forms.NumberInput(
                                                                          attrs={'value': '2.776',
                                                                                 'id': 'scale_0_0'}))
         self.fields['shape_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                     label='shape (k):'.translate(SUB),
+                                                                     label='Shape (k):'.translate(SUB),
                                                                      widget=forms.NumberInput(
                                                                          attrs={'value': '1.471',
                                                                                 'id': 'shape_0_0'}))
         self.fields['location_%s' % 0 + '_%s' % 0] = forms.DecimalField(decimal_places=4, min_value=0.0001,
-                                                                        label='location (θ):'.translate(SUB),
+                                                                        label='Location (θ):'.translate(SUB),
                                                                         widget=forms.NumberInput(
                                                                             attrs={'value': '0.8888',
                                                                                    'id': 'loc_0_0'}))
@@ -136,7 +136,7 @@ class VariablesForm(forms.Form):
                                                                     label=str(i + 1) + '. variable symbol',
                                                                     min_length=1)
             self.fields['distribution_%s' % i] = forms.ChoiceField(choices=self.DISTRIBUTIONS,
-                                                                   initial='Weibull', label='distribution',
+                                                                   initial='Weibull', label='Distribution',
                                                                    widget=forms.Select(
                                                                        attrs={
                                                                            'id': 'dist_{}'.format(i),
@@ -156,7 +156,7 @@ class VariablesForm(forms.Form):
                 if j == 0:
                     self.fields['scale_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
                                                                                  #label='c%s' % str(j).translate(SUB),
-                                                                                 label='constant value:',
+                                                                                 label='Constant value:',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -188,7 +188,7 @@ class VariablesForm(forms.Form):
                 if j == 0:
                     self.fields['shape_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4,
                                                                                  #label="c%s" % str(j).translate(SUB),
-                                                                                 label='constant value:',
+                                                                                 label='Constant value:',
                                                                                  required=False, initial=0,
                                                                                  widget=forms.NumberInput(
                                                                                      attrs={
@@ -220,7 +220,7 @@ class VariablesForm(forms.Form):
                 if j == 0:
                     self.fields['location_%s' % i + '_%s' % j] = forms.DecimalField(decimal_places=4, required=False,
                                                                                     #label='c%s' % str(j).translate(SUB),
-                                                                                    label='constant value:',
+                                                                                    label='Constant value:',
                                                                                     widget=forms.NumberInput(
                                                                                         attrs={
                                                                                             'class': params_class,
@@ -235,12 +235,12 @@ class VariablesForm(forms.Form):
                                                                                             'style': 'display:none',
                                                                                             'value': '0'}))
 
-    collection_name = forms.CharField(max_length=50, label='title')
+    collection_name = forms.CharField(max_length=50, label='Title')
 
 
 
 class VariableNumber(forms.Form):
-    variable_number = forms.IntegerField(min_value=2, max_value=10, label='number of environmental variables')
+    variable_number = forms.IntegerField(min_value=2, max_value=10, label='Number of environmental variables')
 
 
 class HDCForm(forms.Form):
@@ -270,7 +270,7 @@ class HDCForm(forms.Form):
                                                                                      'class': 'contour_input_field'}))
         pass
 
-    n_years = forms.DecimalField(label='return period [years]',
+    n_years = forms.DecimalField(label='Return period [years]',
                                         required=True,
                                         decimal_places=2,
                                         min_value=0.01,
@@ -278,7 +278,7 @@ class HDCForm(forms.Form):
                                         widget=forms.NumberInput(
                                             attrs={'value': '1.0',
                                                    'class': 'contour_input_field'}))
-    sea_state = forms.DecimalField(label='environmental state duration [hours]',
+    sea_state = forms.DecimalField(label='Environmental state duration [hours]',
                                    required=True,
                                    decimal_places=2,
                                    min_value=0.01,
@@ -290,7 +290,7 @@ class HDCForm(forms.Form):
 
 
 class IFormForm(forms.Form):
-    return_period = forms.DecimalField(label='return period [years]',
+    return_period = forms.DecimalField(label='Return period [years]',
                                         required=True,
                                         decimal_places=2,
                                         min_value=0.01,
@@ -298,7 +298,7 @@ class IFormForm(forms.Form):
                                         widget=forms.NumberInput(
                                             attrs={'value': '1.0',
                                                    'class': 'contour_input_field'}))
-    sea_state = forms.DecimalField(label='environmental state duration [hours]',
+    sea_state = forms.DecimalField(label='Environmental state duration [hours]',
                                    required=True,
                                    decimal_places=2,
                                    min_value=0.01,
@@ -306,7 +306,7 @@ class IFormForm(forms.Form):
                                         widget=forms.NumberInput(
                                             attrs={'value': '3.0',
                                                    'class': 'contour_input_field'}))
-    n_steps = forms.IntegerField(label='number of points on the contour',
+    n_steps = forms.IntegerField(label='Number of points on the contour',
                                  required=True,
                                  min_value=5,
                                  max_value=10000,

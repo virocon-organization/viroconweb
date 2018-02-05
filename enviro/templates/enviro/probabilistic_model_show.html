@@ -2,7 +2,7 @@
 {% load static %}
 {% load latexify %}
 {% block content %}
-    probabilistic model
+    Probabilistic model
     <div class="page-header"></div>
     <div class="container-fluid probabilstic-model-show">
         <h1>{{probabilistic_model.collection_name}}</h1>
@@ -37,7 +37,7 @@
         {% endif %}
         <h2>Environmental contour</h2>
         <p>
-            compute an environmental contour:
+            Compute an environmental contour:
             <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'I' %}">IFORM</a>
             <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'H' %}">HDC</a>
         </p>

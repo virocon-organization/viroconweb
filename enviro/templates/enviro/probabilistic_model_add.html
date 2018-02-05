@@ -1,14 +1,14 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    enter probabilistic model
+    Enter probabilistic model
 
     <form class="form-horizontal" action="{% url 'enviro:set-probabilistic_model-number' %}" method="post"
           enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">number of variables</h3>
+                <h3 class="panel-title">Number of variables</h3>
             </div>
             <br>
             <div class="form-group CreateDataText">
@@ -61,7 +61,7 @@
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">probabilistic model</h3>
+                <h3 class="panel-title">Probabilistic model</h3>
             </div>
 
             {% for x in form %}
