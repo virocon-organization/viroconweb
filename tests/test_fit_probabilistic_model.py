@@ -6,7 +6,7 @@ from enviro.forms import MeasureFileFitForm
 
 class UploadFileTestCase(TestCase):
     def setUp(self):
-        self.test_files_path = os.path.abspath(os.path.join(os.path.dirname( __file__), r'test_files/'))
+        # create a user
         self.client = Client()
         self.client.post(reverse('user:create'),
                            {'username' : 'max_mustermann',
@@ -18,11 +18,13 @@ class UploadFileTestCase(TestCase):
                             'password1' : 'AnJaKaTo2018',
                             'password2': 'AnJaKaTo2018'})
 
+        # create a measurement file
+        test_files_path = os.path.abspath(os.path.join(os.path.dirname( __file__), r'test_files/'))
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'
 
         # thanks to: https://stackoverflow.com/questions/2473392/unit-testing-
         # a-django-form-with-a-filefield
-        test_file = open(os.path.join(self.test_files_path , file_name), 'rb')
+        test_file = open(os.path.join(test_files_path , file_name), 'rb')
         test_file_simple_uploaded = SimpleUploadedFile(test_file.name,
                                                        test_file.read())
         self.client.post(reverse('enviro:measurefiles-add'),
@@ -39,13 +41,12 @@ class UploadFileTestCase(TestCase):
                                             kwargs={'pk' : 1}))
         self.assertContains(response, "example_normal.svg", status_code=200)
 
-        # create a fit (correct Vanem 2012 model for the test file)
-        # create the form without input
+        # create a fitting form without input
         form = MeasureFileFitForm(
             variable_count=2,
             variable_names=['significant wave height [m]', 'peak period [s]'])
 
-        # create the form with input
+        # create a fitting form with input (Vanem2012 model, like the test data)
         form_input_dict = {
                 'title' : 'Test fit',
                 '_significant wave height [m]' : 'significant wave height [m]',
@@ -63,7 +64,7 @@ class UploadFileTestCase(TestCase):
             variable_count=2)
         self.assertTrue(form.is_valid())
 
-        # test if after a correct input the correct view is shown
+        # test if the fit worked and the correct view is shown
         response = self.client.post(reverse('enviro:measurefiles-fit',
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
