@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.contrib import auth
 
+
 class CreateUserTestCase(TestCase):
     def setUp(self):
         self.client = Client()
@@ -19,6 +20,7 @@ class CreateUserTestCase(TestCase):
                             'password2': 'AnJaKaTo2018'})
         user = auth.get_user(self.client)
         assert user.is_authenticated()
+
 
 class LoginUserTestCase(TestCase):
     def setUp(self):

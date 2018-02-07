@@ -51,6 +51,7 @@ class ShowProbModelTestCase(TestCase):
                          form_input_dict,
                          follow=True)
 
+
     def test_show_prob_model(self):
         response = self.client.post(reverse('enviro:probabilistic_model-show',
                                             kwargs={'pk': 1}),

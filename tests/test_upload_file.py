@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from enviro.forms import MeasureFileForm
 
+
 class UploadFileTestCase(TestCase):
     def setUp(self):
         self.test_files_path = os.path.abspath(os.path.join(os.path.dirname( __file__), r'test_files/'))
@@ -17,6 +18,7 @@ class UploadFileTestCase(TestCase):
                             'type_of_use': 'commercial',
                             'password1' : 'AnJaKaTo2018',
                             'password2': 'AnJaKaTo2018'})
+
 
     def test_upload_file(self):
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'

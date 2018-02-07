@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from enviro.forms import MeasureFileFitForm
 
+
 class FitProbModelTestCase(TestCase):
     def setUp(self):
         # create a user
@@ -31,8 +32,6 @@ class FitProbModelTestCase(TestCase):
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     })
-
-
 
 
     def test_fit_probabilistic_model(self):

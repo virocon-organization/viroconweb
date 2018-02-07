@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from enviro.forms import VariableNumber, VariablesForm
 
+
 class DirectInputProbModelTestCase(TestCase):
     def setUp(self):
         # create a user
@@ -32,8 +33,6 @@ class DirectInputProbModelTestCase(TestCase):
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     })
-
-
 
 
     def test_direct_input_prob_model(self):
