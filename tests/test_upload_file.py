@@ -43,4 +43,13 @@ class UploadFileTestCase(TestCase):
                                     follow=True)
         self.assertContains(response, "scatter plot", status_code = 200)
 
+        # Finally delete the uploaded file. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid adding up .csv files in the dir each time the test is run
+        response = self.client.get(reverse('enviro:measurefiles-delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
+        self.assertContains(response, "ploaded measurement files",
+                            status_code = 200)
+
 

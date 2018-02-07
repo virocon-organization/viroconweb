@@ -36,7 +36,7 @@ class FitProbModelTestCase(TestCase):
 
     def test_fit_probabilistic_model(self):
         # open fitting url and check if the html is correct
-        response = self.client.post(reverse('enviro:measurefiles-fit',
+        response = self.client.get(reverse('enviro:measurefiles-fit',
                                             kwargs={'pk' : 1}))
         self.assertContains(response, "example_normal.svg", status_code=200)
 
@@ -69,3 +69,12 @@ class FitProbModelTestCase(TestCase):
                                     form_input_dict,
                                     follow=True)
         self.assertContains(response, "Visual inspection", status_code=200)
+
+        # Finally delete the uploaded file. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid adding up .csv files in the dir each time the test is run
+        response = self.client.get(reverse('enviro:measurefiles-delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
+        self.assertContains(response, "ploaded measurement files",
+                            status_code = 200)

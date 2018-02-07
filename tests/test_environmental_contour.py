@@ -107,6 +107,5 @@ class EnvironmentalContourTestCase(TestCase):
                                                     'method': 'H'}),
                                     form_input_dict,
                                     follow=True)
-        print(response.content)
         self.assertContains(response, 'Download PDF',
                             status_code=200)
