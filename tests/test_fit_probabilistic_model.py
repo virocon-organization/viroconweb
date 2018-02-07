@@ -63,6 +63,7 @@ class UploadFileTestCase(TestCase):
             variable_count=2)
         self.assertTrue(form.is_valid())
 
+        # test if after a correct input the correct view is shown
         response = self.client.post(reverse('enviro:measurefiles-fit',
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
