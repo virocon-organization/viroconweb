@@ -1,8 +1,5 @@
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
-import os
-from enviro.forms import VariableNumber, VariablesForm
 
 
 class ShowProbModelTestCase(TestCase):
@@ -29,12 +26,12 @@ class ShowProbModelTestCase(TestCase):
             'location_0_0': '0.888',
             'variable_name_1': 'peak period [s]',
             'variable_symbol_1': 'Tp',
-            'distribution_1': 'Weibull',
-            'scale_dependency_1': '0f2',
+            'distribution_1': 'Lognormal_2',
+            'scale_dependency_1': '0f1',
             'scale_1_0': '0.1',
             'scale_1_1': '1.489',
             'scale_1_2': '0.1901',
-            'shape_dependency_1': '0f1',
+            'shape_dependency_1': '0f2',
             'shape_1_0': '0.04',
             'shape_1_1': '0.1748',
             'shape_1_2': '-0.2243',

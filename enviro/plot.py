@@ -511,8 +511,8 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     directory_prefix = 'enviro/static/'
     file_path_contour = directory_prefix + user + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
-    img_list = os.listdir(directory_fit_images + '/' +
-                          str(probabilistic_model.pk))
+
+
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
@@ -527,6 +527,8 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
         latex_content += r"file: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
+        img_list = os.listdir(directory_fit_images + '/' +
+                              str(probabilistic_model.pk))
         for img in img_list:
             img_name = directory_fit_images + str(probabilistic_model.pk) + \
                        "/" + img
