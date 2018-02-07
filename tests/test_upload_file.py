@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
+from enviro.forms import MeasureFileForm
 
 class UploadFileTestCase(TestCase):
     def setUp(self):
@@ -19,14 +20,25 @@ class UploadFileTestCase(TestCase):
 
     def test_upload_file(self):
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'
-        with open(os.path.join(self.test_files_path , file_name), "rb") as csv_file:
-            file_content = csv_file.read()
-        test_file = SimpleUploadedFile(file_name, file_content)
 
-        self.client.post(reverse('enviro:measurefiles-add'),
-                         {'data' : {
-                             'title' : file_name,
-                             'measure_file' : file_name
-                         },
-                          'files' : test_file})
+        # thanks to: https://stackoverflow.com/questions/2473392/unit-testing-
+        # a-django-form-with-a-filefield
+        test_file = open(os.path.join(self.test_files_path , file_name), 'rb')
+        test_file_simple_uploaded = SimpleUploadedFile(test_file.name,
+                                                       test_file.read())
+        post_dict = {'title' : 'Test Title'}
+        file_dict = {'measure_file' : test_file_simple_uploaded}
+
+        # first test the form
+        form = MeasureFileForm(post_dict, file_dict)
+        self.assertTrue(form.is_valid())
+
+        # then test the view, which contains a plot of the file
+        response = self.client.post(reverse('enviro:measurefiles-add'),
+                                    {'title' : file_name,
+                                     'measure_file' : test_file_simple_uploaded
+                                    },
+                                    follow = True)
+        self.assertContains(response, "scatter plot", status_code = 200)
+
 
