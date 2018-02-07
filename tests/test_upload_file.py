@@ -38,7 +38,7 @@ class UploadFileTestCase(TestCase):
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     },
-                                    follow = True)
+                                    follow=True)
         self.assertContains(response, "scatter plot", status_code = 200)
 
 
