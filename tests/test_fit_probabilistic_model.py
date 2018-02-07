@@ -4,7 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from enviro.forms import MeasureFileFitForm
 
-class UploadFileTestCase(TestCase):
+class FitProbModelTestCase(TestCase):
     def setUp(self):
         # create a user
         self.client = Client()

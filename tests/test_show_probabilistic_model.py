@@ -4,7 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from enviro.forms import VariableNumber, VariablesForm
 
-class DirectInputProbModelTestCase(TestCase):
+class ShowProbModelTestCase(TestCase):
     def setUp(self):
         # create a user
         self.client = Client()
@@ -33,11 +33,7 @@ class DirectInputProbModelTestCase(TestCase):
                                      'measure_file' : test_file_simple_uploaded
                                     })
 
-
-
-
-    def test_direct_input_prob_model(self):
-        # open direct input url and check if the html is correct
+       # open direct input url and check if the html is correct
         response = self.client.post(reverse('enviro:probabilistic_model-add',
                                             args=['02']))
         self.assertContains(response, "The first characer should be "
@@ -82,3 +78,7 @@ class DirectInputProbModelTestCase(TestCase):
                                     follow=True)
         self.assertContains(response, "ploaded probabilistic models",
                             status_code=200)
+
+
+    def test_show_prob_model(self):
+
