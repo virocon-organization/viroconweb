@@ -5,13 +5,10 @@ from django.shortcuts import render, get_object_or_404, HttpResponse, HttpRespon
 from .forms import *
 from .models import MeasureFileModel
 from .compute_interface import ComputeInterface
-from .compute_interface import setup_mul_dist
 from .plot import *
 import os
 import csv
 import warnings
-import numpy as np
-from scipy.optimize import OptimizeWarning
 
 
 class Handler:

@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 key_exists = "SECRET_KEY" in os.environ
 if not key_exists:
-    print('Warning: SECRET_KEY is not set. For test purposes I am setting'
+    print('Warning: SECRET_KEY is not set. For test purposes I am setting '
           'it to a random hash')
     SECRET_KEY = ''.join(random.choices(
         string.ascii_uppercase + string.digits, k=10))
