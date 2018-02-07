@@ -7,11 +7,17 @@ from scipy.stats import lognorm
 from scipy.stats import norm
 import warnings
 
-import matplotlib as mpl
-# Needed for Heroku and Travis, see https://stackoverflow.com/questions/
-# 41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
-mpl.use('Agg')
+# There is a problem with using matplotlib on a server (with Heroku and Travis).
+# The standard solution to fix it is to use:
+#   import matplotlib
+#   matplotlib.use('Agg')
+#   import matplotlib.pyplot as plt
+# see https://stackoverflow.com/questions/41319082/import-matplotlib-failing-
+# with-no-module-named-tkinter-on-heroku
+# However this does not work. Consequently we use another solution.
+# Thanks to: https://github.com/matplotlib/matplotlib/issues/3466/
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
