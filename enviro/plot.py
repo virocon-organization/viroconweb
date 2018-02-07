@@ -518,8 +518,6 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     file_path_contour = directory_prefix + user + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
-
-
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
                     r"\includegraphics[width=\textwidth]{" + \

@@ -51,5 +51,3 @@ class UploadFileTestCase(TestCase):
                                    follow=True)
         self.assertContains(response, "ploaded measurement files",
                             status_code = 200)
-
-
