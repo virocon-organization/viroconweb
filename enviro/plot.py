@@ -6,11 +6,11 @@ from scipy.stats import weibull_min
 from scipy.stats import lognorm
 from scipy.stats import norm
 import warnings
-import matplotlib
 
-# Needed for Heroku, see https://stackoverflow.com/questions/41319082/import-
-# matplotlib-failing-with-no-module-named-tkinter-on-heroku
-matplotlib.use('Agg')
+import matplotlib as mpl
+# Needed for Heroku and Travis, see https://stackoverflow.com/questions/
+# 41319082/import-matplotlib-failing-with-no-module-named-tkinter-on-heroku
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 from .plot_generic import alpha_shape
