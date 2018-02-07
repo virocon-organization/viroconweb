@@ -3,7 +3,7 @@ python:
   - "3.6"
 
 script: 
-- python -m unittest discover --start-directory ./enviro/compute_tests
+- python manage.py test
 - bash ./deploy_docs.sh
 
 env:
