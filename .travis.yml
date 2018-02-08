@@ -18,9 +18,10 @@ env:
 
 notifications:
   email:
+    recipients:
+      - a.haselsteiner@uni-bremen.de
+      - kawindme@uni-bremen.de
+      - janlehmk@uni-bremen.de
+      - to_pa@uni-bremen.de
     on_success: change
     on_failure: always
-    - a.haselsteiner@uni-bremen.de
-    - kawindme@uni-bremen.de
-    - janlehmk@uni-bremen.de
-    - to_pa@uni-bremen.de
