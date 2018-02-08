@@ -2,8 +2,12 @@ language: python
 python:
   - "3.6"
 
-script: 
-- python -m unittest discover --start-directory ./enviro/compute_tests
+before_install:
+- "sudo apt-get update && sudo apt-get install --no-install-recommends texlive-fonts-recommended texlive-latex-extra texlive-fonts-extra texlive-latex-recommended dvipng"
+
+script:
+- mkdir _build
+- python manage.py test
 - bash ./deploy_docs.sh
 
 env:

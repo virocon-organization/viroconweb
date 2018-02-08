@@ -6,12 +6,18 @@ from scipy.stats import weibull_min
 from scipy.stats import lognorm
 from scipy.stats import norm
 import warnings
-import matplotlib
 
-# Needed for Heroku, see https://stackoverflow.com/questions/41319082/import-
-# matplotlib-failing-with-no-module-named-tkinter-on-heroku
-matplotlib.use('Agg')
+# There is a problem with using matplotlib on a server (with Heroku and Travis).
+# The standard solution to fix it is to use:
+#   import matplotlib
+#   matplotlib.use('Agg')
+#   import matplotlib.pyplot as plt
+# see https://stackoverflow.com/questions/41319082/import-matplotlib-failing-
+# with-no-module-named-tkinter-on-heroku
+# However this does not work. Consequently we use another solution.
+# Thanks to: https://github.com/matplotlib/matplotlib/issues/3466/
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
@@ -511,8 +517,6 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     directory_prefix = 'enviro/static/'
     file_path_contour = directory_prefix + user + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
-    img_list = os.listdir(directory_fit_images + '/' +
-                          str(probabilistic_model.pk))
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
@@ -527,6 +531,8 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
         latex_content += r"file: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
+        img_list = os.listdir(directory_fit_images + '/' +
+                              str(probabilistic_model.pk))
         for img in img_list:
             img_name = directory_fit_images + str(probabilistic_model.pk) + \
                        "/" + img
