@@ -413,7 +413,7 @@ class ProbabilisticModelHandler(Handler):
 
                     path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                     str(iform_form.cleaned_data['return_period']),
-                                   ' years, Inverse First Order Reliability Mehtod (IFORM)']), probabilistic_model, var_names, var_symbols, method)
+                                   ' years, method = IFORM']), probabilistic_model, var_names, var_symbols, method)
 
 
                     #probabilistic_model.measure_file_model.measure_file
@@ -490,7 +490,7 @@ class ProbabilisticModelHandler(Handler):
                     # generate path to the user specific pdf.
                     path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
                                     str(hdc_form.cleaned_data['n_years']),
-                                    ' years, Highest Density Contour (HDC)']),
+                                    ' years, method = HDC']),
                                     probabilistic_model, var_names, var_symbols, method)
 
                     # if matrix 3dim - send data for 3dim interactive plot.

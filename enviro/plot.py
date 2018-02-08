@@ -412,7 +412,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
                       DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
-    plt.title(probabilistic_model.collection_name + ': ' + method_label)
+    #plt.title(probabilistic_model.collection_name + ': ' + method_label)
 
     short_path = user + '/contour.png'
     plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
@@ -528,7 +528,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
                     r"\subsection{Associated measurement file}"
 
     if probabilistic_model.measure_file_model:
-        latex_content += r"file: '\verb|" + \
+        latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
         img_list = os.listdir(directory_fit_images + '/' +
@@ -545,8 +545,11 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
                          r"direct input."
 
     latex_content += r"\subsection{Probabilistic model}"
+    latex_content += r"Name: '\verb|" + \
+                     probabilistic_model.collection_name + \
+                     r"|'\\"
 
-    # get the equation in latex style
+    # get the probability density function equation in latex style
     dists_model = DistributionModel.objects.filter(
         probabilistic_model=probabilistic_model)
     var_symbols = []
@@ -555,10 +558,13 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     multivariate_distribution = setup_mul_dist(probabilistic_model)
     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
 
+    latex_content += r"{\setlength{\mathindent}{0cm}"
     for latex_string in latex_string_list:
         latex_content += r"\begin{equation*}"
         latex_content += latex_string
         latex_content += r"\end{equation*}"
+    latex_content += r"}"
+
     latex_content += r"\subsection{Environmental contour} \
         \begin{itemize}"
     latex_content += r"\item Contour method: "
