@@ -280,16 +280,20 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
         for j, spec_dist_points in enumerate(dist_points):
             # k = number of intervals
             for k, dist_point in enumerate(spec_dist_points):
-                if i == 0 or len(interval_centers) < 2:
-                    interval_limits = [min(interval_centers),
-                                       max(interval_centers)]
+                if interval_centers:
+                    if i == 0 or len(interval_centers) < 2:
+                        interval_limits = [min(interval_centers),
+                                           max(interval_centers)]
+                    else:
+                        # Calculate  the interval width assuming constant
+                        # interval width.
+                        interval_width = interval_centers[1] - \
+                                         interval_centers[0]
+                        interval_limits = [
+                            interval_centers[k] - 0.5 * interval_width,
+                            interval_centers[k] + 0.5*interval_width]
                 else:
-                    # Calculate interval width assuming constant interval width.
-                    interval_width = interval_centers[1] - interval_centers[0]
-
-                    interval_limits = [
-                        interval_centers[k] - 0.5 * interval_width,
-                        interval_centers[k] + 0.5*interval_width]
+                    interval_limits = []
                 parent_index = fit.mul_var_dist.dependencies[i][j]
                 symbol_parent_var = None
                 if parent_index is not None:
