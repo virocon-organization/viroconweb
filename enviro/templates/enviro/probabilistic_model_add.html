@@ -6,6 +6,9 @@
     <form class="form-horizontal" action="{% url 'enviro:set-probabilistic_model-number' %}" method="post"
           enctype="multipart/form-data">
         {% csrf_token %}
+        {%  if user_error_message  %}
+            <p class="bg-danger"> {{ user_error_message  }}</p>
+        {% endif %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">number of variables</h3>

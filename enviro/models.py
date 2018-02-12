@@ -4,7 +4,8 @@ from django.db import models
 from django.dispatch import receiver
 from user.models import User
 import os
-
+from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 class MeasureFileModel(models.Model):
     secondary_user = models.ManyToManyField(User, related_name="secondary", max_length=50)
@@ -55,14 +56,58 @@ class DistributionModel(models.Model):
 
 
 class ParameterModel(models.Model):
-    FUNCTIONS = ((None, 'None'), ('f1', 'power function'), ('f2', 'exponential'))
+    FUNCTIONS = ((None, 'None'), ('f1', 'power function'),
+                 ('f2', 'exponential'))
     function = models.CharField(choices=FUNCTIONS, max_length=6)
-    x0 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10, null=True)
-    x1 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10, null=True)
-    x2 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10, null=True)
+    x0 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10,
+                             null=True)
+    x1 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10,
+                             null=True)
+    x2 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10,
+                             null=True)
     dependency = models.CharField(default='!', max_length=10)
+    # The name attribute can be 'scale', 'shape', or 'location' (see views.py)
     name = models.CharField(default='empty', max_length=10)
-    distribution = models.ForeignKey(DistributionModel, on_delete=models.CASCADE)
+    distribution = models.ForeignKey(DistributionModel,
+                                     on_delete=models.CASCADE)
+
+    def clean(self):
+        """
+        Validates that the distribution's parameters have valid values.
+
+        All distribution's parameters are validated. For example a Normal
+        distribution's scale parameter (sigma) must be > 0. If this is not
+        the case, a ValidationError is raised.
+        """
+
+        if self.function == 'None':
+            if self.distribution.distribution == 'Normal' and \
+                            self.name == 'scale' and \
+                            self.x0 <= 0:
+                raise ValidationError(
+                    "The Normal distribution's scale parameter, sigma, "
+                    "must be > 0.")
+            elif self.distribution.distribution == 'Weibull' and \
+                            self.name == 'scale' and \
+                            self.x0 <= 0:
+                raise ValidationError(
+                    "The Weibull distribution's scale parameter, lambda, "
+                    "must be > 0.")
+            elif self.distribution.distribution == 'Weibull' and \
+                            self.name == 'shape' and \
+                            self.x0 <= 0:
+                raise ValidationError(
+                    "The Weibull distribution's shape parameter, k, "
+                    "must be > 0.")
+            elif self.distribution.distribution == 'Lognormal_2' and \
+                            self.name == 'shape' and \
+                            self.x0 <= 0:
+                raise ValidationError(
+                    "The Log-normal's distribution's shape parameter, sigma, "
+                    "must be > 0.")
 
     def __str__(self):
-        return "parameter object with: function=%r, x0=%r, x1=%r, x2=%r, dependency=%r, name=%r" % (self.function, self.x0, self.x1, self.x2, self.dependency, self.name)
+        return "parameter object with: function=%r, x0=%r, x1=%r, x2=%r," \
+               " dependency=%r, name=%r" % \
+               (self.function, self.x0, self.x1, self.x2,
+                self.dependency, self.name)

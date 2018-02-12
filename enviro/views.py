@@ -9,6 +9,7 @@ from .plot import *
 import os
 import csv
 import warnings
+from django.core.exceptions import ValidationError
 
 
 class Handler:
@@ -307,6 +308,8 @@ class ProbabilisticModelHandler(Handler):
             if request.method == 'POST':
                 variable_form = VariablesForm(data=request.POST, variable_count=var_num_int)
                 if variable_form.is_valid():
+                    is_valid_probabilistic_model = True
+                    user_error_message = 'Haha'
                     probabilistic_model = ProbabilisticModel(primary_user=request.user,
                                                              collection_name=variable_form.cleaned_data[
                                                                  'collection_name'], measure_file_model=None)
@@ -325,7 +328,13 @@ class ProbabilisticModelHandler(Handler):
                                                            x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
                                                            dependency='!',
                                                            name=param, distribution=distribution)
-                                parameter.save()
+                                try:
+                                    parameter.clean()
+                                except ValidationError as e:
+                                    user_error_message = e.message
+                                    is_valid_probabilistic_model = False
+                                else:
+                                    parameter.save()
 
                         else:
                             for param in params:
@@ -336,13 +345,27 @@ class ProbabilisticModelHandler(Handler):
                                     x2=variable_form.cleaned_data[param + '_' + str(i) + '_2'],
                                     dependency=variable_form.cleaned_data[param + '_dependency_' + str(i)][0],
                                     name=param, distribution=distribution)
-
-                                parameter.save()
-
-                    return redirect('enviro:probabilistic_model-select')
+                                try:
+                                    parameter.clean()
+                                except ValidationError as e:
+                                    user_error_message = e.message
+                                    is_valid_probabilistic_model = False
+                                else:
+                                    parameter.save()
+                    if is_valid_probabilistic_model:
+                        return redirect('enviro:probabilistic_model-select')
+                    else:
+                        probabilistic_model.delete()
+                        return render(request,
+                                      'enviro/probabilistic_model_add.html',
+                                      {'form': variable_form,
+                                       'var_num_form': var_num_form,
+                                       'user_error_message': user_error_message })
                 else:
-                    return render(request, 'enviro/probabilistic_model_add.html',
-                                  {'form': variable_form, 'var_num_form': var_num_form})
+                    return render(request,
+                                  'enviro/probabilistic_model_add.html',
+                                  {'form': variable_form,
+                                   'var_num_form': var_num_form})
 
             return render(request, 'enviro/probabilistic_model_add.html',
                           {'form': variable_form, 'var_num_form': var_num_form})
