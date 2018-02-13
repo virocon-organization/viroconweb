@@ -15,7 +15,8 @@ class MeasureFileModel(models.Model):
     user (owner) and can be shared with other users.
     """
 
-    secondary_user = models.ManyToManyField(User, related_name="secondary", max_length=50)
+    secondary_user = models.ManyToManyField(User, related_name="secondary",
+                                            max_length=50)
     primary_user = models.ForeignKey(User, null=True, related_name="primary")
     title = models.CharField(max_length=50, default="MeasureFile")
     upload_date = models.DateTimeField(default=timezone.now)
@@ -57,11 +58,16 @@ class ProbabilisticModel(models.Model):
     are needed to define the distributions.
     """
 
-    primary_user = models.ForeignKey(User, null=True, related_name="variables_primary")
-    secondary_user = models.ManyToManyField(User, related_name="variables_secondary")
+    primary_user = models.ForeignKey(User, null=True,
+                                     related_name="variables_primary")
+    secondary_user = models.ManyToManyField(User,
+                                            related_name="variables_secondary")
     upload_date = models.DateTimeField(default=timezone.now)
-    collection_name = models.CharField(default='VariablesCollection', max_length=50)
-    measure_file_model = models.ForeignKey(MeasureFileModel, on_delete=models.CASCADE, null=True)
+    collection_name = models.CharField(default='VariablesCollection',
+                                       max_length=50)
+    measure_file_model = models.ForeignKey(MeasureFileModel,
+                                           on_delete=models.CASCADE,
+                                           null=True)
     def __str__(self):
         return "probabilistic_model"
 
@@ -78,11 +84,13 @@ class DistributionModel(models.Model):
     """
 
     DISTRIBUTIONS = (('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'),
-                     ('Lognormal_2', 'Log-Normal'), ('KernelDensity', 'Kernel Density'))
+                     ('Lognormal_2', 'Log-Normal'),
+                     ('KernelDensity', 'Kernel Density'))
     name = models.CharField(default="peak period", max_length=50)
     symbol = models.CharField(default="Tp", max_length=5)
     distribution = models.CharField(choices=DISTRIBUTIONS, max_length=15)
-    probabilistic_model = models.ForeignKey(ProbabilisticModel, on_delete=models.CASCADE)
+    probabilistic_model = models.ForeignKey(ProbabilisticModel,
+                                            on_delete=models.CASCADE)
 
     def __str__(self):
         return "distribution"
