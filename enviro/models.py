@@ -5,7 +5,6 @@ from django.dispatch import receiver
 from user.models import User
 import os
 from django.core.exceptions import ValidationError
-from decimal import Decimal
 
 class MeasureFileModel(models.Model):
     """
