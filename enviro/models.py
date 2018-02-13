@@ -48,7 +48,7 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
 
 class ProbabilisticModel(models.Model):
     """
-    Model for a multivariate distribution, e.g. sig. wave height and peak period
+    Model for a multivariate distribution, e.g. a sea state description.
 
     A ProbabilisticModel object is associated to a user (owner) and can be
     shared with other users. It has a name and can be connected to
@@ -76,7 +76,7 @@ class DistributionModel(models.Model):
     Model for the distribution of a single random variable.
 
     For example the random variable significant wave height, can be defined
-    with this model. It's name would be 'significant wave height', its
+    with this model. Its name would be 'significant wave height', its
     symbol 'Hs' and its distribution 'Weibull'. In addition one would need 3
     ParameterModel objects, which define the distributions parameters (scale,
     shape, location).
