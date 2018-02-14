@@ -3,7 +3,9 @@
 {% block content %}
     enter probabilistic model
 
-    <form class="form-horizontal" action="{% url 'enviro:set-probabilistic_model-number' %}" method="post"
+    <form class="form-horizontal"
+          action="{% url 'enviro:set-probabilistic_model-number' %}"
+          method="post"
           enctype="multipart/form-data">
         {% csrf_token %}
         {%  if user_error_message  %}
@@ -16,10 +18,17 @@
             <br>
             <div class="form-group CreateDataText">
                 <div class="col-md-2"></div>
-                <div class="col-md-2"> {{ var_num_form.variable_number.label_tag }}</div>
-                <div class="col-md-4"> {{ var_num_form.variable_number }}</div>
+                <div class="col-md-2">
+                    {{ var_num_form.variable_number.label_tag }}
+                </div>
+                <div class="col-md-4">
+                    {{ var_num_form.variable_number }}
+                </div>
                 <div class="col-md-1"></div>
-                <div class="col-md-3"><span class="text-danger small">{{ var_num_form.variable_number.errors }}</span>
+                <div class="col-md-3">
+                    <span class="text-danger small">
+                        {{ var_num_form.variable_number.errors }}
+                    </span>
                 </div>
             </div>
             <div class="form-group">
@@ -34,13 +43,16 @@
         </div>
         <div class="panel-body">
             <div class="col-sm-4">Normal Distribution
-                <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+                <img class="img-responsive"
+                     src="{% static 'images/example_normal.svg' %}">
             </div>
             <div class="col-sm-4">Weibull Distribution
-                <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+                <img class="img-responsive"
+                     src="{% static 'images/example_weibull.svg' %}">
             </div>
             <div class="col-sm-4">Logarithmic Normal Distribution
-                <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+                <img class="img-responsive"
+                     src="{% static 'images/example_lognormal.svg' %}">
             </div>
         </div>
         <div class="panel-heading">
@@ -50,17 +62,20 @@
             <div class="col-sm-2"></div>
             <div class="col-sm-4">
                 <h4>Exponential</h4>
-                <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+                <img src="{% static 'images/Exponential_PDF.png' %}"
+                     height="17">
             </div>
             <div class="col-sm-4">
                 <h4>Power function</h4>
-                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+                <img src="{% static 'images/Polynomial_PDF.png' %}"
+                     height="17">
             </div>
             <div class="col-sm-2"></div>
         </div>
     </div>
     <br>
-    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+    <form class="form-horizontal" action="" method="post"
+          enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -70,8 +85,11 @@
             {% for x in form %}
                 {% if 'variable_name' in x.name %}
                     <div class="panel-heading">
+                        {% comment %}
+                        For using |slice, thanks goes to: https://stackoverflow
+                        .com/questions/28979148/substring-in-a-django-template
+                        {% endcomment %}
                         <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>
-                        {# thanks to: https://stackoverflow.com/questions/28979148/substring-in-a-django-template #}
                     </div>
                 {% endif %}
                 {% if 'scale_' in x.name %}
@@ -122,11 +140,15 @@
                         <div class="form-group CreateDataText">
                             <div class="col-sm-2">{{ x.help_text }}</div>
                             <label class="col-sm-3"
-                                   id={{ x.html_initial_id }} for="{{ x.id_for_label }}">{{ x.label_tag }}</label>
+                                   id={{ x.html_initial_id }}
+                                           for="{{ x.id_for_label }}">
+                                {{ x.label_tag }}
+                            </label>
                             <div class="col-sm-4"> {{ x }}</div>
                             <div class="col-sm-3 input-additional-info">
                                 {% if x.label == '1. variable symbol' %}
-                                    The first character should be capizalized. Further characters will be interpreted as
+                                    The first character should be capizalized.
+                                    Further characters will be interpreted as
                                     subscripts.
                                 {% endif %}
                             </div>
