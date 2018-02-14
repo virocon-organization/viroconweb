@@ -23,7 +23,7 @@ class DirectInputProbModelTestCase(TestCase):
         response = self.client.post(reverse('enviro:probabilistic_model-add',
                                             args=['02']))
         self.assertContains(response, "The first character should be "
-                                      "capizalized.", status_code=200)
+                                      "capitalized.", status_code=200)
 
         # create a direct input form
         form = VariableNumber({'variable_number' : '2'})
