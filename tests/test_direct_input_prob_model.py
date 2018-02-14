@@ -22,7 +22,7 @@ class DirectInputProbModelTestCase(TestCase):
         # open direct input url and check if the html is correct
         response = self.client.post(reverse('enviro:probabilistic_model-add',
                                             args=['02']))
-        self.assertContains(response, "The first characer should be "
+        self.assertContains(response, "The first character should be "
                                       "capizalized.", status_code=200)
 
         # create a direct input form
