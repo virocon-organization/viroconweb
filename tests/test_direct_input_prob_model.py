@@ -20,7 +20,7 @@ class DirectInputProbModelTestCase(TestCase):
 
     def test_direct_input_prob_model(self):
         # open direct input url and check if the html is correct
-        response = self.client.post(reverse('enviro:probabilistic_model-add',
+        response = self.client.post(reverse('enviro:probabilistic_model_add',
                                             args=['02']))
         self.assertContains(response, "The first character should be "
                                       "capitalized.", status_code=200)
@@ -58,7 +58,7 @@ class DirectInputProbModelTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # test the view method and the html which will be generated
-        response = self.client.post(reverse('enviro:probabilistic_model-add',
+        response = self.client.post(reverse('enviro:probabilistic_model_add',
                                             args=['02']),
                                     form_input_dict,
                                     follow=True)

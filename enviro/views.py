@@ -36,12 +36,12 @@ class Handler:
                 elif item.primary_user == request.user:
                     context.add(item)
 
-            base = 'enviro:' + str(collection())
-            html = 'enviro/' + str(collection()) + '_overview.html'
-            update = base + '-update'
-            delete = base + '-delete'
-            add = base + '-add'
-            calc = base + '-calc'
+            base = 'enviro:' + collection.url_str()
+            html = 'enviro/' + collection.url_str() + '_overview.html'
+            update = base + '_update'
+            delete = base + '_delete'
+            add = base + '_add'
+            calc = base + '_calc'
 
             return render(request, html, {'context': context,
                                           'name': collection,
@@ -68,7 +68,7 @@ class Handler:
                 instance.delete()
             else:
                 instance.secondary_user.remove(request.user)
-            redirection = 'enviro:' + str(collection()) + '-overview'
+            redirection = 'enviro:' + collection.url_str() + '_overview'
             return redirect(redirection)
 
     @staticmethod
@@ -83,7 +83,7 @@ class Handler:
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            redirection = 'enviro:' + str(collection()) + '-overview'
+            redirection = 'enviro:' + collection.url_str() + '_overview'
             template = 'enviro/update_sec_user.html'
             if request.method == 'POST':
                 instance = get_object_or_404(collection, pk=pk)
@@ -174,7 +174,7 @@ class MeasureFileHandler(Handler):
                                                      title=measure_file_form.cleaned_data['title'],
                                                      measure_file=measure_file_form.cleaned_data['measure_file'])
                     measure_model.save()
-                    return redirect('enviro:measurefiles-plot', measure_model.pk)
+                    return redirect('enviro:measure_file_model_plot', measure_model.pk)
                 else:
                     return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})
             else:
@@ -207,7 +207,7 @@ class MeasureFileHandler(Handler):
                                        'text': 'Error occured while fitting a probabliistic model to the file.'
                                                'Try it again with different settings please',
                                        'header': 'fit measurement file to probabilistic model',
-                                       'return_url': 'enviro:measurefiles-select'})
+                                       'return_url': 'enviro:measure_file_model_select'})
                     #try:
                     directory_prefix = 'enviro/static/'
                     directory_after_static = str(request.user) + '/prob_model/'
@@ -220,7 +220,7 @@ class MeasureFileHandler(Handler):
                         #               'text': 'Error occured while plotting the fit.'
                         #                       'Try it again with different settings please',
                         #               'header': 'fit measurement file to probabilistic model',
-                        #               'return_url': 'enviro:measurefiles-select'})
+                        #               'return_url': 'enviro:measure_file_model_select'})
                     multivariate_distribution = setup_mul_dist(probabilistic_model)
                     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
                     img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
@@ -353,7 +353,7 @@ class ProbabilisticModelHandler(Handler):
                                 else:
                                     parameter.save()
                     if is_valid_probabilistic_model:
-                        return redirect('enviro:probabilistic_model-select')
+                        return redirect('enviro:probabilistic_model_select')
                     else:
                         probabilistic_model.delete()
                         return render(request,
@@ -432,7 +432,7 @@ class ProbabilisticModelHandler(Handler):
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
                                                                      'header': 'calculate Contour',
-                                                                     'return_url': 'enviro:probabilistic_model-select'})
+                                                                     'return_url': 'enviro:probabilistic_model_select'})
 
                     path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                     str(iform_form.cleaned_data['return_period']),
@@ -508,7 +508,7 @@ class ProbabilisticModelHandler(Handler):
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
                                                                      'header': 'calculate Contour',
-                                                                     'return_url': 'enviro:probabilistic_model-select'})
+                                                                     'return_url': 'enviro:probabilistic_model_select'})
 
                     # generate path to the user specific pdf.
                     path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
@@ -550,7 +550,7 @@ class ProbabilisticModelHandler(Handler):
                     var_num_str = str(var_num)
                     if int(var_num) < 10:
                         var_num_str = '0' + var_num_str
-                return redirect('enviro:probabilistic_model-add', var_num_str)
+                return redirect('enviro:probabilistic_model_add', var_num_str)
             else:
                 variable_form = VariablesForm()
                 var_num_form = VariableNumber()

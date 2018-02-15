@@ -16,7 +16,7 @@
                 <tr>
                     <td> {{ object.collection_name }} </td>
                     <td>
-                        <form action="{% url 'enviro:probabilistic_model-calc' object.pk 'I' %}" method="post">
+                        <form action="{% url 'enviro:probabilistic_model_calc' object.pk 'I' %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm ">
                                 <span class="glyphicon glyphicon-asterisk"></span>
@@ -24,7 +24,7 @@
                         </form>
                     </td>
                     <td>
-                        <form action="{% url 'enviro:probabilistic_model-calc'  object.pk  'H' %}" method="post">
+                        <form action="{% url 'enviro:probabilistic_model_calc'  object.pk  'H' %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm">
                                 <span class="glyphicon glyphicon-th"></span>

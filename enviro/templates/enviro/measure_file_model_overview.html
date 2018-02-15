@@ -34,7 +34,7 @@
                         </form>
                     </td>
                     <td>
-                        <form action="{% url 'enviro:measurefiles-plot' object.pk %}" method="post">
+                        <form action="{% url 'enviro:measure_file_model_plot' object.pk %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm ">
                                 <span class="glyphicon glyphicon-eye-open"></span>
@@ -42,7 +42,7 @@
                         </form>
                     </td>
                     <td>
-                        <form action="{% url 'enviro:measurefiles-fit' object.pk %}" method="post">
+                        <form action="{% url 'enviro:measure_file_model_fit' object.pk %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-default btn-sm ">
                                 <span class="glyphicon glyphicon-stats"></span>

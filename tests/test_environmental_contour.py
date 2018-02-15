@@ -44,14 +44,14 @@ class EnvironmentalContourTestCase(TestCase):
         }
 
         # create a probabilistic model
-        self.client.post(reverse('enviro:probabilistic_model-add',
+        self.client.post(reverse('enviro:probabilistic_model_add',
                                  args=['02']),
                          form_input_dict,
                          follow=True)
 
 
     def test_iform_contour(self):
-        response = self.client.get(reverse('enviro:probabilistic_model-calc',
+        response = self.client.get(reverse('enviro:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'I'}),
                                     follow=True)
@@ -66,7 +66,7 @@ class EnvironmentalContourTestCase(TestCase):
             'n_steps' : '50',
             'method' : 'IFORM'
         }
-        response = self.client.post(reverse('enviro:probabilistic_model-calc',
+        response = self.client.post(reverse('enviro:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'I'}),
                                     form_input_dict,
@@ -76,7 +76,7 @@ class EnvironmentalContourTestCase(TestCase):
 
 
     def test_highest_density_contour(self):
-        response = self.client.get(reverse('enviro:probabilistic_model-calc',
+        response = self.client.get(reverse('enviro:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'H'}),
                                     follow=True)
@@ -102,7 +102,7 @@ class EnvironmentalContourTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # check if html of the HDC results view is correct
-        response = self.client.post(reverse('enviro:probabilistic_model-calc',
+        response = self.client.post(reverse('enviro:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'H'}),
                                     form_input_dict,
