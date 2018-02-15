@@ -155,7 +155,7 @@ class MeasureFileHandler(Handler):
                 elif item.primary_user == request.user:
                     context.add(item)
 
-            return render(request, 'enviro/measurefiles_select.html', {'context': context})
+            return render(request, 'enviro/measure_file_model_select.html', {'context': context})
 
     @staticmethod
     def add(request):
@@ -176,9 +176,9 @@ class MeasureFileHandler(Handler):
                     measure_model.save()
                     return redirect('enviro:measurefiles-plot', measure_model.pk)
                 else:
-                    return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
+                    return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})
             else:
-                return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
+                return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})
 
     @staticmethod
     def fit_file(request, pk):
@@ -230,8 +230,8 @@ class MeasureFileHandler(Handler):
                     return render(request, 'enviro/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
                                                                        'latex_string_list': latex_string_list})
                 else:
-                    return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})
-            return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})
+                    return render(request, 'enviro/measure_file_model_fit.html', {'form': fit_form})
+            return render(request, 'enviro/measure_file_model_fit.html', {'form': fit_form})
 
     @staticmethod
     def new_fit(request, pk):
@@ -246,7 +246,7 @@ class MeasureFileHandler(Handler):
         else:
             ProbabilisticModel.objects.all().filter(pk=pk).delete()
             user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
-            return render(request, 'enviro/measurefiles_select.html', {'context': user_files})
+            return render(request, 'enviro/measure_file_model_select.html', {'context': user_files})
 
     @staticmethod
     def plot_file(request, pk):
@@ -263,7 +263,7 @@ class MeasureFileHandler(Handler):
             directory_after_static = str(request.user) + '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
             plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
-            return render(request, 'enviro/measurefiles_plot.html', {'user': request.user,
+            return render(request, 'enviro/measure_file_model_plot.html', {'user': request.user,
                                                                      'measure_file_model':measure_file_model,
                                                                      'directory': directory_after_static})
 

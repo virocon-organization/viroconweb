@@ -1,10 +1,10 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    measurement file
+    Measurement file
     <div class="page-header"></div>
     <img src="{%  static directory %}/scatter.png"
          class="img-fluid" alt="scatter plot">
     <br>
-    <a class="btn btn-primary" href="{% url 'enviro:measurefiles-fit' measure_file_model.pk %}">fit probabilistic model</a>
+    <a class="btn btn-primary" href="{% url 'enviro:measurefiles-fit' measure_file_model.pk %}">Fit probabilistic model</a>
 {% endblock content %}
