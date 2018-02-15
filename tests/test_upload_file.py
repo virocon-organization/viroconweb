@@ -36,7 +36,7 @@ class UploadFileTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # then test the view, which contains a plot of the file
-        response = self.client.post(reverse('enviro:measurefiles-add'),
+        response = self.client.post(reverse('enviro:measure_file_model_add'),
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     },
@@ -46,7 +46,7 @@ class UploadFileTestCase(TestCase):
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
         # 2. To avoid adding up .csv files in the dir each time the test is run
-        response = self.client.get(reverse('enviro:measurefiles-delete',
+        response = self.client.get(reverse('enviro:measure_file_model_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
         self.assertContains(response, "ploaded measurement files",

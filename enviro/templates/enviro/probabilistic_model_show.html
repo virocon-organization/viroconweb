@@ -38,8 +38,8 @@
         <h2>Environmental contour</h2>
         <p>
             compute an environmental contour:
-            <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'I' %}">IFORM</a>
-            <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model-calc' probabilistic_model.pk 'H' %}">HDC</a>
+            <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model_calc' probabilistic_model.pk 'I' %}">IFORM</a>
+            <a class="btn btn-primary" href="{% url 'enviro:probabilistic_model_calc' probabilistic_model.pk 'H' %}">HDC</a>
         </p>
     </div>
     {% include "latexify/scripts.html" %}

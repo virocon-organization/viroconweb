@@ -1,8 +1,7 @@
-<!--HTML-Seite um CSV-Dateien der MeasureFile Datenbank hinzuzufügen -->
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    fit probabilistic model to measurement file
+    Fit probabilistic model to measurement file
     <div class="page-header"></div>
     <br>
     <div class="panel panel-default">
@@ -41,7 +40,7 @@
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">probabilistic model</h3>
+                <h3 class="panel-title">Probabilistic model</h3>
             </div>
             {% for x in form %}
                 {% if x.name.0 == '_' %}

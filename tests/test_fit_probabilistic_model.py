@@ -30,13 +30,13 @@ class FitProbModelTestCase(TestCase):
         test_file = open(os.path.join(test_files_path , file_name), 'rb')
         test_file_simple_uploaded = SimpleUploadedFile(test_file.name,
                                                        test_file.read())
-        self.client.post(reverse('enviro:measurefiles-add'),
+        self.client.post(reverse('enviro:measure_file_model_add'),
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     })
 
         # Open fitting url and check if the html is correct
-        response = self.client.get(reverse('enviro:measurefiles-fit',
+        response = self.client.get(reverse('enviro:measure_file_model_fit',
                                             kwargs={'pk' : 1}))
         self.assertContains(response, "example_normal.svg", status_code=200)
 
@@ -64,7 +64,7 @@ class FitProbModelTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # Test if the fit worked and the correct view is shown
-        response = self.client.post(reverse('enviro:measurefiles-fit',
+        response = self.client.post(reverse('enviro:measure_file_model_fit',
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
@@ -73,7 +73,7 @@ class FitProbModelTestCase(TestCase):
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
         # 2. To avoid adding up .csv files in the dir each time the test is run
-        response = self.client.get(reverse('enviro:measurefiles-delete',
+        response = self.client.get(reverse('enviro:measure_file_model_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
         self.assertContains(response, "ploaded measurement files",
@@ -90,7 +90,7 @@ class FitProbModelTestCase(TestCase):
         test_file = open(os.path.join(test_files_path , file_name), 'rb')
         test_file_simple_uploaded = SimpleUploadedFile(test_file.name,
                                                        test_file.read())
-        self.client.post(reverse('enviro:measurefiles-add'),
+        self.client.post(reverse('enviro:measure_file_model_add'),
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     })
@@ -115,7 +115,7 @@ class FitProbModelTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # Test if the fit worked and the correct view is shown.
-        response = self.client.post(reverse('enviro:measurefiles-fit',
+        response = self.client.post(reverse('enviro:measure_file_model_fit',
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
@@ -142,7 +142,7 @@ class FitProbModelTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # Test if the fit worked and the correct view is shown
-        response = self.client.post(reverse('enviro:measurefiles-fit',
+        response = self.client.post(reverse('enviro:measure_file_model_fit',
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
@@ -151,7 +151,7 @@ class FitProbModelTestCase(TestCase):
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
         # 2. To avoid adding up .csv files in the dir each time the test is run
-        response = self.client.get(reverse('enviro:measurefiles-delete',
+        response = self.client.get(reverse('enviro:measure_file_model_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
         self.assertContains(response, "ploaded measurement files",

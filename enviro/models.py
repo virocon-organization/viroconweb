@@ -21,8 +21,9 @@ class MeasureFileModel(models.Model):
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(validators=[validate_file_extension])
 
-    def __str__(self):
-        return "measurefiles"
+    @staticmethod
+    def url_str():
+        return "measure_file_model"
 
 
 # deletes the file which was attached to the MesureFileManager object
@@ -67,7 +68,9 @@ class ProbabilisticModel(models.Model):
     measure_file_model = models.ForeignKey(MeasureFileModel,
                                            on_delete=models.CASCADE,
                                            null=True)
-    def __str__(self):
+
+    @staticmethod
+    def url_str():
         return "probabilistic_model"
 
 
@@ -91,7 +94,8 @@ class DistributionModel(models.Model):
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                             on_delete=models.CASCADE)
 
-    def __str__(self):
+    @staticmethod
+    def url_str():
         return "distribution"
 
 

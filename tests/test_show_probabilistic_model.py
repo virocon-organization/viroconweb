@@ -43,14 +43,14 @@ class ShowProbModelTestCase(TestCase):
         }
 
         # create a probabilistic model
-        self.client.post(reverse('enviro:probabilistic_model-add',
+        self.client.post(reverse('enviro:probabilistic_model_add',
                                  args=['02']),
                          form_input_dict,
                          follow=True)
 
 
     def test_show_prob_model(self):
-        response = self.client.post(reverse('enviro:probabilistic_model-show',
+        response = self.client.post(reverse('enviro:probabilistic_model_show',
                                             kwargs={'pk': 1}),
                                     follow=True)
         # check if the H of H_s is formated by latexify
