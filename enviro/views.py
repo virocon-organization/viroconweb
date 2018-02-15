@@ -84,7 +84,7 @@ class Handler:
             return HttpResponseRedirect('/home')
         else:
             redirection = 'enviro:' + str(collection()) + '-overview'
-            template = 'enviro/update_secUser.html'
+            template = 'enviro/update_sec_user.html'
             if request.method == 'POST':
                 instance = get_object_or_404(collection, pk=pk)
                 username = request.POST.get('username', '')
