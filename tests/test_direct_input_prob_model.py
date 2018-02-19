@@ -1,7 +1,6 @@
-from django.test import TestCase, Client, RequestFactory
+from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from enviro.forms import VariableNumber, VariablesForm
-from enviro.views import ProbabilisticModelHandler
 
 
 class DirectInputProbModelTestCase(TestCase):
@@ -18,9 +17,6 @@ class DirectInputProbModelTestCase(TestCase):
                             'type_of_use': 'commercial',
                             'password1' : 'Musterpasswort2018',
                             'password2': 'Musterpasswort2018'})
-        # Factory is needed to send form data with a post(), see https://gist.
-        # github.com/dkarchmer/99a35f00503458a4fa3088f5c8215381
-        self.factory = RequestFactory()
 
     def test_direct_input_prob_model(self):
         # Create a direct input form
