@@ -70,5 +70,5 @@ class DirectInputProbModelTestCase(TestCase):
                                             args=['02']),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, "ploaded probabilistic models",
+        self.assertContains(response, "Probabilistic models",
                             status_code=200)
