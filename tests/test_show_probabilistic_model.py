@@ -13,8 +13,8 @@ class ShowProbModelTestCase(TestCase):
                           'last_name': 'Mustermann',
                           'organisation': 'Musterfirma',
                           'type_of_use': 'commercial',
-                          'password1': 'AnJaKaTo2018',
-                          'password2': 'AnJaKaTo2018'})
+                          'password1': 'Musterpasswort2018',
+                          'password2': 'Musterpasswort2018'})
 
         # create a form containing the information of the  probabilistic model
         form_input_dict = {

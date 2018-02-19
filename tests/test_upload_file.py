@@ -11,13 +11,13 @@ class UploadFileTestCase(TestCase):
         self.client = Client()
         self.client.post(reverse('user:create'),
                            {'username' : 'max_mustermann',
-                            'email': 'max.mustermann@gmail.com',
-                            'first_name': 'Max',
-                            'last_name': 'Mustermann',
-                            'organisation': 'Musterfirma',
-                            'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
+                            'email' : 'max.mustermann@gmail.com',
+                            'first_name' : 'Max',
+                            'last_name' : 'Mustermann',
+                            'organisation' : 'Musterfirma',
+                            'type_of_use' : 'commercial',
+                            'password1' : 'Musterpasswort2018',
+                            'password2' : 'Musterpasswort2018'})
 
 
     def test_upload_file(self):

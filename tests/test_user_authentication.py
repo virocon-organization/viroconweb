@@ -16,8 +16,8 @@ class CreateUserTestCase(TestCase):
                             'last_name': 'Mustermann',
                             'organisation': 'Musterfirma',
                             'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
+                            'password1' : 'Musterpasswort2018',
+                            'password2': 'Musterpasswort2018'})
         user = auth.get_user(self.client)
         assert user.is_authenticated()
 
@@ -32,13 +32,13 @@ class LoginUserTestCase(TestCase):
                             'last_name': 'Mustermann',
                             'organisation': 'Musterfirma',
                             'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
+                            'password1' : 'Musterpasswort2018',
+                            'password2': 'Musterpasswort2018'})
 
 
     def test_login(self):
         self.client.post(reverse('user:authentication'),
                                {'username' : 'max_mustermann',
-                                'password' : 'AnJaKaTo2018'})
+                                'password' : 'Musterpasswort2018'})
         user = auth.get_user(self.client)
         assert user.is_authenticated()

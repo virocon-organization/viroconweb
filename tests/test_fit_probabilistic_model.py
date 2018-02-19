@@ -16,8 +16,8 @@ class FitProbModelTestCase(TestCase):
                             'last_name': 'Mustermann',
                             'organisation': 'Musterfirma',
                             'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
+                            'password1' : 'Musterpasswort2018',
+                            'password2': 'Musterpasswort2018'})
 
 
     def test_fit_probabilistic_model_vanem2012(self):

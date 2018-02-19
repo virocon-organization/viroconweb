@@ -14,8 +14,8 @@ class DirectInputProbModelTestCase(TestCase):
                             'last_name': 'Mustermann',
                             'organisation': 'Musterfirma',
                             'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
+                            'password1' : 'Musterpasswort2018',
+                            'password2': 'Musterpasswort2018'})
 
 
     def test_direct_input_prob_model(self):
