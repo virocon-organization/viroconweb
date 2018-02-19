@@ -39,7 +39,7 @@ a:hover {
 
 
 
-/*----- NavBar -----*/
+/*----- Navigation bar -----*/
 
 .navbar {
     background-color: #54889c;
@@ -86,7 +86,7 @@ a:hover {
     font-family: 'Rajdhani', sans-serif;
 }
 
-/*----- NavBar & Footer -----*/
+/*----- Navigation bar & footer -----*/
 .rechts, .virocon-main-nav {
     float: right;
     margin-right: 70px;
@@ -108,7 +108,7 @@ a:hover {
     }
 }
 
-/*----- Django Messages -----*/
+/*----- Django messages -----*/
 .debug {
 
 }
@@ -210,7 +210,7 @@ a:hover {
     width: 60%;
 }
 
-/*------ appbox ------*/
+/*------ Appbox ------*/
 .app_box {
     background-color: #feffff;
     border-radius: 1px 1px 1px 1px !important;
@@ -272,7 +272,7 @@ a:hover {
    cursor: default;
 }
 
-/*------------- Forms ---------------------*/
+/*----- Forms -----*/
 .dependency {
     background-color: red !important;
     font-size: 80px !important;
