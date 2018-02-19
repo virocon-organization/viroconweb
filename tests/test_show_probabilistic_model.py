@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 
 
 class ShowProbModelTestCase(TestCase):
+
     def setUp(self):
         # create a user
         self.client = Client()
@@ -47,7 +48,6 @@ class ShowProbModelTestCase(TestCase):
                                  args=['02']),
                          form_input_dict,
                          follow=True)
-
 
     def test_show_prob_model(self):
         response = self.client.post(reverse('enviro:probabilistic_model_show',

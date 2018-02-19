@@ -4,9 +4,9 @@ from django.contrib import auth
 
 
 class CreateUserTestCase(TestCase):
+
     def setUp(self):
         self.client = Client()
-
 
     def test_create_user(self):
         self.client.post(reverse('user:create'),
@@ -23,6 +23,7 @@ class CreateUserTestCase(TestCase):
 
 
 class LoginUserTestCase(TestCase):
+
     def setUp(self):
         self.client = Client()
         self.client.post(reverse('user:create'),
@@ -34,7 +35,6 @@ class LoginUserTestCase(TestCase):
                             'type_of_use': 'commercial',
                             'password1' : 'Musterpasswort2018',
                             'password2': 'Musterpasswort2018'})
-
 
     def test_login(self):
         self.client.post(reverse('user:authentication'),

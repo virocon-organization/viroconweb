@@ -5,6 +5,7 @@ from enviro.views import ProbabilisticModelHandler
 
 
 class DirectInputProbModelTestCase(TestCase):
+
     def setUp(self):
         # create a user
         self.client = Client()
@@ -20,7 +21,6 @@ class DirectInputProbModelTestCase(TestCase):
         # Factory is needed to send form data with a post(), see https://gist.
         # github.com/dkarchmer/99a35f00503458a4fa3088f5c8215381
         self.factory = RequestFactory()
-
 
     def test_direct_input_prob_model(self):
         # Create a direct input form

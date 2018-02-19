@@ -4,6 +4,7 @@ from enviro.forms import HDCForm
 
 
 class EnvironmentalContourTestCase(TestCase):
+
     def setUp(self):
         # create a user
         self.client = Client()
@@ -73,7 +74,6 @@ class EnvironmentalContourTestCase(TestCase):
                                     follow=True)
         self.assertContains(response, 'Download PDF',
                             status_code=200)
-
 
     def test_highest_density_contour(self):
         response = self.client.get(reverse('enviro:probabilistic_model_calc',

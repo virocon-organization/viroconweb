@@ -6,7 +6,9 @@ from enviro.forms import MeasureFileForm
 
 
 class UploadFileTestCase(TestCase):
+
     def setUp(self):
+
         self.test_files_path = os.path.abspath(os.path.join(os.path.dirname( __file__), r'test_files/'))
         self.client = Client()
         self.client.post(reverse('user:create'),
@@ -28,8 +30,8 @@ class UploadFileTestCase(TestCase):
                             'password1' : 'Musterpasswort2018',
                             'password2' : 'Musterpasswort2018'})
 
-
     def test_upload_file(self):
+
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'
 
         # Thanks to: https://stackoverflow.com/questions/2473392/unit-testing-
