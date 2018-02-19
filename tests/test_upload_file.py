@@ -23,7 +23,7 @@ class UploadFileTestCase(TestCase):
     def test_upload_file(self):
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'
 
-        # thanks to: https://stackoverflow.com/questions/2473392/unit-testing-
+        # Thanks to: https://stackoverflow.com/questions/2473392/unit-testing-
         # a-django-form-with-a-filefield
         test_file = open(os.path.join(self.test_files_path , file_name), 'rb')
         test_file_simple_uploaded = SimpleUploadedFile(test_file.name,
@@ -31,17 +31,19 @@ class UploadFileTestCase(TestCase):
         post_dict = {'title' : 'Test Title'}
         file_dict = {'measure_file' : test_file_simple_uploaded}
 
-        # first test the form
+        # First test the form
         form = MeasureFileForm(post_dict, file_dict)
         self.assertTrue(form.is_valid())
 
-        # then test the view, which contains a plot of the file
+        # Then test the view, which contains a plot of the file
         response = self.client.post(reverse('enviro:measure_file_model_add'),
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     },
                                     follow=True)
         self.assertContains(response, "scatter plot", status_code = 200)
+
+        # Then share the file with another user
 
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
