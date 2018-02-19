@@ -1,6 +1,7 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, RequestFactory
 from django.core.urlresolvers import reverse
 from enviro.forms import VariableNumber, VariablesForm
+from enviro.views import ProbabilisticModelHandler
 
 
 class DirectInputProbModelTestCase(TestCase):
@@ -16,20 +17,31 @@ class DirectInputProbModelTestCase(TestCase):
                             'type_of_use': 'commercial',
                             'password1' : 'Musterpasswort2018',
                             'password2': 'Musterpasswort2018'})
+        # Factory is needed to send form data with a post(), see https://gist.
+        # github.com/dkarchmer/99a35f00503458a4fa3088f5c8215381
+        self.factory = RequestFactory()
 
 
     def test_direct_input_prob_model(self):
-        # open direct input url and check if the html is correct
+        # Create a direct input form
+        form = VariableNumber({'variable_number' : '2'})
+        self.assertTrue(form.is_valid())
+
+        # Open direct input url and check if the html is correct via the
+        # numbers of variable form
+        response = self.client.post('/enviro/models/number-of-variables/',
+                                    {'variable_number' : 3},
+                                    follow=True)
+        self.assertContains(response, "The first character should be "
+                                      "capitalized.", status_code=200)
+
+        # Open direct input url and check if the html is correct drectly
         response = self.client.post(reverse('enviro:probabilistic_model_add',
                                             args=['02']))
         self.assertContains(response, "The first character should be "
                                       "capitalized.", status_code=200)
 
-        # create a direct input form
-        form = VariableNumber({'variable_number' : '2'})
-        self.assertTrue(form.is_valid())
-
-        # create a form containing the information of the model
+        # Create a form containing the information of the model
         form_input_dict = {
                 'variable_name_0' : 'significant wave height [m]',
                 'variable_symbol_0' : 'Hs',
