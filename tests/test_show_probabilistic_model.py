@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 
 
 class ShowProbModelTestCase(TestCase):
+
     def setUp(self):
         # create a user
         self.client = Client()
@@ -13,8 +14,8 @@ class ShowProbModelTestCase(TestCase):
                           'last_name': 'Mustermann',
                           'organisation': 'Musterfirma',
                           'type_of_use': 'commercial',
-                          'password1': 'AnJaKaTo2018',
-                          'password2': 'AnJaKaTo2018'})
+                          'password1': 'Musterpasswort2018',
+                          'password2': 'Musterpasswort2018'})
 
         # create a form containing the information of the  probabilistic model
         form_input_dict = {
@@ -47,7 +48,6 @@ class ShowProbModelTestCase(TestCase):
                                  args=['02']),
                          form_input_dict,
                          follow=True)
-
 
     def test_show_prob_model(self):
         response = self.client.post(reverse('enviro:probabilistic_model_show',

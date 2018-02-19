@@ -58,7 +58,7 @@ urlpatterns = [
         views.MeasureFileHandler.overview,
         name='measure_file_model_overview'),
 
-    url(r'^measurefiles/(?P<pk>[0-9]+)/$',
+    url(r'^measurefiles/(?P<pk>[0-9]+)/update/$',
         views.MeasureFileHandler.update,
         name='measure_file_model_update'),
 

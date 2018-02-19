@@ -6,6 +6,7 @@ from enviro.forms import MeasureFileFitForm
 
 
 class FitProbModelTestCase(TestCase):
+
     def setUp(self):
         # Create a user
         self.client = Client()
@@ -16,9 +17,8 @@ class FitProbModelTestCase(TestCase):
                             'last_name': 'Mustermann',
                             'organisation': 'Musterfirma',
                             'type_of_use': 'commercial',
-                            'password1' : 'AnJaKaTo2018',
-                            'password2': 'AnJaKaTo2018'})
-
+                            'password1' : 'Musterpasswort2018',
+                            'password2': 'Musterpasswort2018'})
 
     def test_fit_probabilistic_model_vanem2012(self):
         # Create a measurement file
@@ -78,7 +78,6 @@ class FitProbModelTestCase(TestCase):
                                    follow=True)
         self.assertContains(response, "ploaded measurement files",
                             status_code = 200)
-
 
     def test_fit_probabilistic_model_no_dependency(self):
         # Create a measurement file

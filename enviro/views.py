@@ -10,7 +10,7 @@ import os
 import csv
 import warnings
 from django.core.exceptions import ValidationError
-
+from django.contrib import messages
 
 class Handler:
     @staticmethod
@@ -97,8 +97,11 @@ class Handler:
                     try:
                         user = User.objects.get(username=name)
                         instance.secondary_user.add(user)
-                    except:  # TODO What kind of Exception is excepted ?
-                        return redirect('/home/')
+                    except:
+                        messages.add_message(request, messages.ERROR,
+                                             'Error. The user name you entered'
+                                             ', ' + name + ', does not exist.')
+                        return redirect('home:home')
                     else:
                         instance.save()
                 return redirect(redirection)
@@ -309,7 +312,6 @@ class ProbabilisticModelHandler(Handler):
                 variable_form = VariablesForm(data=request.POST, variable_count=var_num_int)
                 if variable_form.is_valid():
                     is_valid_probabilistic_model = True
-                    user_error_message = 'Haha'
                     probabilistic_model = ProbabilisticModel(primary_user=request.user,
                                                              collection_name=variable_form.cleaned_data[
                                                                  'collection_name'], measure_file_model=None)
@@ -331,7 +333,9 @@ class ProbabilisticModelHandler(Handler):
                                 try:
                                     parameter.clean()
                                 except ValidationError as e:
-                                    user_error_message = e.message
+                                    messages.add_message(request,
+                                                         messages.ERROR,
+                                                         e.message)
                                     is_valid_probabilistic_model = False
                                 else:
                                     parameter.save()
@@ -348,7 +352,9 @@ class ProbabilisticModelHandler(Handler):
                                 try:
                                     parameter.clean()
                                 except ValidationError as e:
-                                    user_error_message = e.message
+                                    messages.add_message(request,
+                                                         messages.ERROR,
+                                                         e.message)
                                     is_valid_probabilistic_model = False
                                 else:
                                     parameter.save()
@@ -359,8 +365,7 @@ class ProbabilisticModelHandler(Handler):
                         return render(request,
                                       'enviro/probabilistic_model_add.html',
                                       {'form': variable_form,
-                                       'var_num_form': var_num_form,
-                                       'user_error_message': user_error_message })
+                                       'var_num_form': var_num_form})
                 else:
                     return render(request,
                                   'enviro/probabilistic_model_add.html',
