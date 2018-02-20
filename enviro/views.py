@@ -12,6 +12,9 @@ import warnings
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 
+
+PATH_USER_GENERATED = 'enviro/static/user_generated/'
+
 class Handler:
     @staticmethod
     def overview(request, collection):
@@ -212,7 +215,7 @@ class MeasureFileHandler(Handler):
                                        'header': 'fit measurement file to probabilistic model',
                                        'return_url': 'enviro:measure_file_model_select'})
                     #try:
-                    directory_prefix = 'enviro/static/'
+                    directory_prefix = PATH_USER_GENERATED
                     directory_after_static = str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
                     probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
@@ -262,7 +265,7 @@ class MeasureFileHandler(Handler):
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
-            directory_prefix = 'enviro/static/'
+            directory_prefix = PATH_USER_GENERATED
             directory_after_static = str(request.user) + '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
             plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
@@ -580,7 +583,7 @@ class ProbabilisticModelHandler(Handler):
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
-            directory_prefix = 'enviro/static/'
+            directory_prefix = PATH_USER_GENERATED
             directory_after_static = str(request.user) + '/prob_model/' + str(pk)
             directory = directory_prefix + directory_after_static
             if os.path.isdir(directory):
@@ -608,7 +611,8 @@ def download_pdf(request):
         return HttpResponseRedirect('/home')
     else:
         response = HttpResponse(content_type='application/pdf')
-        path = 'attachment; filename="enviro/static/' + str(request.user) + '/contour_table.pdf"'
+        path = 'attachment; filename="' + PATH_USER_GENERATED +\
+               str(request.user) + '/latex_report.pdf"'
         response['Content-Disposition'] = path
         return response
 

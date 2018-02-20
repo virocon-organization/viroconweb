@@ -27,6 +27,10 @@ from subprocess import Popen, PIPE
 from .compute_interface import setup_mul_dist
 import tempfile
 
+
+# Make sure this is the same as in views.py
+PATH_USER_GENERATED = 'enviro/static/user_generated/'
+
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
                            var_name, symbol_parent_var, directory):
@@ -364,7 +368,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
     :param var_symbols: symbols of the variables of the probabilistic model
     """
 
-    path = 'enviro/static/' + str(user)
+    path = PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -416,10 +420,9 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
                       DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
-    #plt.title(probabilistic_model.collection_name + ': ' + method_label)
 
-    short_path = user + '/contour.png'
-    plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
+    short_path = user + '/contour/contour.png'
+    plt.savefig(PATH_USER_GENERATED + short_path, bbox_inches='tight')
     plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
@@ -512,14 +515,15 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     -------
     short_file_path_report : string,
         The path where the pdf, generated based latex, is saved
-        The path continues after 'enviro/static/'
+        The path continues after the PATH_USER_GENERATED prefix, which is
+        'enviro/static/user_generated/'
 
     """
 
     plot_contour(matrix, user, method_label, probabilistic_model, var_names,
                  var_symbols, method)
-    directory_prefix = 'enviro/static/'
-    file_path_contour = directory_prefix + user + '/contour.png'
+    directory_prefix = PATH_USER_GENERATED
+    file_path_contour = directory_prefix + user + '/contour/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
     latex_content = r"\section{Results} " \
@@ -600,8 +604,8 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
             pdf = f.read()
 
 
-    short_file_path_report = user + '/latex_report.pdf'
-    full_file_path_report = 'enviro/static/' + short_file_path_report
+    short_file_path_report = user + '/contour/latex_report.pdf'
+    full_file_path_report = PATH_USER_GENERATED + short_file_path_report
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
 
