@@ -1,19 +1,21 @@
-from abc import abstractmethod
-from .models import User
-from django.shortcuts import redirect
-from django.shortcuts import render, get_object_or_404, HttpResponse, HttpResponseRedirect
-from .forms import *
-from .models import MeasureFileModel
-from .compute_interface import ComputeInterface
-from .plot import *
 import os
 import csv
 import warnings
+
+from abc import abstractmethod
+from django.shortcuts import redirect
+from django.shortcuts import render, get_object_or_404, HttpResponse, \
+    HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 
+from . import forms
+from . import plot
+from . import settings
 
-PATH_USER_GENERATED = 'enviro/static/user_generated/'
+from .models import User, MeasureFileModel
+from .compute_interface import ComputeInterface
+
 
 class Handler:
     @staticmethod
@@ -109,7 +111,7 @@ class Handler:
                         instance.save()
                 return redirect(redirection)
             else:
-                return render(request, template, {'form': SecUserForm})
+                return render(request, template, {'form': forms.SecUserForm})
 
     @staticmethod
     @abstractmethod
@@ -172,9 +174,9 @@ class MeasureFileHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            measure_file_form = MeasureFileForm()
+            measure_file_form = forms.MeasureFileForm()
             if request.method == 'POST':
-                measure_file_form = MeasureFileForm(data=request.POST, files=request.FILES)
+                measure_file_form = forms.MeasureFileForm(data=request.POST, files=request.FILES)
                 if measure_file_form.is_valid():
                     measure_model = MeasureFileModel(primary_user=request.user,
                                                      title=measure_file_form.cleaned_data['title'],
@@ -199,9 +201,9 @@ class MeasureFileHandler(Handler):
             mfm_item = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
             var_number = len(var_names)
-            fit_form = MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
+            fit_form = forms.MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
             if request.method == 'POST':
-                fit_form = MeasureFileFitForm(data=request.POST, variable_count=var_number, variable_names=var_names)
+                fit_form = forms.MeasureFileFitForm(data=request.POST, variable_count=var_number, variable_names=var_names)
                 if fit_form.is_valid():
                     ci = ComputeInterface()
                     try:
@@ -215,11 +217,12 @@ class MeasureFileHandler(Handler):
                                        'header': 'fit measurement file to probabilistic model',
                                        'return_url': 'enviro:measure_file_model_select'})
                     #try:
-                    directory_prefix = PATH_USER_GENERATED
-                    directory_after_static = str(request.user) + '/prob_model/'
+                    directory_prefix = settings.PATH_STATIC
+                    directory_after_static = settings.PATH_USER_GENERATED + \
+                                             str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
-                                           request.user, mfm_item, directory)
+                    probabilistic_model = plot.plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
+                                                         request.user, mfm_item, directory)
                     #except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         #return render(request, 'enviro/error.html',
                         #              {'error_message': err,
@@ -227,7 +230,7 @@ class MeasureFileHandler(Handler):
                         #                       'Try it again with different settings please',
                         #               'header': 'fit measurement file to probabilistic model',
                         #               'return_url': 'enviro:measure_file_model_select'})
-                    multivariate_distribution = setup_mul_dist(probabilistic_model)
+                    multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
                     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
                     img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                     send_img = []
@@ -250,7 +253,7 @@ class MeasureFileHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            ProbabilisticModel.objects.all().filter(pk=pk).delete()
+            plot.ProbabilisticModel.objects.all().filter(pk=pk).delete()
             user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
             return render(request, 'enviro/measure_file_model_select.html', {'context': user_files})
 
@@ -265,10 +268,12 @@ class MeasureFileHandler(Handler):
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
-            directory_prefix = PATH_USER_GENERATED
-            directory_after_static = str(request.user) + '/measurement/' + str(pk)
+            directory_prefix = settings.PATH_STATIC
+            directory_after_static = settings.PATH_USER_GENERATED + \
+                                     str(request.user) + \
+                                     '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
-            plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
+            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
             return render(request, 'enviro/measure_file_model_plot.html', {'user': request.user,
                                                                      'measure_file_model':measure_file_model,
                                                                      'directory': directory_after_static})
@@ -276,15 +281,15 @@ class MeasureFileHandler(Handler):
 
 class ProbabilisticModelHandler(Handler):
     @staticmethod
-    def overview(request, collection=ProbabilisticModel):
+    def overview(request, collection=plot.ProbabilisticModel):
         return Handler.overview(request, collection)
 
     @staticmethod
-    def delete(request, pk, collection=ProbabilisticModel):
+    def delete(request, pk, collection=plot.ProbabilisticModel):
         return Handler.delete(request, pk, collection)
 
     @staticmethod
-    def update(request, pk, collection=ProbabilisticModel):
+    def update(request, pk, collection=plot.ProbabilisticModel):
         return Handler.update(request, pk, collection)
 
     @staticmethod
@@ -292,7 +297,7 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            user_pm = ProbabilisticModel.objects.all().filter(primary_user=request.user)
+            user_pm = plot.ProbabilisticModel.objects.all().filter(primary_user=request.user)
             return render(request, 'enviro/probabilistic_model_select.html', {'context': user_pm})
 
     @staticmethod
@@ -309,30 +314,30 @@ class ProbabilisticModelHandler(Handler):
         else:
             var_num = args[0]
             var_num_int = int(var_num)
-            variable_form = VariablesForm(variable_count=var_num_int)
-            var_num_form = VariableNumber()
+            variable_form = forms.VariablesForm(variable_count=var_num_int)
+            var_num_form = forms.VariableNumber()
             if request.method == 'POST':
-                variable_form = VariablesForm(data=request.POST, variable_count=var_num_int)
+                variable_form = forms.VariablesForm(data=request.POST, variable_count=var_num_int)
                 if variable_form.is_valid():
                     is_valid_probabilistic_model = True
-                    probabilistic_model = ProbabilisticModel(primary_user=request.user,
-                                                             collection_name=variable_form.cleaned_data[
+                    probabilistic_model = plot.ProbabilisticModel(primary_user=request.user,
+                                                                  collection_name=variable_form.cleaned_data[
                                                                  'collection_name'], measure_file_model=None)
                     probabilistic_model.save()
                     for i in range(var_num_int):
-                        distribution = DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
-                                                         distribution=variable_form.cleaned_data[
+                        distribution = plot.DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
+                                                              distribution=variable_form.cleaned_data[
                                                              'distribution_' + str(i)],
-                                                         symbol=variable_form.cleaned_data['variable_symbol_' + str(i)],
-                                                         probabilistic_model=probabilistic_model)
+                                                              symbol=variable_form.cleaned_data['variable_symbol_' + str(i)],
+                                                              probabilistic_model=probabilistic_model)
                         distribution.save()
                         params = ['shape', 'location', 'scale']
                         if i == 0:
                             for param in params:
-                                parameter = ParameterModel(function='None',
-                                                           x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
-                                                           dependency='!',
-                                                           name=param, distribution=distribution)
+                                parameter = plot.ParameterModel(function='None',
+                                                                x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
+                                                                dependency='!',
+                                                                name=param, distribution=distribution)
                                 try:
                                     parameter.clean()
                                 except ValidationError as e:
@@ -345,7 +350,7 @@ class ProbabilisticModelHandler(Handler):
 
                         else:
                             for param in params:
-                                parameter = ParameterModel(
+                                parameter = plot.ParameterModel(
                                     function=variable_form.cleaned_data[param + '_dependency_' + str(i)][1:],
                                     x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
                                     x1=variable_form.cleaned_data[param + '_' + str(i) + '_1'],
@@ -390,10 +395,10 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            item = ProbabilisticModel.objects.get(pk=pk)
+            item = plot.ProbabilisticModel.objects.get(pk=pk)
             var_names = []
             var_symbols = []
-            dists_model = DistributionModel.objects.filter(probabilistic_model=item)
+            dists_model = plot.DistributionModel.objects.filter(probabilistic_model=item)
 
             for dist in dists_model:
                 var_names.append(dist.name)
@@ -418,10 +423,10 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            iform_form = IFormForm()
+            iform_form = forms.IFormForm()
             cs = ComputeInterface
             if request.method == 'POST':
-                iform_form = IFormForm(data=request.POST)
+                iform_form = forms.IFormForm(data=request.POST)
                 if iform_form.is_valid():
                     try:
                         contour_matrix = cs.iform(
@@ -442,15 +447,15 @@ class ProbabilisticModelHandler(Handler):
                                                                      'header': 'calculate Contour',
                                                                      'return_url': 'enviro:probabilistic_model_select'})
 
-                    path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
-                                    str(iform_form.cleaned_data['return_period']),
+                    path = plot.create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
+                                                                                                str(iform_form.cleaned_data['return_period']),
                                    ' years, method = IFORM']), probabilistic_model, var_names, var_symbols, method)
 
 
                     #probabilistic_model.measure_file_model.measure_file
                     # if matrix 4dim - send data for 4dim interactive plot.
                     if len(contour_matrix[0]) == 4:
-                        dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -460,7 +465,7 @@ class ProbabilisticModelHandler(Handler):
                                        'labels': labels})
                     # if matrix 3dim - send data for 3dim interactive plot
                     elif len(contour_matrix[0]) == 3:
-                        dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -488,10 +493,10 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            hdc_form = HDCForm(var_names=var_names)
+            hdc_form = forms.HDCForm(var_names=var_names)
             cs = ComputeInterface()
             if request.method == 'POST':
-                hdc_form = HDCForm(data=request.POST, var_names=var_names)
+                hdc_form = forms.HDCForm(data=request.POST, var_names=var_names)
                 if hdc_form.is_valid():
                     limits = []
                     deltas = []
@@ -519,14 +524,14 @@ class ProbabilisticModelHandler(Handler):
                                                                      'return_url': 'enviro:probabilistic_model_select'})
 
                     # generate path to the user specific pdf.
-                    path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
-                                    str(hdc_form.cleaned_data['n_years']),
+                    path = plot.create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
+                                                                                                str(hdc_form.cleaned_data['n_years']),
                                     ' years, method = HDC']),
-                                    probabilistic_model, var_names, var_symbols, method)
+                                                    probabilistic_model, var_names, var_symbols, method)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
                     if len(contour_matrix[0]) > 2:
-                        dists = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -552,7 +557,7 @@ class ProbabilisticModelHandler(Handler):
         else:
             var_num_str = str()
             if request.method == 'POST':
-                var_num_form = VariableNumber(request.POST)
+                var_num_form = forms.VariableNumber(request.POST)
                 if var_num_form.is_valid():
                     var_num = var_num_form.cleaned_data['variable_number']
                     var_num_str = str(var_num)
@@ -560,8 +565,8 @@ class ProbabilisticModelHandler(Handler):
                         var_num_str = '0' + var_num_str
                 return redirect('enviro:probabilistic_model_add', var_num_str)
             else:
-                variable_form = VariablesForm()
-                var_num_form = VariableNumber()
+                variable_form = forms.VariablesForm()
+                var_num_form = forms.VariableNumber()
                 return render(request, 'enviro/probabilistic_model_add.html',
                               {'form': variable_form, 'var_num_form': var_num_form})
 
@@ -574,17 +579,18 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            probabilistic_model = ProbabilisticModel.objects.get(pk=pk)
-            dists_model = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+            probabilistic_model = plot.ProbabilisticModel.objects.get(pk=pk)
+            dists_model = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
             var_symbols = []
             for dist in dists_model:
                 var_symbols.append(dist.symbol)
-            multivariate_distribution = setup_mul_dist(probabilistic_model)
+            multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
-            directory_prefix = PATH_USER_GENERATED
-            directory_after_static = str(request.user) + '/prob_model/' + str(pk)
+            directory_prefix = settings.PATH_STATIC
+            directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
+                                     '/prob_model/' + str(pk)
             directory = directory_prefix + directory_after_static
             if os.path.isdir(directory):
                 img_list = os.listdir(directory)
@@ -592,8 +598,11 @@ class ProbabilisticModelHandler(Handler):
                     send_img.append(directory_after_static + '/' + img)
             directory_measure_plot_after_prefix = ''
             if probabilistic_model.measure_file_model:
-                directory_measure_plot_after_prefix = str(request.user) + '/measurement/'\
-                                                      + str(probabilistic_model.measure_file_model.pk) + '/scatter.png'
+                directory_measure_plot_after_prefix = \
+                    settings.PATH_USER_GENERATED +str(request.user) + \
+                    '/measurement/' + \
+                    str(probabilistic_model.measure_file_model.pk) + \
+                    '/scatter.png'
 
             return render(request, 'enviro/probabilistic_model_show.html',
                           {'user': request.user, 'probabilistic_model': probabilistic_model,
@@ -611,8 +620,9 @@ def download_pdf(request):
         return HttpResponseRedirect('/home')
     else:
         response = HttpResponse(content_type='application/pdf')
-        path = 'attachment; filename="' + PATH_USER_GENERATED +\
-               str(request.user) + '/latex_report.pdf"'
+        path = 'attachment; filename="' + settings.PATH_STATIC + \
+               settings.PATH_USER_GENERATED + str(request.user) + \
+               '/contour/latex_report.pdf"'
         response['Content-Disposition'] = path
         return response
 

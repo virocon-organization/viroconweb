@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
 import os
-from .models import ProbabilisticModel, DistributionModel, ParameterModel
+import tempfile
+import warnings
+
 from scipy.stats import weibull_min
 from scipy.stats import lognorm
 from scipy.stats import norm
-import warnings
+from django.template.loader import get_template
+from subprocess import Popen, PIPE
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 # The standard solution to fix it is to use:
@@ -19,17 +22,15 @@ import warnings
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
+from descartes import PolygonPatch
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
-from descartes import PolygonPatch
-from django.template.loader import get_template
-from subprocess import Popen, PIPE
+
+from . import settings
+
+from .models import ProbabilisticModel, DistributionModel, ParameterModel
 from .compute_interface import setup_mul_dist
-import tempfile
 
-
-# Make sure this is the same as in views.py
-PATH_USER_GENERATED = 'enviro/static/user_generated/'
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
@@ -368,7 +369,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
     :param var_symbols: symbols of the variables of the probabilistic model
     """
 
-    path = PATH_USER_GENERATED + str(user)
+    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -421,8 +422,11 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
 
     ax.grid(True)
 
-    short_path = user + '/contour/contour.png'
-    plt.savefig(PATH_USER_GENERATED + short_path, bbox_inches='tight')
+    directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
+        '/contour/'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    plt.savefig(directory + 'contour.png', bbox_inches='tight')
     plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
@@ -515,14 +519,14 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     -------
     short_file_path_report : string,
         The path where the pdf, generated based latex, is saved
-        The path continues after the PATH_USER_GENERATED prefix, which is
-        'enviro/static/user_generated/'
+        The path continues after the static files prefix, which is defined in
+        settings.py and currently is 'enviro/static/'
 
     """
 
     plot_contour(matrix, user, method_label, probabilistic_model, var_names,
                  var_symbols, method)
-    directory_prefix = PATH_USER_GENERATED
+    directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
     file_path_contour = directory_prefix + user + '/contour/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
@@ -604,8 +608,9 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
             pdf = f.read()
 
 
-    short_file_path_report = user + '/contour/latex_report.pdf'
-    full_file_path_report = PATH_USER_GENERATED + short_file_path_report
+    short_file_path_report = settings.PATH_USER_GENERATED + user + \
+                             '/contour/latex_report.pdf'
+    full_file_path_report = settings.PATH_STATIC + short_file_path_report
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
 
