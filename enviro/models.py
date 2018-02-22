@@ -160,3 +160,71 @@ class ParameterModel(models.Model):
                " dependency=%r, name=%r" % \
                (self.function, self.x0, self.x1, self.x2,
                 self.dependency, self.name)
+
+
+class EnvironmentalContour(models.Model):
+    """
+    Model for an environmental contour.
+
+    The model contains the the settings, which were used to create the contour
+    and the primary key to the probabilistic model on which it is based on.
+    Additional options, which are a dictionary, have their own model
+    (AdditionalContourOption) and are connected via the primary key to an
+    EnvironmentalContour instance. The contour's path (the EEDCs) are also
+    connected via two own models (Contourpath and ExtremeEnvDesignCondition).
+    """
+    fitting_method = models.CharField(max_length=240)
+    contour_method = models.CharField(max_length=240)
+    return_period = models.CharField(max_length=240)
+    state_duration = models.CharField(max_length=240)
+    distribution = models.ForeignKey(ProbabilisticModel,
+                                     on_delete=models.CASCADE)
+
+
+class ContourPath(models.Model):
+    """
+    Model for the path of an environmental contour.
+
+    One or multiple ContourPath instances can be associated to an
+    EnvironmentalContour instance.
+
+    The points of the path have their own model (ExtremeEnvDesignCondition)
+    and are connected via the ContourPath primary key.
+    """
+    environmental_contour = models.ForeignKey(EnvironmentalContour,
+                                              on_delete=models.CASCADE)
+
+
+class ExtremeEnvDesignCondition(models.Model):
+    """
+    Model for a single extreme environmental design conditions.
+
+
+    Multiple ExtremeEnvDesignCondition instances make up a ContourPath instance.
+
+    For each dimension an EEDCScalar instance is needed and connected via the
+    primary key to an ExtremeEnvDesignCondition instance.
+    """
+    contour_path = models.ForeignKey(ContourPath, on_delete=models.CASCADE)
+
+
+class EEDCScalar(models.Model):
+    """
+    Model for the value of one dimension of an extreme env. design condition.
+
+    Multiple EEDCScalar instances make up an ExtremEnvDesignCondition instance.
+    """
+    x = models.DecimalField(decimal_places=5, max_digits=10, null=True)
+    contour_path = models.ForeignKey(ExtremeEnvDesignCondition,
+                                     on_delete=models.CASCADE)
+
+class AdditionalContourOption(models.Model):
+    """
+    Additional options describing how an environmental contour was created.
+
+    Since different environmental contour methods are available some options
+    are only applicable to one method. Consequently, AdditionalContourOption
+    can be used as a dictionary to specify additional options.
+    """
+    environmental_contour = models.ForeignKey(EnvironmentalContour,
+                                              on_delete=models.CASCADE)
