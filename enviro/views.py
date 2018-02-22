@@ -5,14 +5,12 @@ from django.shortcuts import render, get_object_or_404, HttpResponse, HttpRespon
 from .forms import *
 from .models import MeasureFileModel
 from .compute_interface import ComputeInterface
-from .compute_interface import setup_mul_dist
 from .plot import *
 import os
 import csv
 import warnings
-import numpy as np
-from scipy.optimize import OptimizeWarning
-
+from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 class Handler:
     @staticmethod
@@ -38,12 +36,12 @@ class Handler:
                 elif item.primary_user == request.user:
                     context.add(item)
 
-            base = 'enviro:' + str(collection())
-            html = 'enviro/' + str(collection()) + '_overview.html'
-            update = base + '-update'
-            delete = base + '-delete'
-            add = base + '-add'
-            calc = base + '-calc'
+            base = 'enviro:' + collection.url_str()
+            html = 'enviro/' + collection.url_str() + '_overview.html'
+            update = base + '_update'
+            delete = base + '_delete'
+            add = base + '_add'
+            calc = base + '_calc'
 
             return render(request, html, {'context': context,
                                           'name': collection,
@@ -70,7 +68,7 @@ class Handler:
                 instance.delete()
             else:
                 instance.secondary_user.remove(request.user)
-            redirection = 'enviro:' + str(collection()) + '-overview'
+            redirection = 'enviro:' + collection.url_str() + '_overview'
             return redirect(redirection)
 
     @staticmethod
@@ -85,8 +83,8 @@ class Handler:
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            redirection = 'enviro:' + str(collection()) + '-overview'
-            template = 'enviro/update_secUser.html'
+            redirection = 'enviro:' + collection.url_str() + '_overview'
+            template = 'enviro/update_sec_user.html'
             if request.method == 'POST':
                 instance = get_object_or_404(collection, pk=pk)
                 username = request.POST.get('username', '')
@@ -99,8 +97,11 @@ class Handler:
                     try:
                         user = User.objects.get(username=name)
                         instance.secondary_user.add(user)
-                    except:  # TODO What kind of Exception is excepted ?
-                        return redirect('/home/')
+                    except:
+                        messages.add_message(request, messages.ERROR,
+                                             'Error. The user name you entered'
+                                             ', ' + name + ', does not exist.')
+                        return redirect('home:home')
                     else:
                         instance.save()
                 return redirect(redirection)
@@ -157,7 +158,7 @@ class MeasureFileHandler(Handler):
                 elif item.primary_user == request.user:
                     context.add(item)
 
-            return render(request, 'enviro/measurefiles_select.html', {'context': context})
+            return render(request, 'enviro/measure_file_model_select.html', {'context': context})
 
     @staticmethod
     def add(request):
@@ -176,11 +177,11 @@ class MeasureFileHandler(Handler):
                                                      title=measure_file_form.cleaned_data['title'],
                                                      measure_file=measure_file_form.cleaned_data['measure_file'])
                     measure_model.save()
-                    return redirect('enviro:measurefiles-plot', measure_model.pk)
+                    return redirect('enviro:measure_file_model_plot', measure_model.pk)
                 else:
-                    return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
+                    return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})
             else:
-                return render(request, 'enviro/measurefiles_add.html', {'form': measure_file_form})
+                return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})
 
     @staticmethod
     def fit_file(request, pk):
@@ -209,7 +210,7 @@ class MeasureFileHandler(Handler):
                                        'text': 'Error occured while fitting a probabliistic model to the file.'
                                                'Try it again with different settings please',
                                        'header': 'fit measurement file to probabilistic model',
-                                       'return_url': 'enviro:measurefiles-select'})
+                                       'return_url': 'enviro:measure_file_model_select'})
                     #try:
                     directory_prefix = 'enviro/static/'
                     directory_after_static = str(request.user) + '/prob_model/'
@@ -222,9 +223,9 @@ class MeasureFileHandler(Handler):
                         #               'text': 'Error occured while plotting the fit.'
                         #                       'Try it again with different settings please',
                         #               'header': 'fit measurement file to probabilistic model',
-                        #               'return_url': 'enviro:measurefiles-select'})
+                        #               'return_url': 'enviro:measure_file_model_select'})
                     multivariate_distribution = setup_mul_dist(probabilistic_model)
-                    latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+                    latex_string_list = multivariate_distribution.latex_repr(var_symbols)
                     img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
                     send_img = []
                     for img in img_list:
@@ -232,8 +233,8 @@ class MeasureFileHandler(Handler):
                     return render(request, 'enviro/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
                                                                        'latex_string_list': latex_string_list})
                 else:
-                    return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})
-            return render(request, 'enviro/measurefiles_fit.html', {'form': fit_form})
+                    return render(request, 'enviro/measure_file_model_fit.html', {'form': fit_form})
+            return render(request, 'enviro/measure_file_model_fit.html', {'form': fit_form})
 
     @staticmethod
     def new_fit(request, pk):
@@ -248,7 +249,7 @@ class MeasureFileHandler(Handler):
         else:
             ProbabilisticModel.objects.all().filter(pk=pk).delete()
             user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
-            return render(request, 'enviro/measurefiles_select.html', {'context': user_files})
+            return render(request, 'enviro/measure_file_model_select.html', {'context': user_files})
 
     @staticmethod
     def plot_file(request, pk):
@@ -265,7 +266,7 @@ class MeasureFileHandler(Handler):
             directory_after_static = str(request.user) + '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
             plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
-            return render(request, 'enviro/measurefiles_plot.html', {'user': request.user,
+            return render(request, 'enviro/measure_file_model_plot.html', {'user': request.user,
                                                                      'measure_file_model':measure_file_model,
                                                                      'directory': directory_after_static})
 
@@ -310,6 +311,7 @@ class ProbabilisticModelHandler(Handler):
             if request.method == 'POST':
                 variable_form = VariablesForm(data=request.POST, variable_count=var_num_int)
                 if variable_form.is_valid():
+                    is_valid_probabilistic_model = True
                     probabilistic_model = ProbabilisticModel(primary_user=request.user,
                                                              collection_name=variable_form.cleaned_data[
                                                                  'collection_name'], measure_file_model=None)
@@ -328,7 +330,15 @@ class ProbabilisticModelHandler(Handler):
                                                            x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
                                                            dependency='!',
                                                            name=param, distribution=distribution)
-                                parameter.save()
+                                try:
+                                    parameter.clean()
+                                except ValidationError as e:
+                                    messages.add_message(request,
+                                                         messages.ERROR,
+                                                         e.message)
+                                    is_valid_probabilistic_model = False
+                                else:
+                                    parameter.save()
 
                         else:
                             for param in params:
@@ -339,13 +349,28 @@ class ProbabilisticModelHandler(Handler):
                                     x2=variable_form.cleaned_data[param + '_' + str(i) + '_2'],
                                     dependency=variable_form.cleaned_data[param + '_dependency_' + str(i)][0],
                                     name=param, distribution=distribution)
-
-                                parameter.save()
-
-                    return redirect('enviro:probabilistic_model-select')
+                                try:
+                                    parameter.clean()
+                                except ValidationError as e:
+                                    messages.add_message(request,
+                                                         messages.ERROR,
+                                                         e.message)
+                                    is_valid_probabilistic_model = False
+                                else:
+                                    parameter.save()
+                    if is_valid_probabilistic_model:
+                        return redirect('enviro:probabilistic_model_select')
+                    else:
+                        probabilistic_model.delete()
+                        return render(request,
+                                      'enviro/probabilistic_model_add.html',
+                                      {'form': variable_form,
+                                       'var_num_form': var_num_form})
                 else:
-                    return render(request, 'enviro/probabilistic_model_add.html',
-                                  {'form': variable_form, 'var_num_form': var_num_form})
+                    return render(request,
+                                  'enviro/probabilistic_model_add.html',
+                                  {'form': variable_form,
+                                   'var_num_form': var_num_form})
 
             return render(request, 'enviro/probabilistic_model_add.html',
                           {'form': variable_form, 'var_num_form': var_num_form})
@@ -396,19 +421,28 @@ class ProbabilisticModelHandler(Handler):
                 iform_form = IFormForm(data=request.POST)
                 if iform_form.is_valid():
                     try:
-                        contour_matrix = cs.iform(probabilistic_model, iform_form.cleaned_data['return_period'],
-                                                  iform_form.cleaned_data['sea_state'], iform_form.cleaned_data['n_steps'])
-                        method = Method("", "IFORM", float(iform_form.cleaned_data['return_period']))
+                        contour_matrix = cs.iform(
+                            probabilistic_model,
+                            float(iform_form.cleaned_data['return_period']),
+                            float(iform_form.cleaned_data['sea_state']),
+                            iform_form.cleaned_data['n_steps'])
+                        method = Method(
+                            "", "IFORM",
+                            float(iform_form.cleaned_data['return_period']),
+                            float(iform_form.cleaned_data['sea_state']),
+                            {"Number of points on the contour":
+                                 iform_form.cleaned_data['n_steps']})
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
                                                                      'header': 'calculate Contour',
-                                                                     'return_url': 'enviro:probabilistic_model-select'})
+                                                                     'return_url': 'enviro:probabilistic_model_select'})
 
-                    path = plot_pdf(contour_matrix, str(request.user), ''.join(['T = ',
+                    path = create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
                                     str(iform_form.cleaned_data['return_period']),
-                                    ' years, IFORM']), probabilistic_model, var_names, var_symbols, method)
+                                   ' years, method = IFORM']), probabilistic_model, var_names, var_symbols, method)
+
 
                     #probabilistic_model.measure_file_model.measure_file
                     # if matrix 4dim - send data for 4dim interactive plot.
@@ -462,25 +496,29 @@ class ProbabilisticModelHandler(Handler):
                     contour_matrix = None
                     for i in range(len(var_names)):
                         limits.append(
-                            (int(hdc_form.cleaned_data['limit_%s' % i + '_1']),
-                             int(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
+                            (float(hdc_form.cleaned_data['limit_%s' % i + '_1']),
+                             float(hdc_form.cleaned_data['limit_%s' % i + '_2'])))
                         deltas.append(float(hdc_form.cleaned_data['delta_%s' % i]))
                     try:
                         with warnings.catch_warnings(record=True) as warn:
-                            contour_matrix = cs.hdc(probabilistic_model, hdc_form.cleaned_data['n_years'],
-                                                    hdc_form.cleaned_data['sea_state'], limits, deltas)
-                            method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']))
+                            contour_matrix = cs.hdc(
+                                probabilistic_model,
+                                float(hdc_form.cleaned_data['n_years']),
+                                float(hdc_form.cleaned_data['sea_state']),
+                                limits, deltas)
+                            method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
+                                            hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                     # catch and allocate errors caused by calculating hdc.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
                                                                      'text': 'Try it again with other settings please',
                                                                      'header': 'calculate Contour',
-                                                                     'return_url': 'enviro:probabilistic_model-select'})
+                                                                     'return_url': 'enviro:probabilistic_model_select'})
 
                     # generate path to the user specific pdf.
-                    path = plot_pdf(contour_matrix, str(request.user),  ''.join(['T = ',
+                    path = create_latex_report(contour_matrix, str(request.user),  ''.join(['T = ',
                                     str(hdc_form.cleaned_data['n_years']),
-                                    ' years, Highest Density Contour (HDC)']),
+                                    ' years, method = HDC']),
                                     probabilistic_model, var_names, var_symbols, method)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
@@ -517,7 +555,7 @@ class ProbabilisticModelHandler(Handler):
                     var_num_str = str(var_num)
                     if int(var_num) < 10:
                         var_num_str = '0' + var_num_str
-                return redirect('enviro:probabilistic_model-add', var_num_str)
+                return redirect('enviro:probabilistic_model_add', var_num_str)
             else:
                 variable_form = VariablesForm()
                 var_num_form = VariableNumber()
@@ -539,7 +577,7 @@ class ProbabilisticModelHandler(Handler):
             for dist in dists_model:
                 var_symbols.append(dist.symbol)
             multivariate_distribution = setup_mul_dist(probabilistic_model)
-            latex_string_list = multivariate_distribution.getPdfAsLatexString(var_symbols)
+            latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
             directory_prefix = 'enviro/static/'
@@ -595,8 +633,9 @@ def get_info_from_file(url):
 
 
 class Method:
-    def __init__(self, fitting_method, contour_method, return_period):
+    def __init__(self, fitting_method, contour_method, return_period, state_duration, additional_options=None):
         self.fitting_method = fitting_method
         self.contour_method = contour_method
         self.return_period = return_period
-
+        self.state_duration = state_duration
+        self.additional_options = additional_options

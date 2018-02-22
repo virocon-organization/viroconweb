@@ -3,7 +3,6 @@ from scipy.spatial import Delaunay
 import shapely.geometry as geometry
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 import warnings

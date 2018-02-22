@@ -18,7 +18,7 @@
     <hr>
     <div class="col-md-4"></div>
     <div class="col-md-2">
-        <form class="form-horizontal" action="{% url 'enviro:measurefiles-new-fit' pk %}" method="post"
+        <form class="form-horizontal" action="{% url 'enviro:measure_file_model_new_fit' pk %}" method="post"
               enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
@@ -32,12 +32,12 @@
           <span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li>
-                <a href="{% url 'enviro:probabilistic_model-calc' pk 'I' %}">
+                <a href="{% url 'enviro:probabilistic_model_calc' pk 'I' %}">
                 compute IFORM
                 </a>
             </li>
             <li>
-                <a href="{% url 'enviro:probabilistic_model-calc' pk 'I' %}">
+                <a href="{% url 'enviro:probabilistic_model_calc' pk 'I' %}">
                 compute HDC
                 </a>
             </li>

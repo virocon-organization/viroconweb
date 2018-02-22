@@ -1,0 +1,16 @@
+{% comment %}
+The template is loaded by the django template engine, which expects a html.
+The "autoescape on" tells it to treat the following as raw text.
+{% endcomment %}
+{% autoescape on %}
+
+\documentclass[fleqn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\begin{document}
+  {{ content|safe }}
+\end{document}
+
+{% endautoescape %}
