@@ -175,9 +175,9 @@ class EnvironmentalContour(models.Model):
     """
     fitting_method = models.CharField(max_length=240)
     contour_method = models.CharField(max_length=240)
-    return_period = models.CharField(max_length=240)
-    state_duration = models.CharField(max_length=240)
-    distribution = models.ForeignKey(ProbabilisticModel,
+    return_period = models.DecimalField(decimal_places=5, max_digits=10)
+    state_duration = models.DecimalField(decimal_places=5, max_digits=10)
+    probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
 
 

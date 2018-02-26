@@ -13,7 +13,8 @@ from . import forms
 from . import plot
 from . import settings
 
-from .models import User, MeasureFileModel
+from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
+    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption
 from .compute_interface import ComputeInterface
 
 
@@ -440,6 +441,15 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['sea_state']),
                             {"Number of points on the contour":
                                  iform_form.cleaned_data['n_steps']})
+                        environmental_contour = EnvironmentalContour(
+                            fitting_method="",
+                            contour_method="IFORM",
+                            return_period=float(
+                                iform_form.cleaned_data['return_period']),
+                            state_duration=float(
+                                iform_form.cleaned_data['sea_state']),
+                            probabilistic_model=probabilistic_model.pk
+                        )
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
