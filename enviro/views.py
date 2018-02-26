@@ -451,8 +451,24 @@ class ProbabilisticModelHandler(Handler):
                             probabilistic_model_pk=probabilistic_model.pk
                         )
                         environmental_contour.save()
+                        additional_contour_option = AdditionalContourOption(
+                            option_key="Number of points on the contour",
+                            option_value=iform_form.cleaned_data['n_steps'],
+                            environmental_contour_pk=environmental_contour.pk
+                        )
+                        additional_contour_option.save()
                         contour_path = ContourPath(
                             environmental_contour_pk=environmental_contour.pk)
+                        contour_path.save()
+                        for i in range(len(contour_coordinates)):
+                            EEDC = ExtremeEnvDesignCondition(
+                                contour_path_pk=contour_path.pk)
+                            EEDC.save()
+                            for j in range(len(contour_coordinates[i])):
+                                eedc_scalar = EEDCScalar(
+                                    x=contour_coordinates[i][j])
+                                eedc_scalar.save()
+
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,

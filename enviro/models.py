@@ -225,6 +225,13 @@ class AdditionalContourOption(models.Model):
     Since different environmental contour methods are available some options
     are only applicable to one method. Consequently, AdditionalContourOption
     can be used as a dictionary to specify additional options.
+
+    Idea how this model works is based on this stackoverflow post: https://stack
+    overflow.com/questions/402217/how-to-store-a-dictionary-on-a-django-model
     """
+    # Key can for example be "Number of points on the contour"
+    option_key = models.CharField(max_length=240, null=True)
+    # Then value can for example be "50"
+    option_value = models.CharField(max_length=240, null=True)
     environmental_contour_pk = models.ForeignKey(EnvironmentalContour,
                                               on_delete=models.CASCADE)
