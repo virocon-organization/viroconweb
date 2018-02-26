@@ -177,7 +177,7 @@ class EnvironmentalContour(models.Model):
     contour_method = models.CharField(max_length=240)
     return_period = models.DecimalField(decimal_places=5, max_digits=10)
     state_duration = models.DecimalField(decimal_places=5, max_digits=10)
-    probabilistic_model = models.ForeignKey(ProbabilisticModel,
+    probabilistic_model_pk = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
 
 
@@ -191,7 +191,7 @@ class ContourPath(models.Model):
     The points of the path have their own model (ExtremeEnvDesignCondition)
     and are connected via the ContourPath primary key.
     """
-    environmental_contour = models.ForeignKey(EnvironmentalContour,
+    environmental_contour_pk = models.ForeignKey(EnvironmentalContour,
                                               on_delete=models.CASCADE)
 
 
@@ -205,7 +205,7 @@ class ExtremeEnvDesignCondition(models.Model):
     For each dimension an EEDCScalar instance is needed and connected via the
     primary key to an ExtremeEnvDesignCondition instance.
     """
-    contour_path = models.ForeignKey(ContourPath, on_delete=models.CASCADE)
+    contour_path_pk = models.ForeignKey(ContourPath, on_delete=models.CASCADE)
 
 
 class EEDCScalar(models.Model):
@@ -215,7 +215,7 @@ class EEDCScalar(models.Model):
     Multiple EEDCScalar instances make up an ExtremEnvDesignCondition instance.
     """
     x = models.DecimalField(decimal_places=5, max_digits=10, null=True)
-    contour_path = models.ForeignKey(ExtremeEnvDesignCondition,
+    EEDC_pk = models.ForeignKey(ExtremeEnvDesignCondition,
                                      on_delete=models.CASCADE)
 
 class AdditionalContourOption(models.Model):
@@ -226,5 +226,5 @@ class AdditionalContourOption(models.Model):
     are only applicable to one method. Consequently, AdditionalContourOption
     can be used as a dictionary to specify additional options.
     """
-    environmental_contour = models.ForeignKey(EnvironmentalContour,
+    environmental_contour_pk = models.ForeignKey(EnvironmentalContour,
                                               on_delete=models.CASCADE)
