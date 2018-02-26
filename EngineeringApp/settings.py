@@ -164,6 +164,7 @@ EMAIL_HOST = 'smtp.uni-bremen.de'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'virocon@uni-bremen.de'
 EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'no-reply@virocon.de'
 key_exists = "EMAIL_HOST_PASSWORD" in os.environ
 if not key_exists:
     print('Warning: EMAIL_HOST_PASSWORD is not set')
