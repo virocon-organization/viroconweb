@@ -1,5 +1,6 @@
 {% extends "../base.html" %}
 {% load static %}
+{% load latexify %}
 {% block content %}
     enter probabilistic model
 
@@ -10,7 +11,7 @@
         {% csrf_token %}
         <ul class="messages">
             {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
             {% endfor %}
         </ul>
         <div class="panel panel-default">
@@ -44,35 +45,38 @@
             <h3 class="panel-title">Distributions</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-4">Normal Distribution
-                <img class="img-responsive"
-                     src="{% static 'images/example_normal.svg' %}">
+            <div class="col-sm-4">Normal distribution
+                <a href="{% static 'images/example_normal.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Normal distribution">
+                    <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{1}{ \sqrt{2 \pi \sigma^2}} e^{- \frac{(x- \mu)^2}{2 \sigma^2}}' math_inline=True %}
             </div>
-            <div class="col-sm-4">Weibull Distribution
-                <img class="img-responsive"
-                     src="{% static 'images/example_weibull.svg' %}">
+            <div class="col-sm-4">Weibull distribution
+                <a href="{% static 'images/example_weibull.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Weibull distribution">
+                    <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{k}{\lambda} ( \frac{x}{ \lambda})^{k-1} e^{-(\frac{x}{ \lambda })^k}' math_inline=True %}
             </div>
-            <div class="col-sm-4">Logarithmic Normal Distribution
-                <img class="img-responsive"
-                     src="{% static 'images/example_lognormal.svg' %}">
+            <div class="col-sm-4">Log-Normal distribution
+                <a href="{% static 'images/example_lognormal.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Log-Normal distribution">
+                    <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{1}{x} \cdot \frac{1}{ \ \tilde{ \sigma} \sqrt{2 \pi }} e^{- \frac{( \ln x- \tilde{ \mu} )^2}{2 \tilde{ \sigma}^2}}' math_inline=True %}
             </div>
         </div>
         <div class="panel-heading">
-            <h3 class="panel-title">Dependencies function</h3>
+            <h3 class="panel-title">Dependency function</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-2"></div>
-            <div class="col-sm-4">
-                <h4>Exponential</h4>
-                <img src="{% static 'images/Exponential_PDF.png' %}"
-                     height="17">
+            <div class="col-sm-6">
+                Exponential: {% latexify 'c_0 + c_1 \cdot e^{x \cdot c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-4">
-                <h4>Power function</h4>
-                <img src="{% static 'images/Polynomial_PDF.png' %}"
-                     height="17">
+            <div class="col-sm-6">
+                Power function: {% latexify 'c_0 + c_1 \cdot x^{c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-2"></div>
         </div>
     </div>
     <br>
@@ -88,8 +92,8 @@
                 {% if 'variable_name' in x.name %}
                     <div class="panel-heading">
                         {% comment %}
-                        For using |slice, thanks goes to: https://stackoverflow
-                        .com/questions/28979148/substring-in-a-django-template
+                            For using |slice, thanks goes to: https://stackoverflow
+                            .com/questions/28979148/substring-in-a-django-template
                         {% endcomment %}
                         <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>
                     </div>
@@ -99,38 +103,38 @@
                         <div class="panel-body
                         scale_param{{ x.name|slice:'17:18' }}">
                     {% else %}
-                        {% if '_0' in x.name  %}
+                        {% if '_0' in x.name %}
                             <div class="panel-body
                             scale_param{{ x.name|slice:'6:7' }}">
-                        {%  else %}
+                        {% else %}
                             <div class="panel-body
                             scale_param{{ x.name|slice:'6:7' }}"
-                                style="display: none;">
+                                 style="display: none;">
                         {% endif %}
                     {% endif %}
                 {% elif 'shape_' in x.name %}
-                    {% if 'shape_dependency' in x.name  %}
+                    {% if 'shape_dependency' in x.name %}
                         <div class="panel-body
                         shape_param{{ x.name|slice:'17:18' }}">
                     {% else %}
-                        {% if '_0' in x.name  %}
+                        {% if '_0' in x.name %}
                             <div class="panel-body
                             shape_param{{ x.name|slice:'6:7' }}">
-                        {%  else %}
+                        {% else %}
                             <div class="panel-body
                             shape_param{{ x.name|slice:'6:7' }}"
-                                style="display: none;">
+                                 style="display: none;">
                         {% endif %}
                     {% endif %}
-                {% elif 'location_' in x.name  %}
+                {% elif 'location_' in x.name %}
                     {% if 'location_dependency' in x.name %}
                         <div class="panel-body
                         location_param{{ x.name|slice:'20:21' }}">
-                    {%  else %}
-                        {% if '_0' in x.name  %}
+                    {% else %}
+                        {% if '_0' in x.name %}
                             <div class="panel-body
                             location_param{{ x.name|slice:'9:10' }}">
-                        {%  else %}
+                        {% else %}
                             <div class="panel-body
                             location_param{{ x.name|slice:'9:10' }}"
                                  style="display: none;">
@@ -139,29 +143,30 @@
                 {% else %}
                     <div class="panel-body">
                 {% endif %}
-                        <div class="form-group CreateDataText">
-                            <div class="col-sm-2">{{ x.help_text }}</div>
-                            <label class="col-sm-3"
-                                   id={{ x.html_initial_id }}
-                                           for="{{ x.id_for_label }}">
-                                {{ x.label_tag }}
-                            </label>
-                            <div class="col-sm-4"> {{ x }}</div>
-                            <div class="col-sm-3 input-additional-info">
-                                {% if x.label == '1. variable symbol' %}
-                                    The first character should be capitalized.
-                                    Further characters will be interpreted as
-                                    subscripts.
-                                {% endif %}
-                            </div>
-                        </div>
+            <div class="form-group CreateDataText">
+                <div class="col-sm-2">{{ x.help_text }}</div>
+                <label class="col-sm-3"
+                       id={{ x.html_initial_id }}
+                               for="{{ x.id_for_label }}">
+                    {{ x.label_tag }}
+                </label>
+                <div class="col-sm-4"> {{ x }}</div>
+                <div class="col-sm-3 input-additional-info">
+                    {% if x.label == '1. variable symbol' %}
+                        The first character should be capitalized.
+                        Further characters will be interpreted as
+                        subscripts.
+                    {% endif %}
                 </div>
+            </div>
+            </div>
             {% endfor %}
             <div class="form-group">
                 <button class="btn btn-success">Save</button>
             </div>
-        </div>
+            </div>
     </form>
+    
 
     <script>
         function dist_select(dist_id, var_number) {
@@ -208,7 +213,6 @@
                         'initial-id_location_dependency_'.concat(var_number))
                         .innerHTML = '';
                 }
-
             }
             else if (document.getElementById(dist_id).value === 'Normal') {
                 if (var_number == 0) {
@@ -300,7 +304,6 @@
                         'initial-id_location_dependency_'.concat(var_number))
                         .innerHTML = 'location (&theta;) dependency';
                 }
-
             }
             if (var_number > 0) {
                 document.getElementById(
@@ -378,11 +381,9 @@
             }
         }
 
-
         $(document).ready(function () {
             $('[data-toggle="popover"]').popover();
         });
-
         $(document).ready(function () {
             /* Hier der jQuery-Code */
             $('#help-einausblenden').click(function () {
@@ -390,9 +391,5 @@
                 return false;
             })
         });
-
     </script>
-
 {% endblock content %}
-
-

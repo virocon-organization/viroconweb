@@ -1,5 +1,6 @@
 {% extends "../base.html" %}
 {% load static %}
+{% load latexify %}
 {% block content %}
     Fit probabilistic model to measurement file
     <div class="page-header"></div>
@@ -9,30 +10,38 @@
             <h3 class="panel-title">Distributions</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-4">Normal Distribution
-                <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+            <div class="col-sm-4">Normal distribution
+                <a href="{% static 'images/example_normal.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Normal distribution">
+                    <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{1}{ \sqrt{2 \pi \sigma^2}} e^{- \frac{(x- \mu)^2}{2 \sigma^2}}' math_inline=True %}
             </div>
-            <div class="col-sm-4">Weibull Distribution
-                <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+            <div class="col-sm-4">Weibull distribution
+                <a href="{% static 'images/example_weibull.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Weibull distribution">
+                    <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{k}{\lambda} ( \frac{x}{ \lambda})^{k-1} e^{-(\frac{x}{ \lambda })^k}' math_inline=True %}
             </div>
-            <div class="col-sm-4">Logarithmic Normal Distribution
-                <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+            <div class="col-sm-4">Log-Normal distribution
+                <a href="{% static 'images/example_lognormal.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                   data-title="Log-Normal distribution">
+                    <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
+                </a>
+                {% latexify 'f(x) = \frac{1}{x} \cdot \frac{1}{ \ \tilde{ \sigma} \sqrt{2 \pi }} e^{- \frac{( \ln x- \tilde{ \mu} )^2}{2 \tilde{ \sigma}^2}}' math_inline=True %}
             </div>
         </div>
         <div class="panel-heading">
-            <h3 class="panel-title">Dependencies function</h3>
+            <h3 class="panel-title">Dependency function</h3>
         </div>
         <div class="panel-body">
-            <div class="col-sm-2"></div>
-            <div class="col-sm-4">
-                <h4>Exponential</h4>
-                <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
+            <div class="col-sm-6">
+                Exponential: {% latexify 'c_0 + c_1 \cdot e^{x \cdot c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-4">
-                <h4>Power function</h4>
-                <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
+            <div class="col-sm-6">
+                Power function: {% latexify 'c_0 + c_1 \cdot x^{c_2}' math_inline=True %}
             </div>
-            <div class="col-sm-2"></div>
         </div>
     </div>
     <br>
@@ -52,12 +61,12 @@
                 {% else %}
                     <div class="panel-body">
                         <div class="form-group CreateDataText">
-                        <div class="col-sm-2">{{ x.help_text }}</div>
-                        <label class="col-sm-3"
-                               id={{ x.html_initial_id }} for="{{ x.id_for_label }}">{{ x.label_tag }}</label>
-                        <div class="col-sm-4"> {{ x }}</div>
-                        <div class="col-sm-3"><span class="text-danger small">{{ x.errors }}</span></div>
-                    </div>
+                            <div class="col-sm-2">{{ x.help_text }}</div>
+                            <label class="col-sm-3"
+                                   id={{ x.html_initial_id }} for="{{ x.id_for_label }}">{{ x.label_tag }}</label>
+                            <div class="col-sm-4"> {{ x }}</div>
+                            <div class="col-sm-3"><span class="text-danger small">{{ x.errors }}</span></div>
+                        </div>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -68,7 +77,6 @@
             </div>
         </div>
     </form>
-
     <!--Le JavaScript-->
     <script>
         function dist_select(dist_id, var_number) {

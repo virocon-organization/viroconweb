@@ -6,6 +6,7 @@
         <title>ViroCon</title>
 
         {% load static %}
+        {% load latexify %}
 
         <! Bootstrap>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -16,8 +17,11 @@
         <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Rajdhani:400" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="{% static './styles.css' %}"/>
-        {% include 'latexify/stylesheets.html' %}
 
+         {% include 'latexify/stylesheets.html' %}
+
+        <link href="{% static 'lightbox.css' %}" rel="stylesheet">
+        <script src="{% static 'lightbox.js' %}"></script>
     </head>
     <body>
     <nav class="navbar navbar-default navbar-fixed-top">
@@ -111,3 +115,4 @@
     </nav>
     </body>
 </html>
+{% include "latexify/scripts.html" %}
