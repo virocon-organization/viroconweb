@@ -2,9 +2,16 @@ language: python
 python:
   - "3.6"
 
-script: 
-- python -m unittest discover --start-directory ./enviro/compute_tests
+before_install:
+- "sudo apt-get update && sudo apt-get install --no-install-recommends texlive-fonts-recommended texlive-latex-extra texlive-fonts-extra texlive-latex-recommended dvipng"
+
+script:
+- mkdir _build
+- python manage.py test
+- coverage run --source=contact,EngineeringApp,enviro,home,user  manage.py test
 - bash ./deploy_docs.sh
+
+after_success: coveralls
 
 env:
     global:
@@ -14,7 +21,10 @@ env:
 
 notifications:
   email:
-    - a.haselsteiner@uni-bremen.de
-    - kawindme@uni-bremen.de
-    - janlehmk@uni-bremen.de
-    - to_pa@uni-bremen.de
+    recipients:
+      - a.haselsteiner@uni-bremen.de
+      - kawindme@uni-bremen.de
+      - janlehmk@uni-bremen.de
+      - to_pa@uni-bremen.de
+    on_success: change
+    on_failure: always

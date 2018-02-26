@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 import dj_database_url
+import random
+import string
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +24,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 key_exists = "SECRET_KEY" in os.environ
 if not key_exists:
-    print('Warning: SECRET_KEY is not set')
+    print('Warning: SECRET_KEY is not set. For test purposes I am setting '
+          'it to a random hash')
+    SECRET_KEY = ''.join(random.choices(
+        string.ascii_uppercase + string.digits, k=10))
 else:
     SECRET_KEY = os.environ["SECRET_KEY"]
 

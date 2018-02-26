@@ -1,4 +1,4 @@
-/* Allgemeine Einstellungen ---------------------*/
+/*----- General -----*/
 body {
     padding-top: 50px;
     padding-bottom: 0px;
@@ -39,7 +39,7 @@ a:hover {
 
 
 
-/* NavBar -------------------------------------*/
+/*----- Navigation bar -----*/
 
 .navbar {
     background-color: #54889c;
@@ -59,7 +59,7 @@ a:hover {
     font-size: 15px;
 }
 
-/* Footer -------------------------------------*/
+/*----- Footer -----*/
 
 .navbar-inverse .navbar-nav > li > a:hover {
     color: #343b3e;
@@ -86,7 +86,7 @@ a:hover {
     font-family: 'Rajdhani', sans-serif;
 }
 
-/* Ausrichtungen der Elemente der NavBar & Footer-------------------------------*/
+/*----- Navigation bar & footer -----*/
 .rechts, .virocon-main-nav {
     float: right;
     margin-right: 70px;
@@ -108,7 +108,30 @@ a:hover {
     }
 }
 
-/* Bearbeitung der Bootstrap Designs ---------------------------------------------*/
+/*----- Django messages -----*/
+.debug {
+
+}
+
+.messages > li {
+    list-style-type: none;
+}
+
+.info {
+    background-color: #d9edf7;
+}
+
+.success {
+    background-color: #dff0d8;
+}
+
+.warning {
+    background-color: #fcf8e3;
+}
+.error {
+    background-color: #f2dede;
+}
+/*----- Bootstrap -----*/
 .page-header {
     margin-top: 0px;
 }
@@ -135,7 +158,7 @@ a:hover {
     margin-left: 0px;
 }
 
-/*-----------Images------------*/
+/*----------- Images ------------*/
 .logo_mobile {
     height: 45px;
     padding-top: 0px;
@@ -187,7 +210,7 @@ a:hover {
     width: 60%;
 }
 
-/* appbox */
+/*------ Appbox ------*/
 .app_box {
     background-color: #feffff;
     border-radius: 1px 1px 1px 1px !important;
@@ -249,7 +272,7 @@ a:hover {
    cursor: default;
 }
 
-/*-------------Form styles ---------------------*/
+/*----- Forms -----*/
 .dependency {
     background-color: red !important;
     font-size: 80px !important;
@@ -324,4 +347,8 @@ a:hover {
 .user-guide-container {
     margin-top:24pt;
     margin-bottom:24pt
+}
+
+.contour_input_field {
+    width: 180px
 }

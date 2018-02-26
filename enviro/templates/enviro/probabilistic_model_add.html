@@ -3,9 +3,16 @@
 {% block content %}
     enter probabilistic model
 
-    <form class="form-horizontal" action="{% url 'enviro:set-probabilistic_model-number' %}" method="post"
+    <form class="form-horizontal"
+          action="{% url 'enviro:set_probabilistic_model_number' %}"
+          method="post"
           enctype="multipart/form-data">
         {% csrf_token %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">number of variables</h3>
@@ -13,10 +20,17 @@
             <br>
             <div class="form-group CreateDataText">
                 <div class="col-md-2"></div>
-                <div class="col-md-2"> {{ var_num_form.variable_number.label_tag }}</div>
-                <div class="col-md-4"> {{ var_num_form.variable_number }}</div>
+                <div class="col-md-2">
+                    {{ var_num_form.variable_number.label_tag }}
+                </div>
+                <div class="col-md-4">
+                    {{ var_num_form.variable_number }}
+                </div>
                 <div class="col-md-1"></div>
-                <div class="col-md-3"><span class="text-danger small">{{ var_num_form.variable_number.errors }}</span>
+                <div class="col-md-3">
+                    <span class="text-danger small">
+                        {{ var_num_form.variable_number.errors }}
+                    </span>
                 </div>
             </div>
             <div class="form-group">
@@ -24,62 +38,46 @@
             </div>
         </div>
     </form>
-    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+    <br>
+    <div class="panel panel-default">
         <div class="panel-heading">
-            <a href="" id="help-einausblenden" class="btn btn-default"><i class="glyphicon glyphicon-question-sign"></i>
-                Images of distributions and formulas of dependencies <i
-                        class="glyphicon glyphicon-question-sign"></i></a>
+            <h3 class="panel-title">Distributions</h3>
         </div>
-        <div id="helpPanel" style="display: none">
-            <div class="helpPictures">
-                <center>
-                    <br>
-                    <br>
-                    <br>
-                    <div><strong>Distributions:</strong></div>
-                    <br>
-                    <div><h4>Normal Distribution</h4><br><img class="img-responsive"
-                                                              src="{% static 'images/Normal_PDF.png' %}" width="500">
-                    </div>
-                    <br>
-                    <div><h4>Weibull Distribution</h4><br><img class="img-responsive"
-                                                               src="{% static 'images/Weibull_PDF.png' %}" width="500">
-                    </div>
-                    <br>
-                    <div><h4>Logarithmic Normal Distribution</h4><br><img class="img-responsive"
-                                                                          src="{% static 'images/Log_Normal_PDF.png' %}"
-                                                                          width="500"></div>
-                    <br>
-                </center>
+        <div class="panel-body">
+            <div class="col-sm-4">Normal Distribution
+                <img class="img-responsive"
+                     src="{% static 'images/example_normal.svg' %}">
             </div>
-            <div class="helpPictures">
-                <div><strong>Dependencies:</strong></div>
-                <div>
-                    <div class="col-sm-2">
-
-                    </div>
-                    <div class="col-sm-4">
-                        <h4>Exponential Dependency</h4>
-                        <img src="{% static 'images/Exponential_PDF.png' %}" height="17">
-                    </div>
-                    <div class="col-sm-4">
-                        <h4>Polynomial Dependency</h4>
-                        <img src="{% static 'images/Polynomial_PDF.png' %}" height="17">
-                    </div>
-                    <div class="col-sm-2">
-
-                    </div>
-                </div>
+            <div class="col-sm-4">Weibull Distribution
+                <img class="img-responsive"
+                     src="{% static 'images/example_weibull.svg' %}">
             </div>
-            <br>
-            <br>
-            <br>
-            <br>
+            <div class="col-sm-4">Logarithmic Normal Distribution
+                <img class="img-responsive"
+                     src="{% static 'images/example_lognormal.svg' %}">
+            </div>
         </div>
-    </form>
-
-    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+        <div class="panel-heading">
+            <h3 class="panel-title">Dependencies function</h3>
+        </div>
+        <div class="panel-body">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-4">
+                <h4>Exponential</h4>
+                <img src="{% static 'images/Exponential_PDF.png' %}"
+                     height="17">
+            </div>
+            <div class="col-sm-4">
+                <h4>Power function</h4>
+                <img src="{% static 'images/Polynomial_PDF.png' %}"
+                     height="17">
+            </div>
+            <div class="col-sm-2"></div>
+        </div>
+    </div>
+    <br>
+    <form class="form-horizontal" action="" method="post"
+          enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -89,22 +87,74 @@
             {% for x in form %}
                 {% if 'variable_name' in x.name %}
                     <div class="panel-heading">
-                        <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>{# thanks to: https://stackoverflow.com/questions/28979148/substring-in-a-django-template #}
+                        {% comment %}
+                        For using |slice, thanks goes to: https://stackoverflow
+                        .com/questions/28979148/substring-in-a-django-template
+                        {% endcomment %}
+                        <h3 class="panel-title">{{ x.label|slice:"0:11" }}</h3>
                     </div>
                 {% endif %}
-                <div class="panel-body">
-                    <div class="form-group CreateDataText">
-                        <div class="col-sm-2">{{ x.help_text }}</div>
-                        <label class="col-sm-3"
-                               id={{ x.html_initial_id }} for="{{ x.id_for_label }}">{{ x.label_tag }}</label>
-                        <div class="col-sm-4"> {{ x }}</div>
-                        <div class="col-sm-3 input-additional-info">
-                            {% if x.label == '1. variable symbol' %}
-                                The first characer should be capizalized. Further characters will be interpreted as
-                                subscripts
-                            {% endif %}
+                {% if 'scale_' in x.name %}
+                    {% if 'scale_dependency' in x.name %}
+                        <div class="panel-body
+                        scale_param{{ x.name|slice:'17:18' }}">
+                    {% else %}
+                        {% if '_0' in x.name  %}
+                            <div class="panel-body
+                            scale_param{{ x.name|slice:'6:7' }}">
+                        {%  else %}
+                            <div class="panel-body
+                            scale_param{{ x.name|slice:'6:7' }}"
+                                style="display: none;">
+                        {% endif %}
+                    {% endif %}
+                {% elif 'shape_' in x.name %}
+                    {% if 'shape_dependency' in x.name  %}
+                        <div class="panel-body
+                        shape_param{{ x.name|slice:'17:18' }}">
+                    {% else %}
+                        {% if '_0' in x.name  %}
+                            <div class="panel-body
+                            shape_param{{ x.name|slice:'6:7' }}">
+                        {%  else %}
+                            <div class="panel-body
+                            shape_param{{ x.name|slice:'6:7' }}"
+                                style="display: none;">
+                        {% endif %}
+                    {% endif %}
+                {% elif 'location_' in x.name  %}
+                    {% if 'location_dependency' in x.name %}
+                        <div class="panel-body
+                        location_param{{ x.name|slice:'20:21' }}">
+                    {%  else %}
+                        {% if '_0' in x.name  %}
+                            <div class="panel-body
+                            location_param{{ x.name|slice:'9:10' }}">
+                        {%  else %}
+                            <div class="panel-body
+                            location_param{{ x.name|slice:'9:10' }}"
+                                 style="display: none;">
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <div class="panel-body">
+                {% endif %}
+                        <div class="form-group CreateDataText">
+                            <div class="col-sm-2">{{ x.help_text }}</div>
+                            <label class="col-sm-3"
+                                   id={{ x.html_initial_id }}
+                                           for="{{ x.id_for_label }}">
+                                {{ x.label_tag }}
+                            </label>
+                            <div class="col-sm-4"> {{ x }}</div>
+                            <div class="col-sm-3 input-additional-info">
+                                {% if x.label == '1. variable symbol' %}
+                                    The first character should be capitalized.
+                                    Further characters will be interpreted as
+                                    subscripts.
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
                 </div>
             {% endfor %}
             <div class="form-group">
@@ -118,82 +168,148 @@
             if (document.getElementById(dist_id).value === 'Lognormal_2') {
                 if (var_number == 0) {
                     // variable 1:
-                    document.getElementById('scale_0_0').style.display = 'block';
-                    document.getElementById('shape_0_0').style.display = 'block';
-                    document.getElementById('loc_0_0').style.display = 'none';
-                    document.getElementById('initial-id_scale_0_0').innerHTML = '&mu; (mu):';
-                    document.getElementById('initial-id_shape_0_0').innerHTML = '&sigma; (sigma):';
-                    document.getElementById('initial-id_location_0_0').innerHTML = '';
+                    document.getElementById('scale_0_0')
+                        .style.display = 'block';
+                    document.getElementById('shape_0_0')
+                        .style.display = 'block';
+                    document.getElementById('loc_0_0')
+                        .style.display = 'none';
+                    document.getElementById('initial-id_scale_0_0')
+                        .innerHTML = '&mu; (mu):';
+                    document.getElementById('initial-id_shape_0_0')
+                        .innerHTML = '&sigma; (sigma):';
+                    document.getElementById('initial-id_location_0_0')
+                        .innerHTML = '';
                 }
                 else {
-                    document.getElementById('location_'.concat(var_number)).style.display = 'none';
-                    document.getElementById('shape_'.concat(var_number)).style.display = 'block';
-                    document.getElementById('scale_'.concat(var_number)).style.display = 'block';
+                    document.getElementById('location_'.concat(var_number))
+                        .style.display = 'none';
+                    document.getElementById('shape_'.concat(var_number))
+                        .style.display = 'block';
+                    document.getElementById('scale_'.concat(var_number))
+                        .style.display = 'block';
                     hide_all_params('location_param'.concat(var_number));
                     hide_params('shape_param'.concat(var_number));
                     hide_params('scale_param'.concat(var_number));
                     hide_labels('initial-id_location_'.concat(var_number));
-                    show_label_as_parameter('initial-id_shape_'.concat(var_number), 'constant value:');
-                    show_label_as_parameter('initial-id_scale_'.concat(var_number), 'constant value:');
-                    document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '&sigma; (sigma) dependency';
-                    document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&mu; (mu) dependency';
-                    document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '';
+                    show_label_as_parameter(
+                        'initial-id_shape_'.concat(var_number),
+                        'constant value:');
+                    show_label_as_parameter(
+                        'initial-id_scale_'.concat(var_number),
+                        'constant value:');
+                    document.getElementById(
+                        'initial-id_shape_dependency_'.concat(var_number))
+                        .innerHTML = '&sigma; (sigma) dependency';
+                    document.getElementById(
+                        'initial-id_scale_dependency_'.concat(var_number))
+                        .innerHTML = '&mu; (mu) dependency';
+                    document.getElementById(
+                        'initial-id_location_dependency_'.concat(var_number))
+                        .innerHTML = '';
                 }
 
             }
             else if (document.getElementById(dist_id).value === 'Normal') {
                 if (var_number == 0) {
                     // variable 1:
-                    document.getElementById('scale_0_0').style.display = 'block';
-                    document.getElementById('shape_0_0').style.display = 'none';
-                    document.getElementById('loc_0_0').style.display = 'block';
-                    document.getElementById('initial-id_scale_0_0').innerHTML = 'scale (&sigma;):';
-                    document.getElementById('initial-id_shape_0_0').innerHTML = '';
-                    document.getElementById('initial-id_location_0_0').innerHTML = 'location (&mu;):';
+                    document.getElementById('scale_0_0')
+                        .style.display = 'block';
+                    document.getElementById('shape_0_0')
+                        .style.display = 'none';
+                    document.getElementById('loc_0_0')
+                        .style.display = 'block';
+                    document.getElementById('initial-id_scale_0_0')
+                        .innerHTML = 'scale (&sigma;):';
+                    document.getElementById('initial-id_shape_0_0')
+                        .innerHTML = '';
+                    document.getElementById('initial-id_location_0_0')
+                        .innerHTML = 'location (&mu;):';
                 }
                 else {
-                    document.getElementById('scale_'.concat(var_number)).style.display = 'block';
-                    document.getElementById('shape_'.concat(var_number)).style.display = 'none';
-                    document.getElementById('location_'.concat(var_number)).style.display = 'block';
+                    document.getElementById('scale_'.concat(var_number))
+                        .style.display = 'block';
+                    document.getElementById('shape_'.concat(var_number))
+                        .style.display = 'none';
+                    document.getElementById('location_'.concat(var_number))
+                        .style.display = 'block';
                     hide_params('location_param'.concat(var_number));
                     hide_all_params('shape_param'.concat(var_number));
                     hide_params('scale_param'.concat(var_number));
                     hide_labels('initial-id_shape_'.concat(var_number));
-                    show_label_as_parameter('initial-id_scale_'.concat(var_number), 'constant value:');
-                    show_label_as_parameter('initial-id_location_'.concat(var_number), 'constant value:');
-                    document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = 'scale (&sigma;) dependency';
-                    document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '';
-                    document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = 'location (&mu;) dependency';
+                    show_label_as_parameter(
+                        'initial-id_scale_'.concat(var_number),
+                        'constant value:');
+                    show_label_as_parameter(
+                        'initial-id_location_'.concat(var_number),
+                        'constant value:');
+                    document.getElementById(
+                        'initial-id_scale_dependency_'.concat(var_number))
+                        .innerHTML = 'scale (&sigma;) dependency';
+                    document.getElementById(
+                        'initial-id_shape_dependency_'.concat(var_number))
+                        .innerHTML = '';
+                    document.getElementById(
+                        'initial-id_location_dependency_'.concat(var_number))
+                        .innerHTML = 'location (&mu;) dependency';
                 }
             }
             else {
                 if (var_number == 0) {
-                    document.getElementById('scale_0_0').style.display = 'block';
-                    document.getElementById('shape_0_0').style.display = 'block';
-                    document.getElementById('loc_0_0').style.display = 'block';
-                    document.getElementById('initial-id_scale_0_0').innerHTML = 'scale (&lambda;):';
-                    document.getElementById('initial-id_shape_0_0').innerHTML = 'shape (k):';
-                    document.getElementById('initial-id_location_0_0').innerHTML = 'location (&theta;):';
+                    document.getElementById(
+                        'scale_0_0').style.display = 'block';
+                    document.getElementById(
+                        'shape_0_0').style.display = 'block';
+                    document.getElementById(
+                        'loc_0_0').style.display = 'block';
+                    document.getElementById(
+                        'initial-id_scale_0_0')
+                        .innerHTML = 'scale (&lambda;):';
+                    document.getElementById(
+                        'initial-id_shape_0_0').innerHTML = 'shape (k):';
+                    document.getElementById(
+                        'initial-id_location_0_0')
+                        .innerHTML = 'location (&theta;):';
                 }
                 else {
-                    document.getElementById('scale_'.concat(var_number)).style.display = 'block';
-                    document.getElementById('shape_'.concat(var_number)).style.display = 'block';
-                    document.getElementById('location_'.concat(var_number)).style.display = 'block';
+                    document.getElementById('scale_'.concat(var_number))
+                        .style.display = 'block';
+                    document.getElementById('shape_'.concat(var_number))
+                        .style.display = 'block';
+                    document.getElementById('location_'.concat(var_number))
+                        .style.display = 'block';
                     hide_params('scale_param'.concat(var_number));
                     hide_params('shape_param'.concat(var_number));
                     hide_params('location_param'.concat(var_number));
-                    show_label_as_parameter('initial-id_scale_'.concat(var_number), 'constant value:');
-                    show_label_as_parameter('initial-id_shape_'.concat(var_number), 'constant value:');
-                    show_label_as_parameter('initial-id_location_'.concat(var_number), 'constant value:');
-                    document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = 'scale (&lambda;) dependency';
-                    document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = 'shape (k) dependency';
-                    document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = 'location (&theta;) dependency';
+                    show_label_as_parameter(
+                        'initial-id_scale_'.concat(var_number),
+                        'constant value:');
+                    show_label_as_parameter(
+                        'initial-id_shape_'.concat(var_number),
+                        'constant value:');
+                    show_label_as_parameter(
+                        'initial-id_location_'.concat(var_number),
+                        'constant value:');
+                    document.getElementById(
+                        'initial-id_scale_dependency_'.concat(var_number))
+                        .innerHTML = 'scale (&lambda;) dependency';
+                    document.getElementById(
+                        'initial-id_shape_dependency_'.concat(var_number))
+                        .innerHTML = 'shape (k) dependency';
+                    document.getElementById(
+                        'initial-id_location_dependency_'.concat(var_number))
+                        .innerHTML = 'location (&theta;) dependency';
                 }
 
             }
-            document.getElementById('location_'.concat(var_number)).value = '!None';
-            document.getElementById('scale_'.concat(var_number)).value = '!None';
-            document.getElementById('shape_'.concat(var_number)).value = '!None';
+            if (var_number > 0) {
+                document.getElementById(
+                    'location_'.concat(var_number)).value = '!None';
+                document.getElementById(
+                    'scale_'.concat(var_number)).value = '!None';
+                document.getElementById(
+                    'shape_'.concat(var_number)).value = '!None';
+            }
         }
 
         function dependentChooser(dependency_id, param_class, dist_id) {
@@ -203,7 +319,8 @@
             }
             else {
                 hide_params(param_class);
-                show_label_as_parameter('initial-id_'.concat(dependency_id), 'constant value:')
+                show_label_as_parameter(
+                    'initial-id_'.concat(dependency_id), 'constant value:')
             }
         }
 
@@ -217,7 +334,8 @@
         function hide_params(param_class) {
             var ele = document.getElementsByClassName(param_class);
             ele[0].style.display = 'block';
-            for (var index = 1; index < ele.length; index++) {
+            ele[1].style.display = 'block';
+            for (var index = 2; index < ele.length; index++) {
                 ele[index].style.display = 'none';
             }
         }
@@ -232,7 +350,8 @@
         function hide_labels(param) {
             var id = param.concat('_');
             for (var index = 0; index < 3; index++) {
-                document.getElementById(id.concat(index.toString())).innerHTML = '';
+                document.getElementById(
+                    id.concat(index.toString())).innerHTML = '';
             }
         }
 
@@ -240,16 +359,22 @@
             var id = param.concat('_');
             for (var index = 0; index < 3; index++) {
                 var label = 'c' + '<sub>' + index.toString() + '</sub>:';
-                document.getElementById(id.concat(index.toString())).innerHTML = label;
+                document.getElementById(
+                    id.concat(index.toString())).innerHTML = label;
             }
         }
 
         function show_label_as_parameter(param, paramer_label) {
             var id = param.concat('_');
             index = 0;
-            document.getElementById(id.concat(index.toString())).innerHTML = paramer_label;
+            document.getElementById(
+                id.concat(index.toString())).innerHTML = paramer_label;
+            input_id = id.slice(8);
+            document.getElementById(
+                input_id.concat(index.toString())).style.display = 'block';
             for (var index = 1; index < 3; index++) {
-                document.getElementById(id.concat(index.toString())).innerHTML = '';
+                document.getElementById(
+                    id.concat(index.toString())).innerHTML = '';
             }
         }
 
