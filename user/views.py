@@ -6,7 +6,7 @@ from .forms import CustomUserCreationForm
 from .forms import CustomUserEditForm
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
-
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
 
 def authentication(request):
     """
@@ -24,7 +24,7 @@ def authentication(request):
         form = AuthenticationForm(None, request.POST or None)
         if form.is_valid():
             auth.login(request, form.get_user())
-            return HttpResponseRedirect('/home')
+            return HttpResponseRedirect(reverse('home:home'))
         else:
             return render(request, 'user/login.html', {'form': form})
 
@@ -75,10 +75,10 @@ def logout(request):
     HttpResponseRedirect to home.
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse('home:home'))
     else:
         auth.logout(request)
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse('home:home'))
 
 
 def profile(request):
@@ -94,7 +94,7 @@ def profile(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse('home:home'))
     else:
         return render(request, 'user/profile.html')
 
@@ -112,7 +112,7 @@ def edit(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse('home:home'))
     else:
         if request.method == 'POST':
             form = CustomUserEditForm(request.POST, instance=request.user)
@@ -120,6 +120,8 @@ def edit(request):
             if form.is_valid():
                 form.save()
                 return redirect(reverse('user:profile'))
+            else:
+                return render(request, 'user/edit.html', {'form': form})
         else:
             form = CustomUserEditForm(instance=request.user)
             return render(request, 'user/edit.html', {'form': form})
@@ -138,7 +140,7 @@ def change_password(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse('home:home'))
     else:
         if request.method == 'POST':
             form = PasswordChangeForm(data=request.POST, user=request.user)
@@ -152,3 +154,23 @@ def change_password(request):
         else:
             form = PasswordChangeForm(user=request.user)
             return render(request, 'user/edit.html', {'form': form})
+
+
+class ResetView(PasswordResetView):
+    template_name = 'user/password_reset/form.html'
+    email_template_name = 'user/password_reset/email.html'
+    subject_template_name = 'user/password_reset/subject.txt'
+    success_url = 'done/'
+
+
+class ResetDoneView(PasswordResetDoneView):
+    template_name = 'user/password_reset/done.html'
+
+
+class ResetConfirmView(PasswordResetConfirmView):
+    template_name = 'user/password_reset/confirm.html'
+    success_url = '/user/reset/done'
+
+
+class ResetCompleteView(PasswordResetCompleteView):
+    template_name = 'user/password_reset/complete.html'
