@@ -448,11 +448,11 @@ class ProbabilisticModelHandler(Handler):
                                 iform_form.cleaned_data['return_period']),
                             state_duration=float(
                                 iform_form.cleaned_data['sea_state']),
-                            probabilistic_model=probabilistic_model.pk
+                            probabilistic_model_pk=probabilistic_model.pk
                         )
                         environmental_contour.save()
                         contour_path = ContourPath(
-                            environmental_contour=environmental_contour.pk)
+                            environmental_contour_pk=environmental_contour.pk)
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
