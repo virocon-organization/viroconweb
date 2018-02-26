@@ -542,15 +542,16 @@ def create_latex_report(contour_coordinates, user, method_label, probabilistic_m
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        img_list = os.listdir(directory_fit_images + '/' +
-                              str(probabilistic_model.pk))
-        for img in img_list:
-            img_name = directory_fit_images + str(probabilistic_model.pk) + \
-                       "/" + img
-            latex_content += r"\begin{figure}[H]"
-            latex_content += r"\includegraphics[width=\textwidth]{" + \
-                             img_name + r"}"
-            latex_content += r"\end{figure}"
+        temp = directory_fit_images + str(probabilistic_model.pk)
+        if os.path.exists(temp):
+            img_list = os.listdir(temp)
+            for img in img_list:
+                img_name = directory_fit_images + str(probabilistic_model.pk) + \
+                           "/" + img
+                latex_content += r"\begin{figure}[H]"
+                latex_content += r"\includegraphics[width=\textwidth]{" + \
+                                 img_name + r"}"
+                latex_content += r"\end{figure}"
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."

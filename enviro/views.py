@@ -441,6 +441,7 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['sea_state']),
                             {"Number of points on the contour":
                                  iform_form.cleaned_data['n_steps']})
+
                         environmental_contour = EnvironmentalContour(
                             fitting_method="",
                             contour_method="IFORM",
@@ -448,26 +449,28 @@ class ProbabilisticModelHandler(Handler):
                                 iform_form.cleaned_data['return_period']),
                             state_duration=float(
                                 iform_form.cleaned_data['sea_state']),
-                            probabilistic_model_pk=probabilistic_model.pk
+                            probabilistic_model=probabilistic_model
                         )
                         environmental_contour.save()
                         additional_contour_option = AdditionalContourOption(
                             option_key="Number of points on the contour",
                             option_value=iform_form.cleaned_data['n_steps'],
-                            environmental_contour_pk=environmental_contour.pk
+                            environmental_contour=environmental_contour
                         )
                         additional_contour_option.save()
-                        contour_path = ContourPath(
-                            environmental_contour_pk=environmental_contour.pk)
-                        contour_path.save()
                         for i in range(len(contour_coordinates)):
-                            EEDC = ExtremeEnvDesignCondition(
-                                contour_path_pk=contour_path.pk)
-                            EEDC.save()
-                            for j in range(len(contour_coordinates[i])):
-                                eedc_scalar = EEDCScalar(
-                                    x=contour_coordinates[i][j])
-                                eedc_scalar.save()
+                            contour_path = ContourPath(
+                                environmental_contour=environmental_contour)
+                            contour_path.save()
+                            for j in range(len(contour_coordinates)):
+                                EEDC = ExtremeEnvDesignCondition(
+                                    contour_path=contour_path)
+                                EEDC.save()
+                                for k in range(len(contour_coordinates[i][j])):
+                                    eedc_scalar = EEDCScalar(
+                                        x=float(contour_coordinates[i][j][k]),
+                                        EEDC=EEDC)
+                                    eedc_scalar.save()
 
                     # catch and allocate errors caused by calculating iform.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
