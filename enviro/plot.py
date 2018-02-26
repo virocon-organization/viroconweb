@@ -357,11 +357,10 @@ def get_first_number_of_tuple(x):
     return first_number
 
 
-def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
-                 var_symbols, method):
+def plot_contour(contour_coordinates, user, probabilistic_model, var_names):
     """
     The function plots a png image of a contour.
-    :param matrix:      data points of the contour
+    :param contour_coordinates:      data points of the contour
     :param user:        who gives the contour calculation order
     :param method_label:      e.g. "T = 25 years, IFORM"
     :param probabilistic_model:       probabilistic model object
@@ -375,7 +374,7 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
 
     fig = plt.figure()
 
-    if len(matrix[0]) == 2:
+    if len(contour_coordinates[0]) == 2:
         ax = fig.add_subplot(111)
 
         # plot raw data
@@ -388,12 +387,12 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
 
         # plot contour
         alpha = .1
-        for i in range(len(matrix)):
-            ax.scatter(matrix[i][0], matrix[i][1], s=15, c='b',
+        for i in range(len(contour_coordinates)):
+            ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            #ax.plot(matrix[i][0], matrix[i][1], 'b-')
+            #ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
-                convert_ndarray_list_to_multipoint(matrix[i]), alpha=alpha)
+                convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
             patch_design_region = PolygonPatch(
                 concave_hull, fc='#999999', linestyle='None', fill=True,
@@ -408,9 +407,10 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
         plt.ylabel('{}'.format(var_names[1]))
-    elif len(matrix[0]) == 3:
+    elif len(contour_coordinates[0]) == 3:
         ax = fig.add_subplot(1, 1, 1, projection='3d')
-        ax.scatter(matrix[0][0], matrix[0][1], matrix[0][2], marker='o', c='r')
+        ax.scatter(contour_coordinates[0][0], contour_coordinates[0][1],
+                   contour_coordinates[0][2], marker='o', c='r')
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[1]))
         ax.set_zlabel('{}'.format(var_names[2]))
@@ -476,7 +476,7 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
-def create_latex_report(matrix, user, method_label, probabilistic_model,
+def create_latex_report(contour_coordinates, user, method_label, probabilistic_model,
                         var_names, var_symbols, method):
     """
     Creates a latex-based pdf report describing the performed environmental
@@ -487,7 +487,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
 
     Parameters
     ----------
-    matrix : n-dimensional matrix
+    contour_coordinates : n-dimensional matrix
         The coordinates of the environmental contour.
         The format is defined by compute_interface.iform()
 
@@ -524,8 +524,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
 
     """
 
-    plot_contour(matrix, user, method_label, probabilistic_model, var_names,
-                 var_symbols, method)
+    plot_contour(contour_coordinates, user, probabilistic_model, var_names)
     directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
     file_path_contour = directory_prefix + user + '/contour/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
@@ -535,7 +534,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
                     r"\includegraphics[width=\textwidth]{" + \
                     file_path_contour + r"}" \
                     r"\subsection{Extreme environmental design conditions}" + \
-                    get_latex_eedc_table(matrix, var_names, var_symbols) + \
+                    get_latex_eedc_table(contour_coordinates, var_names, var_symbols) + \
                     r"\section{Methods}" \
                     r"\subsection{Associated measurement file}"
 

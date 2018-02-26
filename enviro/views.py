@@ -429,7 +429,7 @@ class ProbabilisticModelHandler(Handler):
                 iform_form = forms.IFormForm(data=request.POST)
                 if iform_form.is_valid():
                     try:
-                        contour_matrix = cs.iform(
+                        contour_coordinates = cs.iform(
                             probabilistic_model,
                             float(iform_form.cleaned_data['return_period']),
                             float(iform_form.cleaned_data['sea_state']),
@@ -447,33 +447,33 @@ class ProbabilisticModelHandler(Handler):
                                                                      'header': 'calculate Contour',
                                                                      'return_url': 'enviro:probabilistic_model_select'})
 
-                    path = plot.create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
+                    path = plot.create_latex_report(contour_coordinates, str(request.user), ''.join(['T = ',
                                                                                                 str(iform_form.cleaned_data['return_period']),
                                    ' years, method = IFORM']), probabilistic_model, var_names, var_symbols, method)
 
 
                     #probabilistic_model.measure_file_model.measure_file
                     # if matrix 4dim - send data for 4dim interactive plot.
-                    if len(contour_matrix[0]) == 4:
+                    if len(contour_coordinates[0]) == 4:
                         dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request, 'enviro/contour_result.html',
-                                      {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
-                                       'z': contour_matrix[0][2].tolist(), 'u': contour_matrix[0][3].tolist(), 'dim': 4,
+                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(), 'u': contour_coordinates[0][3].tolist(), 'dim': 4,
                                        'labels': labels})
                     # if matrix 3dim - send data for 3dim interactive plot
-                    elif len(contour_matrix[0]) == 3:
+                    elif len(contour_coordinates[0]) == 3:
                         dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request, 'enviro/contour_result.html',
-                                      {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
-                                       'z': contour_matrix[0][2].tolist(), 'dim': 3, 'labels': labels})
+                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'labels': labels})
 
-                    elif len(contour_matrix) < 3:
+                    elif len(contour_coordinates) < 3:
                         return render(request, 'enviro/contour_result.html', {'path': path, 'dim': 2})
                 else:
                     return render(request, 'enviro/contour_settings.html', {'form': iform_form})
