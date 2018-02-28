@@ -425,7 +425,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     ax.grid(True)
 
     directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
-        '/contour/' + str(environmental_contour.pk)
+        '/contour/' + str(environmental_contour.pk) + '/'
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + 'contour.png', bbox_inches='tight')
@@ -527,7 +527,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     plot_contour(contour_coordinates, user, environmental_contour, var_names)
     directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
     file_path_contour = directory_prefix + user + '/contour/' + \
-                        str(environmental_contour.pk) + 'contour.png'
+                        str(environmental_contour.pk) + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
     latex_content = r"\section{Results} " \
@@ -609,9 +609,13 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             pdf = f.read()
 
 
-    short_file_path_report = settings.PATH_USER_GENERATED + user + \
-                             '/contour/latex_report.pdf'
+    short_directory = settings.PATH_USER_GENERATED + user + \
+                             '/contour/' + str(environmental_contour.pk) + '/'
+    short_file_path_report = short_directory + 'latex_report.pdf'
+    full_directory = settings.PATH_STATIC + short_directory
     full_file_path_report = settings.PATH_STATIC + short_file_path_report
+    if not os.path.exists(full_directory):
+        os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
 
