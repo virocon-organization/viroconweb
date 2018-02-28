@@ -567,13 +567,13 @@ class ProbabilisticModelHandler(Handler):
                             environmental_contour.save()
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Limits of the grid",
-                                option_value=0.0, #TODO: Change this
+                                option_value=" ".join(map(str, limits)),
                                 environmental_contour=environmental_contour
                             )
                             additional_contour_option.save()
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Grid cell size ($\Delta x_i$)",
-                                option_value=0.0, # TODO: Change this
+                                option_value=" ".join(map(str, deltas)),
                                 environmental_contour=environmental_contour
                             )
                             additional_contour_option.save()
