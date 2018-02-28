@@ -1,73 +1,79 @@
-{% extends "../base.html"%}
+{% extends "../base.html" %}
 {% load static %}
 {% block content %}
-About
-<div class="page-header"></div>
-<p>
-    ViroCon helps you to design marine structures which need to withstand load combinations based on wave,
-    wind and current. It lets you identify extreme environmental conditions with a defined return period using the
-    environmental contour method.
-</p>
-<p>
-    Two specific environmental contour methods are available: The Highest Density Contour (HDC) method [1] and the
-    Inverse First Order Reliability Method (IFORM) [2]. The environment can be described with a probability density
-    function based on the so-called Conditional Modeling Approach [3]. ViroCon's methods align with
-    current recommended practices dealing with environmental conditions and environmental loads [3].
-</p>
-<p>
-    ViroCon is an open-source software under the permissive MIT license. Want to contribute?
-    <a href="https://github.com/ahaselsteiner/virocon" class="textlink">
-        ViroCon GitHub repository
-    </a>
-    <!--
-    <a href="MISSING" class="textlink">
-        This article
-    </a>
-    describes ViroCon briefly.
-    -->
-</p>
-<div class="page-header"></div>
-<h2>
-    Team
-</h2>
-<p>
-    We develop ViroCon at University of Bremen's Institute for Integrated Product Development (BIK).
-</p>
-<div align="center" style="margin-bottom: 12pt">
-    <a href="http://www.uni-bremen.de">
-        <img class="img-responsive" src="{% static 'images/Uni-Logo_Web_RGB.png' %}" height="50" style="max-height:50px">
-    </a>
-    <a href="http://www.bik.uni-bremen.de/">
-        <img class="img-responsive" src="{% static 'images/bik-logo_2013_ohne_text.png' %}" height="80" style="max-height:80px">
-    </a>
-</div>
-<p>
-    Development was started in 2016 as a student project (Systems Engineering BSc) supervised by Andreas
-    Haselsteiner. Niklas Bergmann, Christian Castens, Jannik Lehmkuhl, Tjark Meyer and Kai Windmeier developed the
-    numerical core and Martin Lechner, Erik Rother, Tobias Pape, Felix Möller developed and designed the web application.
-</p>
-<div align="center">
-    <img src="{% static 'images/ViroConGruppe.png' %}" class="img-responsive">
-</div>
-<p>
-    The ViroCon team 2016/17. From left to right: Erik Rother, Andreas Haselsteiner, Martin Lechner, Tobias Pape,
-    Niklas Bergmann, Kai Windmeier, Felix Möller, Christian Castens and Tjark Meyer.
-</p>
-<div align="left">
-    <h3>References</h3>
-   <p>
-       <a href="https://doi.org/10.1016/j.coastaleng.2017.03.002" class="textlink">
-           [1] A.F. Haselsteiner, J.-H. Ohlendorf, W. Wosniok, K.-D. Thoben (2017): Deriving environmental contours
-           from highest density regions, Coastal Engineering 123, 42-51.
-       </a>
-       <br>
-       [2] S. Winterstein, T. Ude, C. Cornell, P. Bjerager, S. Haver (1993): Environmental parameters for extreme
-       response: inverse FORM with omission factors, in: Proceedings, ICOSSAR-93. Innsbruck, Austria, 1993.
-       <br>
-       <a href="https://rules.dnvgl.com/docs/pdf/dnv/codes/docs/2010-10/rp-c205.pdf" class="textlink">
-           [3] Det Norske Veritas (2010): Recommended practice - DNV-RP-C205 Environmental conditions and
-           environmental loads. Technical report.
-       </a>
+
+    <div class="page-header">
+        <h1>About</h1>
+    </div>
+    <br>
+    <p>
+        ViroCon helps you to design marine structures which need to withstand load combinations based on wave,
+        wind and current. It lets you identify extreme environmental conditions with a defined return period using the
+        environmental contour method.
     </p>
-</div>
+    <p>
+        Two specific environmental contour methods are available: The Highest Density Contour (HDC) method [1] and the
+        Inverse First Order Reliability Method (IFORM) [2]. The environment can be described with a probability density
+        function based on the so-called Conditional Modeling Approach [3]. ViroCon's methods align with
+        current recommended practices dealing with environmental conditions and environmental loads [3].
+    </p>
+    <p>
+        ViroCon is an open-source software under the permissive MIT license. Want to contribute?
+        <a href="https://github.com/ahaselsteiner/virocon" class="textlink">
+            ViroCon GitHub repository
+        </a>
+        <!--
+        <a href="MISSING" class="textlink">
+            This article
+        </a>
+        describes ViroCon briefly.
+        -->
+    </p>
+    <div class="page-header"></div>
+    <h3>
+        Team
+    </h3>
+    <p>
+        We develop ViroCon at University of Bremen's Institute for Integrated Product Development (BIK).
+    </p>
+    <div align="center" style="margin-bottom: 12pt">
+        <a href="http://www.uni-bremen.de">
+            <img class="img-responsive" src="{% static 'images/Uni-Logo_Web_RGB.png' %}" height="50"
+                 style="max-height:50px">
+        </a>
+        <a href="http://www.bik.uni-bremen.de/">
+            <img class="img-responsive" src="{% static 'images/bik-logo_2013_ohne_text.png' %}" height="80"
+                 style="max-height:80px">
+        </a>
+    </div>
+    <p>
+        Development was started in 2016 as a student project (Systems Engineering BSc) supervised by Andreas
+        Haselsteiner. Niklas Bergmann, Christian Castens, Jannik Lehmkuhl, Tjark Meyer and Kai Windmeier developed the
+        numerical core and Martin Lechner, Erik Rother, Tobias Pape, Felix Möller developed and designed the web
+        application.
+    </p>
+    <div align="center">
+        <img src="{% static 'images/ViroConGruppe.png' %}" class="img-responsive">
+    </div>
+    <p>
+        The ViroCon team 2016/17. From left to right: Erik Rother, Andreas Haselsteiner, Martin Lechner, Tobias Pape,
+        Niklas Bergmann, Kai Windmeier, Felix Möller, Christian Castens and Tjark Meyer.
+    </p>
+    <div align="left">
+        <h3>References</h3>
+        <p>
+            <a href="https://doi.org/10.1016/j.coastaleng.2017.03.002" class="textlink">
+                [1] A.F. Haselsteiner, J.-H. Ohlendorf, W. Wosniok, K.-D. Thoben (2017): Deriving environmental contours
+                from highest density regions, Coastal Engineering 123, 42-51.
+            </a>
+            <br>
+            [2] S. Winterstein, T. Ude, C. Cornell, P. Bjerager, S. Haver (1993): Environmental parameters for extreme
+            response: inverse FORM with omission factors, in: Proceedings, ICOSSAR-93. Innsbruck, Austria, 1993.
+            <br>
+            <a href="https://rules.dnvgl.com/docs/pdf/dnv/codes/docs/2010-10/rp-c205.pdf" class="textlink">
+                [3] Det Norske Veritas (2010): Recommended practice - DNV-RP-C205 Environmental conditions and
+                environmental loads. Technical report.
+            </a>
+        </p>
+    </div>
 {% endblock content %}

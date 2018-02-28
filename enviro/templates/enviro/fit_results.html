@@ -2,9 +2,10 @@
 {% load static %}
 {% load latexify %}
 {% block content %}
-    Fit Result
-    <div class="page-header"></div>
-    <h2>Visual inspection</h2>
+    <div class="page-header">
+        <h1>Fit results - visual inspection</h1>
+    </div>
+    <br>
     {% for img in imgs %}
         <img src="{% static img %}" class="img-responsive center-block">
     {% endfor %}
@@ -22,28 +23,28 @@
               enctype="multipart/form-data">
             {% csrf_token %}
             <div class="form-group">
-                <button type="submit" class="btn btn-default">delete</button>
+                <button type="submit" class="btn btn-default">Delete</button>
             </div>
         </form>
     </div>
     <div class="col-md-2">
         <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">save and
+          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Save and
           <span class="caret"></span></button>
           <ul class="dropdown-menu">
             <li>
                 <a href="{% url 'enviro:probabilistic_model_calc' pk 'I' %}">
-                compute IFORM
+                Compute IFORM
                 </a>
             </li>
             <li>
                 <a href="{% url 'enviro:probabilistic_model_calc' pk 'I' %}">
-                compute HDC
+                Compute HDC
                 </a>
             </li>
             <li>
                 <a href="{% url 'home:home' %}">
-                    go to dashboard
+                    Go to dashboard
                 </a>
             </li>
           </ul>

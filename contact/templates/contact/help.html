@@ -1,21 +1,23 @@
-{% extends "../base.html"%}
+{% extends "../base.html" %}
 {% load static %}
 {% block content %}
-Help
-<div class="page-header"></div>
-<h2>Users</h2>
-<div class="user-guide-container">
-    <object class="user-guide" data="{% static 'virocon_userguide.pdf' %}" type="application/pdf" style="width:80%;height:80%">
-    </object>
-</div>
-<p>
-    Still questions? <a href="mailto:virocon@unibremen.de" class="textlink">Contact us</a>
-</p>
-<h2>Developers</h2>
-<p>
-    The documentation can be found <a href="https://ahaselsteiner.github.io/virocon/" class="textlink">here.</a>
-</p>
-<p>
-    Our repository can be found <a href="https://github.com/ahaselsteiner/virocon" class="textlink">here.</a>
-</p>
+    <div class="page-header">
+        <h1>Help</h1>
+    </div>
+    <br>
+    <div class="user-guide-container">
+        <object class="user-guide" data="{% static 'virocon_userguide.pdf' %}" type="application/pdf"
+                style="width:80%;height:80%">
+        </object>
+    </div>
+    <p>
+        Still questions? <a href="mailto:virocon@unibremen.de" class="textlink">Contact us</a>
+    </p>
+    <h2>Developers</h2>
+    <p>
+        The documentation can be found <a href="https://ahaselsteiner.github.io/virocon/" class="textlink">here.</a>
+    </p>
+    <p>
+        Our repository can be found <a href="https://github.com/ahaselsteiner/virocon" class="textlink">here.</a>
+    </p>
 {% endblock content %}

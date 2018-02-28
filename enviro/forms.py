@@ -21,14 +21,14 @@ class SecUserForm(ModelForm):
 
 
 class MeasureFileForm(forms.Form):
-    title = forms.CharField(max_length=50, label='title')
-    measure_file = forms.FileField(label='measurement file', max_length=255)
+    title = forms.CharField(max_length=50, label='Title')
+    measure_file = forms.FileField(label='Measurement file', max_length=255)
 
 
 class MeasureFileFitForm(forms.Form):
     DISTRIBUTIONS = (('Weibull', 'Weibull'),('Normal', 'Normal'),
                      ('Lognormal_2', 'Log-Normal'))
-    title = forms.CharField(max_length=50, label='title')
+    title = forms.CharField(max_length=50, label='Title')
 
 
     def __init__(self, variable_names, variable_count=2, *args, **kwargs):
@@ -42,12 +42,12 @@ class MeasureFileFitForm(forms.Form):
             choices=self.DISTRIBUTIONS,
             widget=forms.Select,
             initial='Weibull',
-            label='distribution')
+            label='Distribution')
         self.fields['width_of_intervals_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
             widget=forms.NumberInput(attrs={'value': '2'}),
-            label='width of intervals')
+            label='Width of intervals')
 
         # Additional variables
         for i in range(1, variable_count):
@@ -68,71 +68,71 @@ class MeasureFileFitForm(forms.Form):
                 choices=self.DISTRIBUTIONS, initial='Weibull',
                 widget=forms.Select(attrs={'id': 'dist_%s' % i,
                                           'onclick': func_call}),
-                label='distribution')
+                label='Distribution')
             if i < (variable_count-1):
                 self.fields['width_of_intervals_%s' % i] = forms.DecimalField(
                     decimal_places=4,
                     min_value=0.0001,
                     widget=forms.NumberInput(attrs={'value': '2'}),
-                    label='width of intervals')
+                    label='Width of intervals')
 
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='scale (λ) dependency')
+                label='Scale (λ) dependency')
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='shape (k) dependency',
+                label='Shape (k) dependency',
                 widget=forms.Select(attrs={'id': 'shape_%s' % i}))
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='location (θ) dependency',
+                label='Location (θ) dependency',
                 widget=forms.Select(attrs={'id': 'loc_%s' % i}))
 
 
 
 class VariablesForm(forms.Form):
     DISTRIBUTIONS = (('Normal', 'Normal'), ('Weibull', 'Weibull'),
-                     ('Lognormal_2', 'Log-Normal'))
+                     ('Lognormal_2', 'Log-normal'))
 
     def __init__(self, variable_count=2, *args, **kwargs):
         super(VariablesForm, self).__init__(*args, **kwargs)
 
         self.fields['variable_name_%s' % 0] = forms.CharField(
             min_length=3,
-            label='1. variable name',
+            label='1. Variable name',
             widget=forms.TextInput(
                 attrs={'value': 'e.g. significant wave height [m]'}))
         self.fields['variable_symbol_%s' % 0] = forms.CharField(
             min_length=1,
             max_length=3,
-            label='1. variable symbol',
+            label='1. Variable symbol',
             widget=forms.TextInput(attrs={'value': 'e.g. Hs'}))
         i=0
         func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(
             choices=self.DISTRIBUTIONS,
-            initial='Weibull', label='distribution',
+            initial='Weibull', label='Distribution',
             widget=forms.Select(attrs={'class': 'distribution',
                                        'id': 'dist_0',
                                        'onclick': func_call}))
         self.fields['scale_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
-            label='scale (λ):'.translate(SUB),
+            label='Scale (λ):'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '2.776',
                                             'id': 'scale_0_0'}))
         self.fields['shape_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
-            label='shape (k):'.translate(SUB),
+            label='Shape (k):'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '1.471',
                                             'id': 'shape_0_0'}))
         self.fields['location_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4, min_value=0.0001,
-            label='location (θ):'.translate(SUB),
+            label='Location (θ):'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '0.8888',
                                             'id': 'loc_0_0'}))
 
@@ -147,14 +147,14 @@ class VariablesForm(forms.Form):
                                       '. variable - exponential'))
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
             self.fields['variable_name_%s' % i] = forms.CharField(
-                min_length=3, label=str(i + 1) + '. variable name')
+                min_length=3, label=str(i + 1) + '. Variable name')
             self.fields['variable_symbol_%s' % i] = forms.CharField(
                 max_length=3,
-                label=str(i + 1) + '. variable symbol',
+                label=str(i + 1) + '. Variable symbol',
                 min_length=1)
             self.fields['distribution_%s' % i] = forms.ChoiceField(
                 choices=self.DISTRIBUTIONS,
-                initial='Weibull', label='distribution',
+                initial='Weibull', label='Distribution',
                 widget=forms.Select(attrs={'id': 'dist_{}'.format(i),
                                            'onclick': func_call}))
             # Scale
@@ -165,7 +165,7 @@ class VariablesForm(forms.Form):
                         param_class + '", "' + dist_id + '")'.format(i)
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition, required=False,
-                label='scale (λ) dependency',
+                label='Scale (λ) dependency',
                 widget=forms.Select(attrs={'id': dependency_id,
                                            'onclick': func_call}))
             for j in range(0, 3):
@@ -173,7 +173,7 @@ class VariablesForm(forms.Form):
                     self.fields['scale_%s' % i + '_%s' % j] = \
                         forms.DecimalField(
                             decimal_places=4,
-                            label='constant value:',
+                            label='Constant value:',
                             required=False,
                             initial=0,
                             widget=forms.NumberInput(
@@ -198,7 +198,7 @@ class VariablesForm(forms.Form):
                         param_class + '", "' + dist_id + '")'.format(i)
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition, required=False,
-                label='shape (k) dependency',
+                label='Shape (k) dependency',
                 widget=forms.Select(
                     attrs={'id': dependency_id,
                            'onclick': func_call}))
@@ -206,7 +206,7 @@ class VariablesForm(forms.Form):
                 if j == 0:
                     self.fields['shape_%s' % i + '_%s' % j] = \
                         forms.DecimalField(decimal_places=4,
-                                           label='constant value:',
+                                           label='Constant value:',
                                            required=False,
                                            initial=0,
                                            widget=forms.NumberInput(
@@ -233,7 +233,7 @@ class VariablesForm(forms.Form):
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='location (θ) dependency',
+                label='Location (θ) dependency',
                 widget=forms.Select(
                     attrs={'id': dependency_id,
                            'onclick': func_call}))
@@ -243,7 +243,7 @@ class VariablesForm(forms.Form):
                         forms.DecimalField(
                             decimal_places=4,
                             required=False,
-                            label='constant value:',
+                            label='Constant value:',
                             widget=forms.NumberInput(
                                 attrs={'class': param_class,
                                        'value': '0'}))
@@ -258,7 +258,7 @@ class VariablesForm(forms.Form):
                                                    'style': 'display:none',
                                                    'value': '0'}))
 
-    collection_name = forms.CharField(max_length=50, label='title')
+    collection_name = forms.CharField(max_length=50, label='Title')
 
 
 
@@ -266,7 +266,7 @@ class VariableNumber(forms.Form):
     variable_number = forms.IntegerField(
         min_value=2,
         max_value=10,
-        label='number of environmental variables')
+        label='Number of environmental variables')
 
 
 class HDCForm(forms.Form):
@@ -303,7 +303,7 @@ class HDCForm(forms.Form):
         pass
 
     n_years = forms.DecimalField(
-        label='return period [years]',
+        label='Return period [years]',
         required=True,
         decimal_places=2,
         min_value=0.01,
@@ -312,7 +312,7 @@ class HDCForm(forms.Form):
             attrs={'value': '1.0',
                    'class': 'contour_input_field'}))
     sea_state = forms.DecimalField(
-        label='environmental state duration [hours]',
+        label='Environmental state duration [hours]',
         required=True,
         decimal_places=2,
         min_value=0.01,
@@ -325,7 +325,7 @@ class HDCForm(forms.Form):
 
 class IFormForm(forms.Form):
     return_period = forms.DecimalField(
-        label='return period [years]',
+        label='Return period [years]',
         required=True,
         decimal_places=2,
         min_value=0.01,
@@ -334,7 +334,7 @@ class IFormForm(forms.Form):
             attrs={'value': '1.0',
                    'class': 'contour_input_field'}))
     sea_state = forms.DecimalField(
-        label='environmental state duration [hours]',
+        label='Environmental state duration [hours]',
         required=True,
         decimal_places=2,
         min_value=0.01,
@@ -343,7 +343,7 @@ class IFormForm(forms.Form):
                 attrs={'value': '3.0',
                        'class': 'contour_input_field'}))
     n_steps = forms.IntegerField(
-        label='number of points on the contour',
+        label='Number of points on the contour',
         required=True,
         min_value=5,
         max_value=10000,

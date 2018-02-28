@@ -1,8 +1,9 @@
 {% extends '../../base.html' %}
 {% load static %}
 {% block content %}
-    Password reset
-    <div class="page-header"></div>
+    <div class="page-header">
+        <h1>Password reset</h1>
+    </div>
     <br>
     <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -12,7 +13,7 @@
             </div>
             <br>
             {{ form.as_p }}
-            <button class="btn btn-default">Reset my password</button>
+            <button class="btn btn-default">Reset password</button>
             <br>
             <br>
         </div>

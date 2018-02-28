@@ -1,10 +1,18 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    Measurement file
-    <div class="page-header"></div>
-    <img src="{%  static directory %}/scatter.png"
+    <div class="page-header">
+        <h1>Measurement file</h1>
+    </div>
+    <br>
+    <img src="{% static directory %}/scatter.png"
          class="img-fluid" alt="scatter plot">
     <br>
-    <a class="btn btn-primary" href="{% url 'enviro:measure_file_model_fit' measure_file_model.pk %}">Fit probabilistic model</a>
+    <br>
+    <form action="{% url 'enviro:measure_file_model_fit' measure_file_model.pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            Fit probabilistic model
+        </button>
+    </form>
 {% endblock content %}

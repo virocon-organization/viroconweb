@@ -2,8 +2,10 @@
 {% load static %}
 {% load latexify %}
 {% block content %}
-    enter probabilistic model
-
+    <div class="page-header">
+        <h1>Enter probabilistic model</h1>
+    </div>
+    <br>
     <form class="form-horizontal"
           action="{% url 'enviro:set_probabilistic_model_number' %}"
           method="post"
@@ -16,7 +18,7 @@
         </ul>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">number of variables</h3>
+                <h3 class="panel-title">Number of variables</h3>
             </div>
             <br>
             <div class="form-group CreateDataText">
@@ -59,7 +61,7 @@
                 </a>
                 {% latexify 'f(x) = \frac{k}{\lambda} ( \frac{x}{ \lambda})^{k-1} e^{-(\frac{x}{ \lambda })^k}' math_inline=True %}
             </div>
-            <div class="col-sm-4">Log-Normal distribution
+            <div class="col-sm-4">Log-normal distribution
                 <a href="{% static 'images/example_lognormal.svg' %}" class="thumbnail" data-lightbox="lightbox"
                    data-title="Log-Normal distribution">
                     <img class="img-responsive" src="{% static 'images/example_lognormal.svg' %}">
@@ -85,7 +87,7 @@
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">probabilistic model</h3>
+                <h3 class="panel-title">Probabilistic model</h3>
             </div>
 
             {% for x in form %}
@@ -166,7 +168,7 @@
             </div>
             </div>
     </form>
-    
+
 
     <script>
         function dist_select(dist_id, var_number) {
