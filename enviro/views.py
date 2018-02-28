@@ -441,7 +441,6 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['sea_state']),
                             {"Number of points on the contour":
                                  iform_form.cleaned_data['n_steps']})
-
                         environmental_contour = EnvironmentalContour(
                             fitting_method="",
                             contour_method="IFORM",
@@ -473,15 +472,23 @@ class ProbabilisticModelHandler(Handler):
                                     eedc_scalar.save()
 
                     # catch and allocate errors caused by calculating iform.
-                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                        return render(request, 'enviro/error.html', {'error_message': err,
-                                                                     'text': 'Try it again with other settings please',
-                                                                     'header': 'calculate Contour',
-                                                                     'return_url': 'enviro:probabilistic_model_select'})
+                    except (ValueError, RuntimeError, IndexError, TypeError,
+                            NameError, KeyError, Exception) as err:
+                        return render(
+                            request,
+                            'enviro/error.html',
+                            {'error_message': err,
+                             'text': 'Try it again with other settings please',
+                             'header': 'calculate Contour',
+                             'return_url': 'enviro:probabilistic_model_select'})
 
-                    path = plot.create_latex_report(contour_coordinates, str(request.user), ''.join(['T = ',
-                                                                                                str(iform_form.cleaned_data['return_period']),
-                                   ' years, method = IFORM']), probabilistic_model, var_names, var_symbols, method)
+                    path = plot.create_latex_report(
+                        contour_coordinates,
+                        str(request.user),
+                        environmental_contour,
+                        var_names,
+                        var_symbols,
+                        method)
 
 
                     #probabilistic_model.measure_file_model.measure_file
@@ -533,7 +540,7 @@ class ProbabilisticModelHandler(Handler):
                     limits = []
                     deltas = []
                     warn = None
-                    contour_matrix = None
+                    contour_coordinates = None
                     for i in range(len(var_names)):
                         limits.append(
                             (float(hdc_form.cleaned_data['limit_%s' % i + '_1']),
@@ -541,13 +548,48 @@ class ProbabilisticModelHandler(Handler):
                         deltas.append(float(hdc_form.cleaned_data['delta_%s' % i]))
                     try:
                         with warnings.catch_warnings(record=True) as warn:
-                            contour_matrix = cs.hdc(
+                            contour_coordinates = cs.hdc(
                                 probabilistic_model,
                                 float(hdc_form.cleaned_data['n_years']),
                                 float(hdc_form.cleaned_data['sea_state']),
                                 limits, deltas)
                             method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
                                             hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
+                            environmental_contour = EnvironmentalContour(
+                                fitting_method="",
+                                contour_method="IFORM",
+                                return_period=float(
+                                    hdc_form.cleaned_data['n_years']),
+                                state_duration=float(
+                                    hdc_form.cleaned_data['sea_state']),
+                                probabilistic_model=probabilistic_model
+                            )
+                            environmental_contour.save()
+                            additional_contour_option = AdditionalContourOption(
+                                option_key="Limits of the grid",
+                                option_value=0.0, #TODO: Change this
+                                environmental_contour=environmental_contour
+                            )
+                            additional_contour_option.save()
+                            additional_contour_option = AdditionalContourOption(
+                                option_key="Grid cell size ($\Delta x_i$)",
+                                option_value=0.0, # TODO: Change this
+                                environmental_contour=environmental_contour
+                            )
+                            additional_contour_option.save()
+                            for i in range(len(contour_coordinates)):
+                                contour_path = ContourPath(
+                                    environmental_contour=environmental_contour)
+                                contour_path.save()
+                                for j in range(len(contour_coordinates)):
+                                    EEDC = ExtremeEnvDesignCondition(
+                                        contour_path=contour_path)
+                                    EEDC.save()
+                                    for k in range(len(contour_coordinates[i][j])):
+                                        eedc_scalar = EEDCScalar(
+                                            x=float(contour_coordinates[i][j][k]),
+                                            EEDC=EEDC)
+                                        eedc_scalar.save()
                     # catch and allocate errors caused by calculating hdc.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'enviro/error.html', {'error_message': err,
@@ -556,20 +598,22 @@ class ProbabilisticModelHandler(Handler):
                                                                      'return_url': 'enviro:probabilistic_model_select'})
 
                     # generate path to the user specific pdf.
-                    path = plot.create_latex_report(contour_matrix, str(request.user), ''.join(['T = ',
-                                                                                                str(hdc_form.cleaned_data['n_years']),
-                                    ' years, method = HDC']),
-                                                    probabilistic_model, var_names, var_symbols, method)
+                    path = plot.create_latex_report(contour_coordinates,
+                                                    str(request.user),
+                                                    environmental_contour,
+                                                    var_names,
+                                                    var_symbols,
+                                                    method)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
-                    if len(contour_matrix[0]) > 2:
+                    if len(contour_coordinates[0]) > 2:
                         dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request, 'enviro/contour_result.html',
-                                      {'path': path, 'x': contour_matrix[0][0].tolist(), 'y': contour_matrix[0][1].tolist(),
-                                       'z': contour_matrix[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
+                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
                     else:
                         return render(request, 'enviro/contour_result.html', {'path': path, 'dim': 2, 'warn': warn})
                 else:

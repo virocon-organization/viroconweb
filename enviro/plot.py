@@ -357,16 +357,18 @@ def get_first_number_of_tuple(x):
     return first_number
 
 
-def plot_contour(contour_coordinates, user, probabilistic_model, var_names):
+def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     """
     The function plots a png image of a contour.
     :param contour_coordinates:      data points of the contour
     :param user:        who gives the contour calculation order
     :param method_label:      e.g. "T = 25 years, IFORM"
-    :param probabilistic_model:       probabilistic model object
+    :param environmental_contour:       models.EnvironmentalContourenvironmental
     :param var_names:   name of the variables of the probabilistic model
     :param var_symbols: symbols of the variables of the probabilistic model
     """
+
+    pm = environmental_contour.probabilistic_model
 
     path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
@@ -378,8 +380,8 @@ def plot_contour(contour_coordinates, user, probabilistic_model, var_names):
         ax = fig.add_subplot(111)
 
         # plot raw data
-        if (probabilistic_model.measure_file_model):
-            data_path = probabilistic_model.measure_file_model.measure_file.url
+        if (pm.measure_file_model):
+            data_path = pm.measure_file_model.measure_file.url
             data_path = data_path[1:]
             data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
             ax.scatter(data[:,0], data[:,1], s=5 ,c='k',
@@ -423,7 +425,7 @@ def plot_contour(contour_coordinates, user, probabilistic_model, var_names):
     ax.grid(True)
 
     directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
-        '/contour/'
+        '/contour/' + str(environmental_contour.pk)
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + 'contour.png', bbox_inches='tight')
@@ -476,7 +478,7 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
-def create_latex_report(contour_coordinates, user, method_label, probabilistic_model,
+def create_latex_report(contour_coordinates, user, environmental_contour,
                         var_names, var_symbols, method):
     """
     Creates a latex-based pdf report describing the performed environmental
@@ -495,12 +497,9 @@ def create_latex_report(contour_coordinates, user, method_label, probabilistic_m
         The user, who is working with the app. The report will be saved in a
         directory named like the user.
 
-    method_label : string
-        Will be used as the title of the contour plot,
-        e.g.  "Tom's wave model, T = 2 years, Highest Density Contour (HDC)"
-
-    probabilistic_model : enviro.models.ProbabilisticModel
-        The probabilistic model on which the environmental contour is based one.
+    environmental_contour : enviro.models.EnvironmentalContour
+        Django's environmental contour model, which contains the contour's path,
+        the options that were used to create it and its probabilistc model
 
     var_names : list of strings
         Names of the environmental variables used in the probabilistic model,
@@ -523,10 +522,12 @@ def create_latex_report(contour_coordinates, user, method_label, probabilistic_m
         settings.py and currently is 'enviro/static/'
 
     """
+    probabilistic_model = environmental_contour.probabilistic_model
 
-    plot_contour(contour_coordinates, user, probabilistic_model, var_names)
+    plot_contour(contour_coordinates, user, environmental_contour, var_names)
     directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
-    file_path_contour = directory_prefix + user + '/contour/contour.png'
+    file_path_contour = directory_prefix + user + '/contour/' + \
+                        str(environmental_contour.pk) + 'contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
     latex_content = r"\section{Results} " \
