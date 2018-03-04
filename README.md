@@ -5,6 +5,9 @@
 
 `ViroCon` is an easy-to-use web-based software to compute environmental contours.
 
+## About
+`ViroCon` is written in Python 3.6.4 and uses the package `viroconcom` for the statistical computations.
+
 ## Hosted at
 www.not-hosted-yet.com
 
