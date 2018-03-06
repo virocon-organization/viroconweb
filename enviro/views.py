@@ -184,6 +184,14 @@ class MeasureFileHandler(Handler):
                         title=measure_file_form.cleaned_data['title'],
                         measure_file=measure_file_form.cleaned_data['measure_file'])
                     measure_model.save()
+                    path = settings.PATH_STATIC + \
+                           settings.PATH_USER_GENERATED + \
+                           str(request.user) + \
+                           '/measurement/' + str(measure_model.pk)
+                    measure_model.path_of_statics = path
+                    measure_model.save(
+                        update_fields=['path_of_statics'])
+
                     return redirect('enviro:measure_file_model_plot', measure_model.pk)
                 else:
                     return render(request, 'enviro/measure_file_model_add.html', {'form': measure_file_form})

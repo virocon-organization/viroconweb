@@ -1,34 +1,22 @@
 from django.utils import timezone
 from .validators import validate_file_extension
 from django.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from user.models import User
-import os
-import shutil
-import warnings
 from django.core.exceptions import ValidationError
+import random
+import string
 
+# Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
+# uploads-in-seperate-folders
+def measurement_directory_path(instance, filename):
+    # The file will be uploaded to:
+    # MEDIA_ROOT/<username>/measurement/<pk>/<filename>_<random_hash>
+    random_hash = ''.join(random.choices(
+        string.ascii_uppercase + string.digits, k=10))
+    return '{0}/measurement/{1}'.format(
+        instance.primary_user.username,
+        filename + '_' + random_hash)
 
-# Thanks to: https://stackoverflow.com/questions/33080360/how-to-delete-files-
-# from-filesystem-using-post-delete-django-1-8
-def _delete_file(path):
-   """
-   Deletes a file or folder from the filesystem.
-
-   Parameters
-   ----------
-   path: str,
-       The path of the file or folder.
-   """
-   if path:
-       if os.path.isfile(path):
-           os.remove(path)
-       elif os.path.isdir(path):
-           shutil.rmtree(path)
-       print('Deleted path: ' + str(path))
-   else:
-       warnings.warn("Cannot delete the path with the value " + str(path))
 
 class MeasureFileModel(models.Model):
     """
@@ -37,35 +25,20 @@ class MeasureFileModel(models.Model):
     A MeasureFileModel object holds a measurement file. It is associated to a
     user (owner) and can be shared with other users.
     """
-
-    secondary_user = models.ManyToManyField(User, related_name="secondary",
-                                            max_length=50)
     primary_user = models.ForeignKey(User, null=True, related_name="primary")
+    secondary_user = models.ManyToManyField(User,
+                                            related_name="secondary",
+                                            max_length=50)
     title = models.CharField(default="MeasureFile", max_length=50)
     upload_date = models.DateTimeField(default=timezone.now)
-    measure_file = models.FileField(validators=[validate_file_extension])
+    measure_file = models.FileField(
+        upload_to=measurement_directory_path,
+        validators=[validate_file_extension])
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
 
     @staticmethod
     def url_str():
         return "measure_file_model"
-
-
-@receiver(post_delete, sender=MeasureFileModel)
-def delete_file(sender, instance, **kwargs):
-    """
-    Deletes a file when the corresponding MeasureFileModel object is deleted.
-
-    Parameters
-    ----------
-    sender : MeasureFileModel class,
-        The model class that just had an object deleted.
-    instance : MeasureFileModel object
-        The object of MeasureFileModel that just got deleted.
-    """
-
-    if instance.measure_file:
-        _delete_file(instance.measure_file.path)
 
 
 class ProbabilisticModel(models.Model):
@@ -96,26 +69,6 @@ class ProbabilisticModel(models.Model):
         return "probabilistic_model"
 
 
-@receiver(post_delete, sender=ProbabilisticModel)
-def delete_file(sender, instance, **kwargs):
-    """
-    Deletes all files corresponding to a deleted MeasureFileModel object.
-
-    Parameters
-    ----------
-    sender : ProbabilisticModel class,
-        The model class that just had an object deleted.
-    instance : ProbabilisticModel object
-        The ProbabilisticModel object that just got deleted.
-
-    """
-
-    print('delete_file with ProbabilisticModel receiver got called. The '
-          'path_of_statics field has value: ' + str(instance.path_of_statics))
-    if instance:
-        _delete_file(instance.path_of_statics)
-
-
 class DistributionModel(models.Model):
     """
     Model for the distribution of a single random variable.
@@ -126,7 +79,6 @@ class DistributionModel(models.Model):
     ParameterModel objects, which define the distributions parameters (scale,
     shape, location).
     """
-
     DISTRIBUTIONS = (('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'),
                      ('Lognormal_2', 'Log-Normal'),
                      ('KernelDensity', 'Kernel Density'))
@@ -150,7 +102,6 @@ class ParameterModel(models.Model):
     another variable. The two available funtions have 3 parameters each, which
     are represented by x0, x1 and x2.
     """
-
     FUNCTIONS = ((None, 'None'), ('f1', 'power function'),
                  ('f2', 'exponential'))
     function = models.CharField(choices=FUNCTIONS, max_length=6)
@@ -173,7 +124,6 @@ class ParameterModel(models.Model):
         For example a Normal distribution's scale parameter (sigma) must
         be > 0. If this is not the case, a ValidationError is raised.
         """
-
         # If the parameters are given as constant values
         if self.function == 'None':
             pass
@@ -222,24 +172,6 @@ class EnvironmentalContour(models.Model):
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
-
-
-@receiver(post_delete, sender=EnvironmentalContour)
-def delete_file(sender, instance, **kwargs):
-    """
-    Deletes all files corresponding to a deleted EnvironmentalContour object.
-
-    Parameters
-    ----------
-    sender : EnvironmentalContour class,
-        The model class that just had an object deleted.
-    instance : EnvironmentalContour object
-        The EnvironmentalContour object that just got deleted.
-    """
-    print('delete_file with EnvironmentalContour receiver got called. The '
-          'path_of_statics field has value: ' + str(instance.path_of_statics))
-    if instance:
-        _delete_file(instance.path_of_statics)
 
 
 class AdditionalContourOption(models.Model):
