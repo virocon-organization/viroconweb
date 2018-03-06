@@ -1,4 +1,4 @@
-"""register the custom User and the CustomUserAdmin.
+"""Registers the custom User and the CustomUserAdmin.
 """
 from django.contrib import admin
 from .models import User
