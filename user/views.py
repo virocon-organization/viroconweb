@@ -8,9 +8,10 @@ from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
 
+
 def authentication(request):
-    """
-    Thr method to login users.
+    """This method to login users.
+
     Parameters
     ----------
     request : to authenticate the user.
@@ -18,6 +19,8 @@ def authentication(request):
     Returns
     -------
     HttpResponse
+        if method post and login successful to home. if method post and login unsuccessful to again to login with error
+        information. else to login.
     """
     form = AuthenticationForm()
     if request.method == 'POST':
@@ -28,22 +31,35 @@ def authentication(request):
         else:
             return render(request, 'user/login.html', {'form': form})
 
-    return render(request, 'user/login.html', {'form': form})
+    else:
+        return render(request, 'user/login.html', {'form': form})
 
 
 # Method is called after userdata is entered and checks database for verification
 def authentic(request, username, password):
+    """Validates the user login details.
+    Parameters
+    ----------
+    request : request
+        to validate user login details.
+
+    username : str
+        name for the login.
+
+    password : str
+        password for the login.
+    """
     user = auth.authenticate(username=username, password=password)
     auth.login(request, user)
 
 
 def create(request):
-    """
-    The method creates a new user account .
+    """Creates a new user account .
 
     Parameters
     ----------
-    request : to create a new user account.
+    request : request
+        to create a new user account.
 
     Returns
     -------
@@ -62,17 +78,17 @@ def create(request):
 
 
 def logout(request):
-    """
-    The method logs out a user.
+    """The method logs out a user.
 
     Parameters
     ---------
-    request : to log out.
-
+    request : request
+        to log out.
 
     Return
     ------
-    HttpResponseRedirect to home.
+    HttpResponseRedirect
+        to home.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('home:home'))
@@ -82,12 +98,12 @@ def logout(request):
 
 
 def profile(request):
-    """
-    The method views the user profile.
+    """The method views the user profile.
 
     Parameters
     ----------
-    request : to view the user profile.
+    request : request
+        to view the user profile.
 
     Returns
     -------
@@ -100,12 +116,12 @@ def profile(request):
 
 
 def edit(request):
-    """
-    The method allows users to edit their profiles.
+    """The method allows users to edit their profiles.
 
     Parameters
     ---------
-    request : request to edit a user profile.
+    request : request
+        request to edit a user profile.
 
     Returns
     -------
@@ -133,7 +149,8 @@ def change_password(request):
 
     Parameters
     ----------
-    request : to change the user password
+    request : request
+        to change the user password
 
     Returns
     -------
@@ -157,6 +174,19 @@ def change_password(request):
 
 
 class ResetView(PasswordResetView):
+    """inherits form PasswordResetView and modifies some attributes.
+
+    Attributes
+    ----------
+    template_name : str
+        defines the path to the html template.
+    email_template_name : str
+        defines the path of the email content file.
+    subject_template_name : str
+        defines the path of the email subject file.
+    succes_url : str
+        url if the password reset was a success.
+    """
     template_name = 'user/password_reset/form.html'
     email_template_name = 'user/password_reset/email.html'
     subject_template_name = 'user/password_reset/subject.txt'
@@ -164,13 +194,33 @@ class ResetView(PasswordResetView):
 
 
 class ResetDoneView(PasswordResetDoneView):
+    """inherits from PasswordResetDoneView and modifies some values
+    Attributes
+    ----------
+    template_name : str
+        defines the path to the html template.
+    """
     template_name = 'user/password_reset/done.html'
 
 
 class ResetConfirmView(PasswordResetConfirmView):
+    """inherits from PasswordResetConfirm and modifies some values
+    Attributes
+    ----------
+    template_name : str
+        defines the path to the html template.
+    succes_url : str
+        url if the password reset was a success.
+    """
     template_name = 'user/password_reset/confirm.html'
     success_url = '/user/reset/done'
 
 
 class ResetCompleteView(PasswordResetCompleteView):
+    """inherits from PasswordResetCompleteView and modifies some values
+    Attributes
+    ----------
+    template_name : str
+        defines the path to the html template.
+    """
     template_name = 'user/password_reset/complete.html'

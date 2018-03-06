@@ -4,18 +4,24 @@ from django.core import validators
 
 
 class User(AbstractUser):
-    """
-    This class inherits form AbstractUser and represents the user.
+    """This class inherits form AbstractUser and represents the user.
 
     Attributes
     ----------
-    TYPES : possible choices for type_of_use.
-    username : unique user name.
-    first_name : first name of a user.
-    last_name : last name of a user.
-    email : the email address of a user.
-    organisation : the organisation (e.g. company or university name) of the user.
-    type_of_use : for which purpose the user uses ViroCon.
+    TYPES : list of tuples of strings
+        possible choices for type_of_use.
+    username : CharField
+        unique user name.
+    first_name : CharField
+        first name of a user.
+    last_name : CharField
+        last name of a user.
+    email : EmailField
+        the email address of a user.
+    organisation : CharField
+        the organisation (e.g. company or university name) of the user.
+    type_of_use : CharField
+        for which purpose the user uses ViroCon.
 
     """
     TYPES = (('academic', 'academic'), ('commercial', 'commercial'))

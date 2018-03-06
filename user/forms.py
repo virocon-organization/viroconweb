@@ -5,8 +5,7 @@ from .models import User
 
 
 class CustomUserCreationForm(UserCreationForm):
-    """
-    This class represents a form the create a    new user.
+    """This class represents a form to create a new user.
     """
     class Meta(UserCreationForm.Meta):
         model = User
@@ -14,8 +13,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-    """
-    This class represents a form to change attributes of a user. The Form is used in the admin area.
+    """This class represents a form to change attributes of a user. The Form is used in the admin area.
     """
     class Meta(UserChangeForm.Meta):
         model = User
@@ -23,8 +21,7 @@ class CustomUserChangeForm(UserChangeForm):
 
 
 class CustomUserEditForm(UserChangeForm):
-    """
-    This class represents a form to change attributes of a user by himself.
+    """This class represents a form to change attributes of a user by himself.
     """
     password = None
 
@@ -34,8 +31,7 @@ class CustomUserEditForm(UserChangeForm):
 
 
 class CustomUserAdmin(UserAdmin):
-    """
-    This class provides which fields are seen in the admin area.
+    """This class provides which fields are seen in the admin area.
     """
     form = CustomUserChangeForm
 
