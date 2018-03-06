@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
 import os
-from .models import ProbabilisticModel, DistributionModel, ParameterModel
+import tempfile
+import warnings
+
 from scipy.stats import weibull_min
 from scipy.stats import lognorm
 from scipy.stats import norm
-import warnings
+from django.template.loader import get_template
+from subprocess import Popen, PIPE
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 # The standard solution to fix it is to use:
@@ -19,13 +22,15 @@ import warnings
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 
+from descartes import PolygonPatch
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
-from descartes import PolygonPatch
-from django.template.loader import get_template
-from subprocess import Popen, PIPE
+
+from . import settings
+
+from .models import ProbabilisticModel, DistributionModel, ParameterModel
 from .compute_interface import setup_mul_dist
-import tempfile
+
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
@@ -190,10 +195,16 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     :return:                the primary key of the created ProbabilisticModel
     instance.
     """
-    probabilistic_model = ProbabilisticModel(primary_user=user,
-                                             collection_name=title,
-                                             measure_file_model=measure_file)
+    probabilistic_model = ProbabilisticModel(
+        primary_user=user,
+        collection_name=title,
+        measure_file_model=measure_file,
+    )
     probabilistic_model.save()
+    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
+        '/prob_model/' + str(probabilistic_model.pk)
+    probabilistic_model.path_of_statics = path
+    probabilistic_model.save(update_fields=['path_of_statics'])
 
     directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):
@@ -352,30 +363,31 @@ def get_first_number_of_tuple(x):
     return first_number
 
 
-def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
-                 var_symbols, method):
+def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     """
     The function plots a png image of a contour.
-    :param matrix:      data points of the contour
+    :param contour_coordinates:      data points of the contour
     :param user:        who gives the contour calculation order
     :param method_label:      e.g. "T = 25 years, IFORM"
-    :param probabilistic_model:       probabilistic model object
+    :param environmental_contour:       models.EnvironmentalContourenvironmental
     :param var_names:   name of the variables of the probabilistic model
     :param var_symbols: symbols of the variables of the probabilistic model
     """
 
-    path = 'enviro/static/' + str(user)
+    pm = environmental_contour.probabilistic_model
+
+    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
     fig = plt.figure()
 
-    if len(matrix[0]) == 2:
+    if len(contour_coordinates[0]) == 2:
         ax = fig.add_subplot(111)
 
         # plot raw data
-        if (probabilistic_model.measure_file_model):
-            data_path = probabilistic_model.measure_file_model.measure_file.url
+        if (pm.measure_file_model):
+            data_path = pm.measure_file_model.measure_file.url
             data_path = data_path[1:]
             data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
             ax.scatter(data[:,0], data[:,1], s=5 ,c='k',
@@ -383,12 +395,12 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
 
         # plot contour
         alpha = .1
-        for i in range(len(matrix)):
-            ax.scatter(matrix[i][0], matrix[i][1], s=15, c='b',
+        for i in range(len(contour_coordinates)):
+            ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            #ax.plot(matrix[i][0], matrix[i][1], 'b-')
+            #ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
-                convert_ndarray_list_to_multipoint(matrix[i]), alpha=alpha)
+                convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
             patch_design_region = PolygonPatch(
                 concave_hull, fc='#999999', linestyle='None', fill=True,
@@ -403,9 +415,10 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
         plt.ylabel('{}'.format(var_names[1]))
-    elif len(matrix[0]) == 3:
+    elif len(contour_coordinates[0]) == 3:
         ax = fig.add_subplot(1, 1, 1, projection='3d')
-        ax.scatter(matrix[0][0], matrix[0][1], matrix[0][2], marker='o', c='r')
+        ax.scatter(contour_coordinates[0][0], contour_coordinates[0][1],
+                   contour_coordinates[0][2], marker='o', c='r')
         ax.set_xlabel('{}'.format(var_names[0]))
         ax.set_ylabel('{}'.format(var_names[1]))
         ax.set_zlabel('{}'.format(var_names[2]))
@@ -416,10 +429,12 @@ def plot_contour(matrix, user, method_label, probabilistic_model, var_names,
                       DeprecationWarning, stacklevel=2)
 
     ax.grid(True)
-    #plt.title(probabilistic_model.collection_name + ': ' + method_label)
 
-    short_path = user + '/contour.png'
-    plt.savefig('enviro/static/' + short_path, bbox_inches='tight')
+    directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
+        '/contour/' + str(environmental_contour.pk) + '/'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    plt.savefig(directory + 'contour.png', bbox_inches='tight')
     plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
@@ -469,7 +484,7 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
-def create_latex_report(matrix, user, method_label, probabilistic_model,
+def create_latex_report(contour_coordinates, user, environmental_contour,
                         var_names, var_symbols, method):
     """
     Creates a latex-based pdf report describing the performed environmental
@@ -480,7 +495,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
 
     Parameters
     ----------
-    matrix : n-dimensional matrix
+    contour_coordinates : n-dimensional matrix
         The coordinates of the environmental contour.
         The format is defined by compute_interface.iform()
 
@@ -488,12 +503,9 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
         The user, who is working with the app. The report will be saved in a
         directory named like the user.
 
-    method_label : string
-        Will be used as the title of the contour plot,
-        e.g.  "Tom's wave model, T = 2 years, Highest Density Contour (HDC)"
-
-    probabilistic_model : enviro.models.ProbabilisticModel
-        The probabilistic model on which the environmental contour is based one.
+    environmental_contour : enviro.models.EnvironmentalContour
+        Django's environmental contour model, which contains the contour's path,
+        the options that were used to create it and its probabilistc model
 
     var_names : list of strings
         Names of the environmental variables used in the probabilistic model,
@@ -512,14 +524,16 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
     -------
     short_file_path_report : string,
         The path where the pdf, generated based latex, is saved
-        The path continues after 'enviro/static/'
+        The path continues after the static files prefix, which is defined in
+        settings.py and currently is 'enviro/static/'
 
     """
+    probabilistic_model = environmental_contour.probabilistic_model
 
-    plot_contour(matrix, user, method_label, probabilistic_model, var_names,
-                 var_symbols, method)
-    directory_prefix = 'enviro/static/'
-    file_path_contour = directory_prefix + user + '/contour.png'
+    plot_contour(contour_coordinates, user, environmental_contour, var_names)
+    directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
+    file_path_contour = directory_prefix + user + '/contour/' + \
+                        str(environmental_contour.pk) + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
 
     latex_content = r"\section{Results} " \
@@ -527,7 +541,7 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
                     r"\includegraphics[width=\textwidth]{" + \
                     file_path_contour + r"}" \
                     r"\subsection{Extreme environmental design conditions}" + \
-                    get_latex_eedc_table(matrix, var_names, var_symbols) + \
+                    get_latex_eedc_table(contour_coordinates, var_names, var_symbols) + \
                     r"\section{Methods}" \
                     r"\subsection{Associated measurement file}"
 
@@ -535,15 +549,16 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        img_list = os.listdir(directory_fit_images + '/' +
-                              str(probabilistic_model.pk))
-        for img in img_list:
-            img_name = directory_fit_images + str(probabilistic_model.pk) + \
-                       "/" + img
-            latex_content += r"\begin{figure}[H]"
-            latex_content += r"\includegraphics[width=\textwidth]{" + \
-                             img_name + r"}"
-            latex_content += r"\end{figure}"
+        temp = directory_fit_images + str(probabilistic_model.pk)
+        if os.path.exists(temp):
+            img_list = os.listdir(temp)
+            for img in img_list:
+                img_name = directory_fit_images + str(probabilistic_model.pk) + \
+                           "/" + img
+                latex_content += r"\begin{figure}[H]"
+                latex_content += r"\includegraphics[width=\textwidth]{" + \
+                                 img_name + r"}"
+                latex_content += r"\end{figure}"
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."
@@ -600,8 +615,13 @@ def create_latex_report(matrix, user, method_label, probabilistic_model,
             pdf = f.read()
 
 
-    short_file_path_report = user + '/latex_report.pdf'
-    full_file_path_report = 'enviro/static/' + short_file_path_report
+    short_directory = settings.PATH_USER_GENERATED + user + \
+                             '/contour/' + str(environmental_contour.pk) + '/'
+    short_file_path_report = short_directory + 'latex_report.pdf'
+    full_directory = settings.PATH_STATIC + short_directory
+    full_file_path_report = settings.PATH_STATIC + short_file_path_report
+    if not os.path.exists(full_directory):
+        os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
 
