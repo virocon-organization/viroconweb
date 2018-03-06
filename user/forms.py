@@ -6,7 +6,7 @@ from .models import User
 
 class CustomUserCreationForm(UserCreationForm):
     """
-    This class represents a form the create a new user.
+    This class represents a form the create a    new user.
     """
     class Meta(UserCreationForm.Meta):
         model = User
