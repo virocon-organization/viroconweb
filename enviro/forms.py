@@ -92,7 +92,6 @@ class MeasureFileFitForm(forms.Form):
                 widget=forms.Select(attrs={'id': 'loc_%s' % i}))
 
 
-
 class VariablesForm(forms.Form):
     DISTRIBUTIONS = (('Normal', 'Normal'), ('Weibull', 'Weibull'),
                      ('Lognormal_2', 'Log-normal'))
