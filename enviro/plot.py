@@ -195,10 +195,16 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     :return:                the primary key of the created ProbabilisticModel
     instance.
     """
-    probabilistic_model = ProbabilisticModel(primary_user=user,
-                                             collection_name=title,
-                                             measure_file_model=measure_file)
+    probabilistic_model = ProbabilisticModel(
+        primary_user=user,
+        collection_name=title,
+        measure_file_model=measure_file,
+    )
     probabilistic_model.save()
+    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
+        '/prob_model/' + str(probabilistic_model.pk)
+    probabilistic_model.path_of_statics = path
+    probabilistic_model.save(update_fields=['path_of_statics'])
 
     directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):

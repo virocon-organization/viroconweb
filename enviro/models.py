@@ -1,10 +1,12 @@
 from django.utils import timezone
 from .validators import validate_file_extension
 from django.db import models
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from user.models import User
 import os
 import shutil
+import warnings
 from django.core.exceptions import ValidationError
 
 
@@ -19,10 +21,14 @@ def _delete_file(path):
    path: str,
        The path of the file or folder.
    """
-   if os.path.isfile(path):
-       os.remove(path)
-   elif os.path.isdir(path):
-       shutil.rmtree(path)
+   if path:
+       if os.path.isfile(path):
+           os.remove(path)
+       elif os.path.isdir(path):
+           shutil.rmtree(path)
+       print('Deleted path: ' + str(path))
+   else:
+       warnings.warn("Cannot delete the path with the value " + str(path))
 
 class MeasureFileModel(models.Model):
     """
@@ -45,7 +51,7 @@ class MeasureFileModel(models.Model):
         return "measure_file_model"
 
 
-@receiver(models.signals.post_delete, sender=MeasureFileModel)
+@receiver(post_delete, sender=MeasureFileModel)
 def delete_file(sender, instance, **kwargs):
     """
     Deletes a file when the corresponding MeasureFileModel object is deleted.
@@ -89,7 +95,7 @@ class ProbabilisticModel(models.Model):
         return "probabilistic_model"
 
 
-@receiver(models.signals.post_delete, sender=ProbabilisticModel)
+@receiver(post_delete, sender=ProbabilisticModel)
 def delete_file(sender, instance, **kwargs):
     """
     Deletes all files corresponding to a deleted MeasureFileModel object.
@@ -101,7 +107,9 @@ def delete_file(sender, instance, **kwargs):
     instance : ProbabilisticModel object
     """
 
-    if instance.measure_file:
+    print('delete_file with ProbabilisticModel receiver got called. The '
+          'path_of_statics field has value: ' + str(instance.path_of_statics))
+    if instance:
         _delete_file(instance.path_of_statics)
 
 
@@ -213,7 +221,7 @@ class EnvironmentalContour(models.Model):
                                      on_delete=models.CASCADE)
 
 
-@receiver(models.signals.post_delete, sender=EnvironmentalContour)
+@receiver(post_delete, sender=EnvironmentalContour)
 def delete_file(sender, instance, **kwargs):
     """
     Deletes all files corresponding to a deleted EnvironmentalContour object.
@@ -224,8 +232,9 @@ def delete_file(sender, instance, **kwargs):
         The model class that just had an instance created.
     instance : EnvironmentalContour object
     """
-
-    if instance.measure_file:
+    print('delete_file with EnvironmentalContour receiver got called. The '
+          'path_of_statics field has value: ' + str(instance.path_of_statics))
+    if instance:
         _delete_file(instance.path_of_statics)
 
 

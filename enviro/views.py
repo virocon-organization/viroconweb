@@ -179,9 +179,10 @@ class MeasureFileHandler(Handler):
             if request.method == 'POST':
                 measure_file_form = forms.MeasureFileForm(data=request.POST, files=request.FILES)
                 if measure_file_form.is_valid():
-                    measure_model = MeasureFileModel(primary_user=request.user,
-                                                     title=measure_file_form.cleaned_data['title'],
-                                                     measure_file=measure_file_form.cleaned_data['measure_file'])
+                    measure_model = MeasureFileModel(
+                        primary_user=request.user,
+                        title=measure_file_form.cleaned_data['title'],
+                        measure_file=measure_file_form.cleaned_data['measure_file'])
                     measure_model.save()
                     return redirect('enviro:measure_file_model_plot', measure_model.pk)
                 else:
@@ -451,6 +452,13 @@ class ProbabilisticModelHandler(Handler):
                             probabilistic_model=probabilistic_model
                         )
                         environmental_contour.save()
+                        path = settings.PATH_STATIC + \
+                               settings.PATH_USER_GENERATED + \
+                               str(request.user) + \
+                               '/contour/' + str(environmental_contour.pk)
+                        environmental_contour.path_of_statics = path
+                        environmental_contour.save(
+                            update_fields=['path_of_statics'])
                         additional_contour_option = AdditionalContourOption(
                             option_key="Number of points on the contour",
                             option_value=iform_form.cleaned_data['n_steps'],
@@ -565,6 +573,13 @@ class ProbabilisticModelHandler(Handler):
                                 probabilistic_model=probabilistic_model
                             )
                             environmental_contour.save()
+                            path = settings.PATH_STATIC + \
+                                   settings.PATH_USER_GENERATED + \
+                                   str(request.user) + \
+                                   '/contour/' + str(environmental_contour.pk)
+                            environmental_contour.path_of_statics = path
+                            environmental_contour.save(
+                                update_fields=['path_of_statics'])
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Limits of the grid",
                                 option_value=" ".join(map(str, limits)),
