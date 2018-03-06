@@ -59,8 +59,9 @@ def delete_file(sender, instance, **kwargs):
     Parameters
     ----------
     sender : MeasureFileModel class,
-        The model class that just had an instance created.
+        The model class that just had an object deleted.
     instance : MeasureFileModel object
+        The object of MeasureFileModel that just got deleted.
     """
 
     if instance.measure_file:
@@ -103,8 +104,10 @@ def delete_file(sender, instance, **kwargs):
     Parameters
     ----------
     sender : ProbabilisticModel class,
-        The model class that just had an instance created.
+        The model class that just had an object deleted.
     instance : ProbabilisticModel object
+        The ProbabilisticModel object that just got deleted.
+
     """
 
     print('delete_file with ProbabilisticModel receiver got called. The '
@@ -229,8 +232,9 @@ def delete_file(sender, instance, **kwargs):
     Parameters
     ----------
     sender : EnvironmentalContour class,
-        The model class that just had an instance created.
+        The model class that just had an object deleted.
     instance : EnvironmentalContour object
+        The EnvironmentalContour object that just got deleted.
     """
     print('delete_file with EnvironmentalContour receiver got called. The '
           'path_of_statics field has value: ' + str(instance.path_of_statics))
