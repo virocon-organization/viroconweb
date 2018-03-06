@@ -4,7 +4,25 @@ from django.db import models
 from django.dispatch import receiver
 from user.models import User
 import os
+import shutil
 from django.core.exceptions import ValidationError
+
+
+# Thanks to: https://stackoverflow.com/questions/33080360/how-to-delete-files-
+# from-filesystem-using-post-delete-django-1-8
+def _delete_file(path):
+   """
+   Deletes a file or folder from the filesystem.
+
+   Parameters
+   ----------
+   path: str,
+       The path of the file or folder.
+   """
+   if os.path.isfile(path):
+       os.remove(path)
+   elif os.path.isdir(path):
+       shutil.rmtree(path)
 
 class MeasureFileModel(models.Model):
     """
@@ -17,34 +35,30 @@ class MeasureFileModel(models.Model):
     secondary_user = models.ManyToManyField(User, related_name="secondary",
                                             max_length=50)
     primary_user = models.ForeignKey(User, null=True, related_name="primary")
-    title = models.CharField(max_length=50, default="MeasureFile")
+    title = models.CharField(default="MeasureFile", max_length=50)
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(validators=[validate_file_extension])
+    path_of_statics = models.CharField(default=None, max_length=240, null=True)
 
     @staticmethod
     def url_str():
         return "measure_file_model"
 
 
-# deletes the file which was attached to the MesureFileManager object
 @receiver(models.signals.post_delete, sender=MeasureFileModel)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
+def delete_file(sender, instance, **kwargs):
     """
-    Deletes a file when the corresponding `MediaFile` object is deleted.
+    Deletes a file when the corresponding MeasureFileModel object is deleted.
 
     Parameters
     ----------
-    sender : ?,
-        Description.
-    instance : ?,
-        Description
-    kwargs : ?
-        Description
+    sender : MeasureFileModel class,
+        The model class that just had an instance created.
+    instance : MeasureFileModel object
     """
 
     if instance.measure_file:
-        if os.path.isfile(instance.measure_file.path):
-            os.remove(instance.measure_file.path)
+        _delete_file(instance.measure_file.path)
 
 
 class ProbabilisticModel(models.Model):
@@ -65,6 +79,7 @@ class ProbabilisticModel(models.Model):
     upload_date = models.DateTimeField(default=timezone.now)
     collection_name = models.CharField(default='VariablesCollection',
                                        max_length=50)
+    path_of_statics = models.CharField(default=None, max_length=240, null=True)
     measure_file_model = models.ForeignKey(MeasureFileModel,
                                            on_delete=models.CASCADE,
                                            null=True)
@@ -72,6 +87,22 @@ class ProbabilisticModel(models.Model):
     @staticmethod
     def url_str():
         return "probabilistic_model"
+
+
+@receiver(models.signals.post_delete, sender=ProbabilisticModel)
+def delete_file(sender, instance, **kwargs):
+    """
+    Deletes all files corresponding to a deleted MeasureFileModel object.
+
+    Parameters
+    ----------
+    sender : ProbabilisticModel class,
+        The model class that just had an instance created.
+    instance : ProbabilisticModel object
+    """
+
+    if instance.measure_file:
+        _delete_file(instance.path_of_statics)
 
 
 class DistributionModel(models.Model):
@@ -173,12 +204,30 @@ class EnvironmentalContour(models.Model):
     EnvironmentalContour instance. The contour's path (the EEDCs) are also
     connected via two own models (Contourpath and ExtremeEnvDesignCondition).
     """
-    fitting_method = models.CharField(max_length=240)
-    contour_method = models.CharField(max_length=240)
+    fitting_method = models.CharField(default=None, max_length=240)
+    contour_method = models.CharField(default=None, max_length=240)
     return_period = models.DecimalField(decimal_places=5, max_digits=10)
     state_duration = models.DecimalField(decimal_places=5, max_digits=10)
+    path_of_statics = models.CharField(default=None, max_length=240, null=True)
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
+
+
+@receiver(models.signals.post_delete, sender=EnvironmentalContour)
+def delete_file(sender, instance, **kwargs):
+    """
+    Deletes all files corresponding to a deleted EnvironmentalContour object.
+
+    Parameters
+    ----------
+    sender : EnvironmentalContour class,
+        The model class that just had an instance created.
+    instance : EnvironmentalContour object
+    """
+
+    if instance.measure_file:
+        _delete_file(instance.path_of_statics)
+
 
 class AdditionalContourOption(models.Model):
     """
@@ -192,9 +241,9 @@ class AdditionalContourOption(models.Model):
     overflow.com/questions/402217/how-to-store-a-dictionary-on-a-django-model
     """
     # Key can for example be "Number of points on the contour"
-    option_key = models.CharField(max_length=240, null=True)
+    option_key = models.CharField(default=None, max_length=240, null=True)
     # Then value can for example be "50"
-    option_value = models.CharField(max_length=240, null=True)
+    option_value = models.CharField(default=None, max_length=240, null=True)
     environmental_contour = models.ForeignKey(EnvironmentalContour,
                                               on_delete=models.CASCADE)
 
