@@ -9,8 +9,27 @@ import string
 # Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
 def measurement_directory_path(instance, filename):
-    # The file will be uploaded to:
-    # MEDIA_ROOT/<username>/measurement/<pk>/<filename>_<random_hash>
+    """
+    Creates the path where to upload a measurement file.
+
+    The path is:
+    MEDIA_ROOT/<username>/measurement/<pk>/<filename>_<random_hash>
+
+    Parameters
+    ----------
+    instance : MeasureFileModel,
+        The MeasureFileModel object that has the measurement file which needs
+        a directory.
+    filename : String,
+        Name of the measurement file, e.g. "data_points.csv".
+
+    Returns
+    -------
+    summed_fields : ndarray, dtype=Bool
+        Boolean array of shape like array with True if element was used in summation.
+    last_summed : float
+        Element that was added last to the sum.
+    """
     random_hash = ''.join(random.choices(
         string.ascii_uppercase + string.digits, k=10))
     return '{0}/measurement/{1}'.format(
