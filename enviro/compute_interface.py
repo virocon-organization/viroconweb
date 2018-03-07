@@ -1,10 +1,11 @@
 import pandas as pd
 from enviro.models import MeasureFileModel
 from .models import ParameterModel, DistributionModel, ProbabilisticModel
-from .compute.distributions import *
-from .compute.contours import *
-from .compute.params import *
-from .compute.fitting import *
+import viroconcom
+from viroconcom.distributions import *
+from viroconcom.contours import *
+from viroconcom.params import *
+from viroconcom.fitting import *
 import warnings
 
 class ComputeInterface:

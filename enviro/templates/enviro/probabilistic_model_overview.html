@@ -62,7 +62,7 @@
                     <td>
                         <form action="{% url delete object.pk %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-default btn-sm ">
+                            <button type="submit" class="btn btn-default btn-sm confirm-delete">
                                 <span class="glyphicon glyphicon-trash"></span>
                             </button>
                         </form>
@@ -71,5 +71,11 @@
             {% endfor %}
         </table>
     </div>
+    <script type="text/javascript">
+    $(document).on('click', '.confirm-delete', function(){
+        return confirm('Are you sure you want to delete this probabilistic ' +
+            'model? Environmental contours, which are based on it will be ' +
+            'deleted too.');
+    })
+    </script>
 {% endblock content %}
-

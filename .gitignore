@@ -2,7 +2,7 @@
 *.pyc
 *.xml
 *.cpython-35.*
-.idea/inspectionProfiles/
+.idea/
 contact/__pycache__/
 contact/migrations/__pycache__/
 enviro/migrations/__pycache__/

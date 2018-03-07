@@ -75,6 +75,13 @@ class EnvironmentalContourTestCase(TestCase):
         self.assertContains(response, 'Download PDF',
                             status_code=200)
 
+        # Finally delete the environmental contour. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid amassing .png and .pdf files each time the test is run
+        response = self.client.get(reverse('enviro:environmental_contour_delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
+
     def test_highest_density_contour(self):
         response = self.client.get(reverse('enviro:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
@@ -109,3 +116,10 @@ class EnvironmentalContourTestCase(TestCase):
                                     follow=True)
         self.assertContains(response, 'Download PDF',
                             status_code=200)
+
+        # Finally delete the environmental contour. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid amassing .png and .pdf files each time the test is run
+        response = self.client.get(reverse('enviro:environmental_contour_delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
