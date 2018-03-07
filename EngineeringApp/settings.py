@@ -152,8 +152,8 @@ ALLOWED_HOSTS = [
     'serene-sierra-98066.herokuapp.com'
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'enviro/MeasureCSV')
-MEDIA_URL = '/enviro/MeasureCSV/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'enviro/static/user_generated')
+MEDIA_URL = '/enviro/static/user_generated/'
 
 # execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025
