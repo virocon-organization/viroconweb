@@ -545,7 +545,8 @@ class ProbabilisticModelHandler(Handler):
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request, 'enviro/contour_result.html',
+                        return render(request,
+                                      'enviro/environmental_contour_show.html',
                                       {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'u': contour_coordinates[0][3].tolist(), 'dim': 4,
                                        'labels': labels})
@@ -555,12 +556,14 @@ class ProbabilisticModelHandler(Handler):
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request, 'enviro/contour_result.html',
+                        return render(request,
+                                      'enviro/environmental_contour_show.html',
                                       {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'labels': labels})
 
                     elif len(contour_coordinates) < 3:
-                        return render(request, 'enviro/contour_result.html', {'path': path, 'dim': 2})
+                        return render(request,
+                                      'enviro/environmental_contour_show.html', {'path': path, 'dim': 2})
                 else:
                     return render(request, 'enviro/contour_settings.html', {'form': iform_form})
             else:
@@ -666,11 +669,13 @@ class ProbabilisticModelHandler(Handler):
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request, 'enviro/contour_result.html',
+                        return render(request,
+                                      'enviro/environmental_contour_show.html',
                                       {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
                     else:
-                        return render(request, 'enviro/contour_result.html', {'path': path, 'dim': 2, 'warn': warn})
+                        return render(request,
+                                      'enviro/environmental_contour_show.html', {'path': path, 'dim': 2, 'warn': warn})
                 else:
                     return render(request, 'enviro/contour_settings.html', {'form': hdc_form})
             else:
@@ -759,7 +764,9 @@ class EnvironmentalContourHandler(Handler):
 
     @staticmethod
     def show(request, pk, model=models.EnvironmentalContour):
-        return Handler.model(request, pk, model)
+        # This method does not work properly yet since the _show template was
+        # written before we had a DjangoModel for EnvironmentalContour.
+        return Handler.show(request, pk, model)
 
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):

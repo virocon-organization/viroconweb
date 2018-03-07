@@ -19,6 +19,10 @@ urlpatterns = [
         views.EnvironmentalContourHandler.show,
         name='environmental_contour_show'),
 
+    url(r'^contours/(?P<pk>[0-9]+)/update/$',
+        views.EnvironmentalContourHandler.update,
+        name='environmental_contour_update'),
+
     url(r'^contours/(?P<pk>[0-9]+)/delete/$',
         views.EnvironmentalContourHandler.delete,
         name='environmental_contour_delete'),
