@@ -184,6 +184,10 @@ class EnvironmentalContour(models.Model):
     EnvironmentalContour instance. The contour's path (the EEDCs) are also
     connected via two own models (Contourpath and ExtremeEnvDesignCondition).
     """
+    primary_user = models.ForeignKey(User, null=True,
+                                     related_name="contours_primary")
+    secondary_user = models.ManyToManyField(User,
+                                            related_name="contours_secondary")
     fitting_method = models.CharField(default=None, max_length=240)
     contour_method = models.CharField(default=None, max_length=240)
     return_period = models.DecimalField(decimal_places=5, max_digits=10)
@@ -192,6 +196,9 @@ class EnvironmentalContour(models.Model):
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
 
+    @staticmethod
+    def url_str():
+        return "environmental_contour"
 
 class AdditionalContourOption(models.Model):
     """

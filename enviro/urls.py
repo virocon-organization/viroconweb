@@ -13,8 +13,21 @@ urlpatterns = [
     # URL to download the latex-based pdf report
     url(r'^download_pdf$', views.download_pdf, name='download_pdf'),
 
+    # --------------------------------------------------------------------------
+    # EnvironmentalContour
+    url(r'^contours/(?P<pk>[0-9]+)/$',
+        views.EnvironmentalContourHandler.show,
+        name='environmental_contour_show'),
 
-    # ------------------------------------------------------------------------------------------------------------------
+    url(r'^contours/(?P<pk>[0-9]+)/delete/$',
+        views.EnvironmentalContourHandler.delete,
+        name='environmental_contour_delete'),
+
+    url(r'^contours/overview$',
+        views.EnvironmentalContourHandler.overview,
+        name='environmental_contour_overview'),
+
+    # --------------------------------------------------------------------------
     # ProbabilisticModel
     url(r'^models/add/([0-9]{2})/$',
         views.ProbabilisticModelHandler.add,
@@ -48,7 +61,7 @@ urlpatterns = [
         views.ProbabilisticModelHandler.show_model,
         name='probabilistic_model_show'),
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # MeasureFileModel
     url(r'measurefiles/add/',
         views.MeasureFileHandler.add,

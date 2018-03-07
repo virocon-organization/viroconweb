@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 
 from . import forms
+from . import models
 from . import plot
 from . import settings
 
@@ -69,11 +70,13 @@ class Handler:
             return HttpResponseRedirect('/home')
         else:
             instance = get_object_or_404(collection, pk=pk)
-
-            if instance.primary_user == request.user:
-                instance.delete()
+            if hasattr(instance, 'primary_user'):
+                if instance.primary_user == request.user:
+                    instance.delete()
+                else:
+                    instance.secondary_user.remove(request.user)
             else:
-                instance.secondary_user.remove(request.user)
+                instance.delete()
             redirection = 'enviro:' + collection.url_str() + '_overview'
             return redirect(redirection)
 
@@ -131,6 +134,33 @@ class Handler:
         The method returns a HttpResponse where you can select a File from a Model to do further calculations. 
         :return:        HttpResponse to select an item form a certain model. 
         """
+
+    @staticmethod
+    def show(request, pk, collection):
+        """
+        Shows an object from the data base, e.g. an EnvironmentalContour object.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to show the object.
+        pk : int,
+            Primary key of the object in the data base.
+        collection : models.Model,
+            A Django model, which has a database associated to it, e.g.
+            models.EnvronmentalContour.
+
+
+        Returns
+        -------
+        response : HttpResponse,
+            Renders an html response showing the object.
+        """
+        if request.user.is_anonymous:
+            return HttpResponseRedirect('/home')
+        else:
+            html = 'enviro/' + collection.url_str() + '_show.html'
+            return render(request, html)
 
 
 class MeasureFileHandler(Handler):
@@ -291,15 +321,15 @@ class MeasureFileHandler(Handler):
 
 class ProbabilisticModelHandler(Handler):
     @staticmethod
-    def overview(request, collection=plot.ProbabilisticModel):
+    def overview(request, collection=models.ProbabilisticModel):
         return Handler.overview(request, collection)
 
     @staticmethod
-    def delete(request, pk, collection=plot.ProbabilisticModel):
+    def delete(request, pk, collection=models.ProbabilisticModel):
         return Handler.delete(request, pk, collection)
 
     @staticmethod
-    def update(request, pk, collection=plot.ProbabilisticModel):
+    def update(request, pk, collection=models.ProbabilisticModel):
         return Handler.update(request, pk, collection)
 
     @staticmethod
@@ -307,7 +337,7 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            user_pm = plot.ProbabilisticModel.objects.all().filter(primary_user=request.user)
+            user_pm = models.ProbabilisticModel.objects.all().filter(primary_user=request.user)
             return render(request, 'enviro/probabilistic_model_select.html', {'context': user_pm})
 
     @staticmethod
@@ -330,12 +360,12 @@ class ProbabilisticModelHandler(Handler):
                 variable_form = forms.VariablesForm(data=request.POST, variable_count=var_num_int)
                 if variable_form.is_valid():
                     is_valid_probabilistic_model = True
-                    probabilistic_model = plot.ProbabilisticModel(primary_user=request.user,
+                    probabilistic_model = models.ProbabilisticModel(primary_user=request.user,
                                                                   collection_name=variable_form.cleaned_data[
                                                                  'collection_name'], measure_file_model=None)
                     probabilistic_model.save()
                     for i in range(var_num_int):
-                        distribution = plot.DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
+                        distribution = models.DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
                                                               distribution=variable_form.cleaned_data[
                                                              'distribution_' + str(i)],
                                                               symbol=variable_form.cleaned_data['variable_symbol_' + str(i)],
@@ -344,7 +374,7 @@ class ProbabilisticModelHandler(Handler):
                         params = ['shape', 'location', 'scale']
                         if i == 0:
                             for param in params:
-                                parameter = plot.ParameterModel(function='None',
+                                parameter = models.ParameterModel(function='None',
                                                                 x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
                                                                 dependency='!',
                                                                 name=param, distribution=distribution)
@@ -360,7 +390,7 @@ class ProbabilisticModelHandler(Handler):
 
                         else:
                             for param in params:
-                                parameter = plot.ParameterModel(
+                                parameter = models.ParameterModel(
                                     function=variable_form.cleaned_data[param + '_dependency_' + str(i)][1:],
                                     x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
                                     x1=variable_form.cleaned_data[param + '_' + str(i) + '_1'],
@@ -405,10 +435,10 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            item = plot.ProbabilisticModel.objects.get(pk=pk)
+            item = models.ProbabilisticModel.objects.get(pk=pk)
             var_names = []
             var_symbols = []
-            dists_model = plot.DistributionModel.objects.filter(probabilistic_model=item)
+            dists_model = models.DistributionModel.objects.filter(probabilistic_model=item)
 
             for dist in dists_model:
                 var_names.append(dist.name)
@@ -510,7 +540,7 @@ class ProbabilisticModelHandler(Handler):
                     #probabilistic_model.measure_file_model.measure_file
                     # if matrix 4dim - send data for 4dim interactive plot.
                     if len(contour_coordinates[0]) == 4:
-                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -520,7 +550,7 @@ class ProbabilisticModelHandler(Handler):
                                        'labels': labels})
                     # if matrix 3dim - send data for 3dim interactive plot
                     elif len(contour_coordinates[0]) == 3:
-                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -630,7 +660,7 @@ class ProbabilisticModelHandler(Handler):
 
                     # if matrix 3dim - send data for 3dim interactive plot.
                     if len(contour_coordinates[0]) > 2:
-                        dists = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
@@ -678,8 +708,8 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            probabilistic_model = plot.ProbabilisticModel.objects.get(pk=pk)
-            dists_model = plot.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+            probabilistic_model = models.ProbabilisticModel.objects.get(pk=pk)
+            dists_model = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
             var_symbols = []
             for dist in dists_model:
                 var_symbols.append(dist.symbol)
@@ -707,6 +737,31 @@ class ProbabilisticModelHandler(Handler):
                           {'user': request.user, 'probabilistic_model': probabilistic_model,
                            'latex_string_list': latex_string_list, 'imgs': send_img,
                           'directory_measure_plot_after_prefix': directory_measure_plot_after_prefix})
+
+
+class EnvironmentalContourHandler(Handler):
+    """
+    Handler for EnvironmentalContour objects
+    """
+    @staticmethod
+    def overview(request, collection=models.EnvironmentalContour):
+        return Handler.overview(request, collection)
+
+    @staticmethod
+    def delete(request, pk, collection=models.EnvironmentalContour):
+        return Handler.delete(request, pk, collection)
+
+    @staticmethod
+    def update(request, pk, collection=models.EnvironmentalContour):
+        return Handler.update(request, pk, collection)
+
+    @staticmethod
+    def show(request, pk, model=models.EnvironmentalContour):
+        return Handler.model(request, pk, model)
+
+    @staticmethod
+    def delete(request, pk, collection=models.EnvironmentalContour):
+        return Handler.delete(request, pk, collection)
 
 
 def download_pdf(request):
