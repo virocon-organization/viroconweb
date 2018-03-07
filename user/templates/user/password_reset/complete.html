@@ -1,6 +1,10 @@
 {% extends '../../base.html' %}
 {% load static %}
 {% block content %}
+    <div class="page-header">
+        <h1>Reset password</h1>
+    </div>
+    <br>
     <p>
         Your password has been set. You may go ahead and <a href="{% url 'user:authentication' %}">sign in</a> now.
     </p>

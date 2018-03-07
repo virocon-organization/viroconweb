@@ -1,7 +1,10 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    Add measurement file
+    <div class="page-header">
+        <h1> Add measurement file</h1>
+    </div>
+    <br>
     <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
@@ -14,7 +17,7 @@
                         <div class="row">
                             <div class="col-md-2"></div>
                             <div class="col-md-2"> {{ x.label_tag }}</div>
-                            {% if x.label == 'measurement file' %}
+                            {% if x.label == 'Measurement file' %}
                                 <div class="col-md-4">
                                     <label class="btn btn-default btn-file"> Browse... {{ x }}</label>
                                 </div>

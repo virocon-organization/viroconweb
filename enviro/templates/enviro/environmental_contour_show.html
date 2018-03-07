@@ -1,8 +1,10 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    contour results
-    <div class="page-header"></div>
+    <div class="page-header">
+        <h1>Contour results</h1>
+    </div>
+    <br>
     <div style="text-align:center">
         <div id="mygraph" class="img-responsive"></div>
     </div>
@@ -21,7 +23,8 @@
     </div>
     <div class="col-md-2">
         {% if dim == 3 %}
-            <button type="button" class="btn btn-default" id="btn-interactive-visualization">interactive 3D Contour</button>
+            <button type="button" class="btn btn-default" id="btn-interactive-visualization">interactive 3D Contour
+            </button>
         {% elif dim == 4 %}
             <button type="button" class="btn btn-default">interactive 4D Contour</button>
         {% endif %}
@@ -43,12 +46,12 @@
     <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
         dim_data_set = {{ dim }};
-        if (dim_data_set == 3){
-            document.getElementById ("btn-interactive-visualization").addEventListener ("click", drawVisualization3D, false);
+        if (dim_data_set == 3) {
+            document.getElementById("btn-interactive-visualization").addEventListener("click", drawVisualization3D, false);
         }
-        if (dim_data_set == 4){
+        if (dim_data_set == 4) {
             console.log('is 4')
-            document.getElementById ("btn-interactive-visualization").addEventListener ("click", drawVisualization4D, false);
+            document.getElementById("btn-interactive-visualization").addEventListener("click", drawVisualization4D, false);
         }
 
         var data = null;

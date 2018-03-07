@@ -1,15 +1,16 @@
 {% extends "../base.html" %}
 {% load static %}
 {% block content %}
-    Add secondary user
-    <div class="page-header" xmlns="http://www.w3.org/1999/html"></div>
+    <div class="page-header">
+        <h1>Add secondary user</h1>
+    </div>
     <br>
     <div class="panel-body"></div>
-    <form action="" , method="post" , type="text">{% csrf_token %}
+    <form action="" method="post" type="text">{% csrf_token %}
         <div class="form-group">
             <label for="secUser">Username:</label>
             <input id="secUser" size="" placeholder="Username" name="username">
         </div>
-        <input type="submit", class="btn btn-primary", value="submit"/>
+        <input type="submit" class="btn btn-primary" value="Submit"/>
     </form>
 {% endblock content %}

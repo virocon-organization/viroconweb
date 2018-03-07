@@ -68,7 +68,7 @@ class FitProbModelTestCase(TestCase):
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, "Visual inspection", status_code=200)
+        self.assertContains(response, "visual inspection", status_code=200)
 
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
@@ -118,7 +118,7 @@ class FitProbModelTestCase(TestCase):
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, "Visual inspection", status_code=200)
+        self.assertContains(response, "visual inspection", status_code=200)
 
         # --- WEIBULL-NORMAL ---
         # Create a fitting form with the input of a Weibull-Normal model,
@@ -145,7 +145,7 @@ class FitProbModelTestCase(TestCase):
                                             kwargs={'pk' : 1}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, "Visual inspection", status_code=200)
+        self.assertContains(response, "visual inspection", status_code=200)
 
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
