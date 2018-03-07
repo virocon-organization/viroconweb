@@ -481,6 +481,7 @@ class ProbabilisticModelHandler(Handler):
                             {"Number of points on the contour":
                                  iform_form.cleaned_data['n_steps']})
                         environmental_contour = EnvironmentalContour(
+                            primary_user=request.user,
                             fitting_method="",
                             contour_method="IFORM",
                             return_period=float(
@@ -602,6 +603,7 @@ class ProbabilisticModelHandler(Handler):
                             method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
                                             hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                             environmental_contour = EnvironmentalContour(
+                                primary_user=request.user,
                                 fitting_method="",
                                 contour_method="IFORM",
                                 return_period=float(
