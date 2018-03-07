@@ -134,7 +134,7 @@
         <div class="page-header"></div>
         <h2>Data management</h2>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <a href="{% url 'enviro:measure_file_model_overview' %}">
                     <div class="panel panel-default panel-overview" id="home-measurefiles-overview">
                         <div class="panel-heading">
@@ -142,26 +142,41 @@
                             <div class="app_icon">
                                 <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
                             </div>
-                            Measurement files overview
+                            Measurement files
                         </div>
 
                         <div class="collapse" id="collapse-measurefiles-overview">
-                            Delete or share your uploaded measurement files.
+                            Inspect, share or delete your uploaded measurement files.
                         </div>
                     </div>
                 </a>
                 <br>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <a href="{% url 'enviro:probabilistic_model_overview' %}">
                     <div class="panel panel-default panel-overview" id="home-pm-overview">
                         <div class="panel-heading">
                             <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
                             </div>
-                            Probabilistic models overview
+                            Probabilistic models
                         </div>
                         <div class="collapse" id="collapse-pm-overview">
-                            Delete or share your probabilistic models.
+                            Inspect, share or delete your probabilistic models.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'enviro:environmental_contour_overview' %}">
+                    <div class="panel panel-default panel-overview" id="home-ec-overview">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
+                            </div>
+                            Environmental contours
+                        </div>
+                        <div class="collapse" id="collapse-ec-overview">
+                            Inspect, share or delete your environmental contours.
                         </div>
                     </div>
                 </a>
@@ -210,6 +225,13 @@
                 $("#collapse-pm-overview").slideToggle(300);
             }, function () {
                 $("#collapse-pm-overview").slideToggle(300);
+            }
+        );
+        $("#home-ec-overview").hover(
+            function () {
+                $("#collapse-ec-overview").slideToggle(300);
+            }, function () {
+                $("#collapse-ec-overview").slideToggle(300);
             }
         );
     </script>
