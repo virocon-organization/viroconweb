@@ -21,7 +21,7 @@ estimation
   * inverse first order reliability method (IFORM) or the
   * highest density contour (HDC) method
 
-ViroCon is written in Python 3.6.4, Django 1.11.3 and uses our package 
+ViroCon is written in Python 3.6.4, Django 1.11.11 and uses our package
 [viroconcom](https://github.com/ahaselsteiner/viroconcom) for 
 statistical computations.
 
