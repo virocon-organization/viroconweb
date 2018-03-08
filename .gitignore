@@ -15,8 +15,6 @@ user/migrations/__pycache__/
 *.out
 *.log
 *.DS_Store
-virocon/secret_key.txt
-virocon/email_host_password.txt
 *_build
 *_build/*
 contour/static/*
