@@ -18,3 +18,5 @@ six==1.11.0
 statsmodels==0.8.0
 whitenoise==3.3.1
 https://github.com/ahaselsteiner/viroconcom/archive/master.zip
+# Requirements for heroku:
+gunicorn==19.7.1
