@@ -22,10 +22,17 @@ from subprocess import Popen, PIPE
 #
 # after import matplotlib.pyplot as plt
 # on Andreas' windows and travis this is works:  plt.switch_backend('agg')
-# on Heroku this might work: plt.use('Agg'
+# on Heroku this does not work, thus I am trying this (see next lines)
 
-import matplotlib.pyplot as plt
-plt.use('Agg')
+import matplotlib
+gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
+for gui in gui_env:
+    try:
+        matplotlib.use(gui,warn=False, force=True)
+        from matplotlib import pyplot as plt
+        break
+    except:
+        continue
 
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
