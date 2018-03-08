@@ -8,7 +8,7 @@ urlpatterns = [
     url(r'^home/', include('home.urls')),
     url(r'^info/', include('info.urls')),
     url(r'^user/', include('user.urls')),
-    url(r'^enviro/', include('enviro.urls')),
+    url(r'^contour/', include('contour.urls')),
 ]
 
 if settings.DEBUG:

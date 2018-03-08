@@ -40,7 +40,7 @@ AUTH_USER_MODEL = 'user.User'
 # Application definition
 
 INSTALLED_APPS = [
-    'enviro.apps.EnviroConfig',
+    'contour.apps.ContourConfig',
     'user.apps.UserConfig',
     'info.apps.InfoConfig',
     'home.apps.HomeConfig',
@@ -152,8 +152,8 @@ ALLOWED_HOSTS = [
     'serene-sierra-98066.herokuapp.com'
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'enviro/static/user_generated')
-MEDIA_URL = '/enviro/static/user_generated/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'contour/static/user_generated')
+MEDIA_URL = '/contour/static/user_generated/'
 
 # execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025

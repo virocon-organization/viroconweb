@@ -3,9 +3,9 @@
 *.xml
 *.cpython-35.*
 .idea/
-contact/__pycache__/
-contact/migrations/__pycache__/
-enviro/migrations/__pycache__/
+info/__pycache__/
+info/migrations/__pycache__/
+contour/migrations/__pycache__/
 home/migrations/__pycache__/
 user/__pycache__/
 user/migrations/__pycache__/
@@ -20,9 +20,9 @@ EngineeringApp/secret_key.txt
 EngineeringApp/email_host_password.txt
 *_build
 *_build/*
-enviro/static/*
-!enviro/static/vis-*
-!enviro/static/bullshit.js
+contour/static/*
+!contour/static/vis-*
+!contour/static/bullshit.js
 # a sample data base is in the repository, it should not be changed
 # use git update-index --assume-unchanged db.sqlite3
 # (see https://stackoverflow.com/questions/9794931/keep-file-in-a-git-repo-but-dont-track-changes)

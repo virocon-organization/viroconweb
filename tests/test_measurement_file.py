@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
-from enviro.forms import MeasureFileForm
+from contour.forms import MeasureFileForm
 
 
 class UploadFileTestCase(TestCase):
@@ -47,7 +47,7 @@ class UploadFileTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # Then test the view, which contains a plot of the file.
-        response = self.client.post(reverse('enviro:measure_file_model_add'),
+        response = self.client.post(reverse('contour:measure_file_model_add'),
                                     {'title' : file_name,
                                      'measure_file' : test_file_simple_uploaded
                                     },
@@ -55,7 +55,7 @@ class UploadFileTestCase(TestCase):
         self.assertContains(response, "scatter plot", status_code = 200)
 
         # Then share the file with another user. First show the view.
-        response = self.client.get(reverse('enviro:measure_file_model_update',
+        response = self.client.get(reverse('contour:measure_file_model_update',
                                            kwargs={'pk': 1}),
                                     follow=True)
         self.assertContains(response, "secondary user",
@@ -63,14 +63,14 @@ class UploadFileTestCase(TestCase):
         # Then post that the file should be shared with a secondary user.
         # Use a non-existing user name, one should be redirected to home and an
         # error message should be shown.
-        response = self.client.post(reverse('enviro:measure_file_model_update',
+        response = self.client.post(reverse('contour:measure_file_model_update',
                                            kwargs={'pk': 1}),
                                     {'username': 'non_existing_user'},
                                     follow=True)
         self.assertContains(response, "Apply methods",
                             status_code = 200)
         # Use an existing user name, one should be redirected to the overview.
-        response = self.client.post(reverse('enviro:measure_file_model_update',
+        response = self.client.post(reverse('contour:measure_file_model_update',
                                            kwargs={'pk': 1}),
                                     {'username': 'sabine_mustermann'},
                                     follow=True)
@@ -80,7 +80,7 @@ class UploadFileTestCase(TestCase):
         # Finally delete the uploaded file. This servers two purposes:
         # 1. To test it
         # 2. To avoid adding up .csv files in the dir each time the test is run
-        response = self.client.get(reverse('enviro:measure_file_model_delete',
+        response = self.client.get(reverse('contour:measure_file_model_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
         self.assertContains(response, "Uploaded measurement files",
