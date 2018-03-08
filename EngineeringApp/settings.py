@@ -42,7 +42,7 @@ AUTH_USER_MODEL = 'user.User'
 INSTALLED_APPS = [
     'enviro.apps.EnviroConfig',
     'user.apps.UserConfig',
-    'contact.apps.ContactConfig',
+    'info.apps.InfoConfig',
     'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -8,6 +8,6 @@ class ImprintTestCase(TestCase):
         self.client = Client()
 
     def test_renders_correctly(self):
-        response = self.client.get(reverse('contact:impressum'), follow=True)
+        response = self.client.get(reverse('info:impressum'), follow=True)
         self.assertContains(response, "Impressum",
                             status_code = 200)

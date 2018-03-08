@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 from . import views
 
-app_name = 'contact'
+app_name = 'info'
 
 urlpatterns = [
     url(r'^impressum$', views.impressum, name='impressum'),
