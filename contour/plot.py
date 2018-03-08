@@ -22,8 +22,22 @@ from subprocess import Popen, PIPE
 #
 # after import matplotlib.pyplot as plt
 # on Andreas' windows and travis this is works:  plt.switch_backend('agg')
-# on Heroku this does not work, thus I am trying this (see next lines)
+# on Heroku this does not work.
+# on Andreas Windows 10 and Heroku this works:
+#   thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-
+#   backends-in-matplotlib-python
+#   import matplotlib
+#   gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
+#   for gui in gui_env:
+#        try:
+#           matplotlib.use(gui,warn=False, force=True)
+#           from matplotlib import pyplot as plt
+#           break
+#       except:
+#            continue
 
+# thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
+# -in-matplotlib-python
 import matplotlib
 gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
 for gui in gui_env:
