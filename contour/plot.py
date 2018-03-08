@@ -19,8 +19,13 @@ from subprocess import Popen, PIPE
 # with-no-module-named-tkinter-on-heroku
 # However this does not work. Consequently we use another solution.
 # Thanks to: https://github.com/matplotlib/matplotlib/issues/3466/
+#
+# after import matplotlib.pyplot as plt
+# on Andreas' windows and travis this is works:  plt.switch_backend('agg')
+# on Heroku this might work: plt.use('Agg'
+
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+plt.use('Agg')
 
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
