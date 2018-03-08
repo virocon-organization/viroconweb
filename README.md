@@ -46,4 +46,4 @@ Contribution guide, issues
 
 ## License
 This software is licensed under the MIT license. For more information, read the 
-file `LICENSE`.
+file [LICENSE](https://github.com/ahaselsteiner/virocon/blob/master/LICENSE).
