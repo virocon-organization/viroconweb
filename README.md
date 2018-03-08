@@ -29,9 +29,8 @@ statistical computations.
 ## How to use ViroCon
 
 If you want to compute environmental contours with a simple web-based user 
-interface, go to our hosted application at 
-[https://serene-sierra-98066.herokuapp.com]
-(https://serene-sierra-98066.herokuapp.com)
+interface, go to our hosted application at
+https://serene-sierra-98066.herokuapp.com
 ++ GIF SHOWING A USER INTERACTING WITH THE APP ++
 
 If you want to compute environmental contours with Python, use the package we 
