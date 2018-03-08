@@ -8,6 +8,6 @@ class HelpTestCase(TestCase):
         self.client = Client()
 
     def test_renders_correctly(self):
-        response = self.client.get(reverse('contact:help'), follow=True)
+        response = self.client.get(reverse('info:help'), follow=True)
         self.assertContains(response, "Help",
                             status_code = 200)

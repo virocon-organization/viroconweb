@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
-from enviro.forms import VariableNumber, VariablesForm
+from contour.forms import VariableNumber, VariablesForm
 
 
 class DirectInputProbModelTestCase(TestCase):
@@ -25,14 +25,14 @@ class DirectInputProbModelTestCase(TestCase):
 
         # Open direct input url and check if the html is correct via the
         # numbers of variable form
-        response = self.client.post('/enviro/models/number-of-variables/',
+        response = self.client.post('/models/number-of-variables/',
                                     {'variable_number' : 3},
                                     follow=True)
         self.assertContains(response, "The first character should be "
                                       "capitalized.", status_code=200)
 
         # Open direct input url and check if the html is correct drectly
-        response = self.client.post(reverse('enviro:probabilistic_model_add',
+        response = self.client.post(reverse('contour:probabilistic_model_add',
                                             args=['02']))
         self.assertContains(response, "The first character should be "
                                       "capitalized.", status_code=200)
@@ -66,7 +66,7 @@ class DirectInputProbModelTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # test the view method and the html which will be generated
-        response = self.client.post(reverse('enviro:probabilistic_model_add',
+        response = self.client.post(reverse('contour:probabilistic_model_add',
                                             args=['02']),
                                     form_input_dict,
                                     follow=True)

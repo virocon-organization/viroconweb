@@ -1,0 +1,238 @@
+<!--HTML-site: Home
+    overview of the function from virocon-->
+
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    <div class="page-header">
+        <h1>Apply methods</h1>
+    </div>
+    <br>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'user:authentication' %}"><p class="bg-danger">Please login to use ViroCon</p></a>
+    {% endif %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="{% if not user.is_authenticated %}not-active{% endif %}">
+        <div class="row">
+            <div class="col-md-6 ">
+                <div class="flow-chart-image hidden-xs hidden-sm">
+                    <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
+                    <p>Start</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <a href="{% url 'contour:measure_file_model_add' %}">
+                    <div class="panel panel-default panel-work-step" id="home-add-measurement-file">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-open" aria-hidden="true"></span>
+                            </div>
+                            Add data from measurement file
+                        </div>
+                        <div class="collapse" id="collapse-add-measurement-file">
+                            Upload your own measurement data as coma seperated values (csv). The file will be
+                            saved and linked with your profile.
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 ">
+                <img src=" {% static 'images/FlowChartArrow_370px854px.png' %}" class="image-bar hidden-xs hidden-sm">
+            </div>
+            <div class="col-md-6">
+                <div class="flow-chart-image  hidden-xs hidden-sm">
+                    <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
+                    <p>Start</p>
+                </div>
+            </div>
+        </div>
+        <br class="visible-xs  visible-sm">
+        <div class="row">
+            <div class="col-md-6 overlap">
+                <a href="{% url 'contour:measure_file_model_select' %}">
+                    <div class="panel panel-default panel-work-step" id="home-fit-probabilistic-model">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                            </div>
+                            Fit probabilistic model to data
+                        </div>
+                        <div class="collapse" id="collapse-fit-probabilistic-model">
+                            Fit a probabilistic model to your measured data. The fit will be visualized. If the
+                            results are satisfying you can save the probabilistic model.
+
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <br class="visible-xs visible-sm">
+            <div class="col-md-6">
+                <a href="{% url 'contour:probabilistic_model_add' '02' %}">
+                    <div class="panel panel-default panel-work-step" id="home-enter-pm-directly">
+                        <div class="panel-heading">
+                            <div class="app_icon">
+                                <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+                            </div>
+
+                            Enter probabilistic model directly
+                        </div>
+                        <div class="collapse" id="collapse-enter-pm-directly">
+                            Enter a probabilistic model directly by fully specifying the joint probability
+                            density function using the Conditional Modeling Approach.
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <img src=" {% static 'images/FlowChartArrowTurnsRight_370px854px.png' %}"
+                     class="image-bar-angle hidden-xs hidden-sm">
+            </div>
+            <div class="col-md-6">
+                <img src=" {% static 'images/FlowChartArrowTurnsLeft_370px854px.png' %}"
+                     class="image-bar-angle hidden-xs hidden-sm">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <br>
+            </div>
+            <div class="col-md-6">
+                <a href="{% url 'contour:probabilistic_model_select' %}">
+                    <div class="panel panel-default panel-work-step" id="home-create-contour">
+                        <div class="panel-heading">
+
+                            <div class="app_icon"><span class="glyphicon glyphicon-globe"></span>
+                            </div>
+                            Compute environmental contour
+                        </div>
+                        <div class="collapse" id="collapse-create-contour">
+                            Compute environmental contours using either the Highest Density Contour (HDC)
+                            method or the Inverse First Order Reliability Method (IFORM).
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <br>
+            </div>
+        </div>
+        <br>
+        <div class="page-header"></div>
+        <h2>Data management</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <a href="{% url 'contour:measure_file_model_overview' %}">
+                    <div class="panel panel-default panel-overview" id="home-measurefiles-overview">
+                        <div class="panel-heading">
+
+                            <div class="app_icon">
+                                <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                            </div>
+                            Measurement files
+                        </div>
+
+                        <div class="collapse" id="collapse-measurefiles-overview">
+                            Inspect, share or delete your uploaded measurement files.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'contour:probabilistic_model_overview' %}">
+                    <div class="panel panel-default panel-overview" id="home-pm-overview">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
+                            </div>
+                            Probabilistic models
+                        </div>
+                        <div class="collapse" id="collapse-pm-overview">
+                            Inspect, share or delete your probabilistic models.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'contour:environmental_contour_overview' %}">
+                    <div class="panel panel-default panel-overview" id="home-ec-overview">
+                        <div class="panel-heading">
+                            <div class="app_icon"><span class="glyphicon glyphicon-list-alt"></span>
+                            </div>
+                            Environmental contours
+                        </div>
+                        <div class="collapse" id="collapse-ec-overview">
+                            Inspect, share or delete your environmental contours.
+                        </div>
+                    </div>
+                </a>
+                <br>
+            </div>
+        </div>
+    </div>
+    <script>
+        $("#home-add-measurement-file").hover(
+            function () {
+                $("#collapse-add-measurement-file").slideToggle(300);
+            }, function () {
+                $("#collapse-add-measurement-file").slideToggle(300);
+            }
+        );
+        $("#home-fit-probabilistic-model").hover(
+            function () {
+                $("#collapse-fit-probabilistic-model").slideToggle(300);
+            }, function () {
+                $("#collapse-fit-probabilistic-model").slideToggle(300);
+            }
+        );
+        $("#home-enter-pm-directly").hover(
+            function () {
+                $("#collapse-enter-pm-directly").slideToggle(300);
+            }, function () {
+                $("#collapse-enter-pm-directly").slideToggle(300);
+            }
+        );
+        $("#home-create-contour").hover(
+            function () {
+                $("#collapse-create-contour").slideToggle(300);
+            }, function () {
+                $("#collapse-create-contour").slideToggle(300);
+            }
+        );
+        $("#home-measurefiles-overview").hover(
+            function () {
+                $("#collapse-measurefiles-overview").slideToggle(300);
+            }, function () {
+                $("#collapse-measurefiles-overview").slideToggle(300);
+            }
+        );
+        $("#home-pm-overview").hover(
+            function () {
+                $("#collapse-pm-overview").slideToggle(300);
+            }, function () {
+                $("#collapse-pm-overview").slideToggle(300);
+            }
+        );
+        $("#home-ec-overview").hover(
+            function () {
+                $("#collapse-ec-overview").slideToggle(300);
+            }, function () {
+                $("#collapse-ec-overview").slideToggle(300);
+            }
+        );
+    </script>
+{% endblock content %}

@@ -34,7 +34,7 @@
                     <span class="icon-bar"></span>
                 </button>
                 <div class="links">
-                    <a class="logo" href=" {% url 'home:home' %}">
+                    <a class="logo" href=" {% url 'contour:index' %}">
                         <img class="logo_desktop visible-lg-block visible-md-block visible-sm-block" alt="Logo "
                              src=" {% static 'images/ViroVektorCA.png' %}">
                         <img class="logo_mobile visible-xs-block" alt="Logo" src=" {% static 'images/ViroVektorCA.png' %}">
@@ -52,9 +52,9 @@
                                     class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a href=" {% url 'enviro:measure_file_model_overview' %}">My measurement files</a></li>
-                                <li><a href="{% url 'enviro:probabilistic_model_overview' %}">My probabilistic models</a></li>
-                                <li><a href="{% url 'enviro:environmental_contour_overview' %}">My environmental contours</a></li>
+                                <li><a href=" {% url 'contour:measure_file_model_overview' %}">My measurement files</a></li>
+                                <li><a href="{% url 'contour:probabilistic_model_overview' %}">My probabilistic models</a></li>
+                                <li><a href="{% url 'contour:environmental_contour_overview' %}">My environmental contours</a></li>
                                 <li role="separator" class="divider"></li>
                                 <li><a href="{% url 'user:profile' %}">Profile</a></li>
                                 <li><a href="{% url 'user:logout' %}">Log out</a></li>
@@ -68,12 +68,12 @@
                         </li>
                     {% endif %}
                     <li>
-                        <a href="{% url 'contact:about' %}"> <span class="glyphicon glyphicon-info-sign"></span>
+                        <a href="{% url 'info:about' %}"> <span class="glyphicon glyphicon-info-sign"></span>
                             About
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'contact:help' %}"> <span class="glyphicon glyphicon-question-sign"></span>
+                        <a href="{% url 'info:help' %}"> <span class="glyphicon glyphicon-question-sign"></span>
                             Help
                         </a>
                     </li>
@@ -93,7 +93,7 @@
         <div class="links">
             <ul class="nav navbar-nav">
                 <li>
-                    <a href="{% url 'contact:impressum' %}">Imprint</a>
+                    <a href="{% url 'info:impressum' %}">Imprint</a>
                 </li>
             </ul>
         </div>
