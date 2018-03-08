@@ -56,11 +56,7 @@ class ComputeInterface:
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
                                    adjust(fit_settings['scale_dependency_%s' % i][1:]))
                      })
-            print('distribution of variable '+ str(i) + ":")
-            print(dists[i])
-        print('calling Fit() from compute_interface.fit_curves')
         fit = Fit(dates, dists)
-        print('done with Fit() from compute_interface.fit_curves')
         return fit
 
     @staticmethod
