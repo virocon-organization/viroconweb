@@ -6,7 +6,6 @@
 info/__pycache__/
 info/migrations/__pycache__/
 contour/migrations/__pycache__/
-home/migrations/__pycache__/
 user/__pycache__/
 user/migrations/__pycache__/
 .DS_Store

@@ -19,6 +19,9 @@ from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
 from .compute_interface import ComputeInterface
 
 
+def index(request):
+    return render(request, 'contour/home.html')
+
 class Handler:
     @staticmethod
     def overview(request, collection):
@@ -29,7 +32,7 @@ class Handler:
         :return:            HttpResponse. 
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             meas = collection.objects.all()  # better name
             context = set()
@@ -67,7 +70,7 @@ class Handler:
         :return:            HttpResponse.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             instance = get_object_or_404(collection, pk=pk)
             if hasattr(instance, 'primary_user'):
@@ -90,7 +93,7 @@ class Handler:
         :return:            HttpResponse.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             redirection = 'contour:' + collection.url_str() + '_overview'
             template = 'contour/update_sec_user.html'
@@ -110,7 +113,7 @@ class Handler:
                         messages.add_message(request, messages.ERROR,
                                              'Error. The user name you entered'
                                              ', ' + name + ', does not exist.')
-                        return redirect('home:home')
+                        return redirect('contour:index')
                     else:
                         instance.save()
                 return redirect(redirection)
@@ -179,7 +182,7 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def select(request):
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             collection = MeasureFileModel
             meas = collection.objects.all()
@@ -203,7 +206,7 @@ class MeasureFileHandler(Handler):
         :return: 
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             measure_file_form = forms.MeasureFileForm()
             if request.method == 'POST':
@@ -236,7 +239,7 @@ class MeasureFileHandler(Handler):
         :return:        HttpResponse.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             mfm_item = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
@@ -291,7 +294,7 @@ class MeasureFileHandler(Handler):
         :return:        HttpResponse to enter a new fit.     
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             plot.ProbabilisticModel.objects.all().filter(pk=pk).delete()
             user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
@@ -304,7 +307,7 @@ class MeasureFileHandler(Handler):
         :return:        HttpResponse.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
@@ -335,7 +338,7 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def select(request):
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             user_pm = models.ProbabilisticModel.objects.all().filter(primary_user=request.user)
             return render(request, 'contour/probabilistic_model_select.html', {'context': user_pm})
@@ -350,7 +353,7 @@ class ProbabilisticModelHandler(Handler):
                             about wrong input.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             var_num = args[0]
             var_num_int = int(var_num)
@@ -433,7 +436,7 @@ class ProbabilisticModelHandler(Handler):
         :return:            a graph with table (pdf) or error message.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             item = models.ProbabilisticModel.objects.get(pk=pk)
             var_names = []
@@ -461,7 +464,7 @@ class ProbabilisticModelHandler(Handler):
         :return:                    HttpResponse with the generated graphic (pdf) or error message.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             iform_form = forms.IFormForm()
             cs = ComputeInterface
@@ -580,7 +583,7 @@ class ProbabilisticModelHandler(Handler):
         :return:                    HttpResponse with the generated graphic (pdf) or error message.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             hdc_form = forms.HDCForm(var_names=var_names)
             cs = ComputeInterface()
@@ -689,7 +692,7 @@ class ProbabilisticModelHandler(Handler):
         :return:            a VariablesForm with the certain variable number 
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             var_num_str = str()
             if request.method == 'POST':
@@ -713,7 +716,7 @@ class ProbabilisticModelHandler(Handler):
         :return:        HttpResponse.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return redirect('contour:index')
         else:
             probabilistic_model = models.ProbabilisticModel.objects.get(pk=pk)
             dists_model = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
@@ -780,7 +783,7 @@ def download_pdf(request):
     :return:            result pdf 
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect('/home')
+        return redirect('contour:index')
     else:
         response = HttpResponse(content_type='application/pdf')
         path = 'attachment; filename="' + settings.PATH_STATIC + \

@@ -25,7 +25,7 @@ class DirectInputProbModelTestCase(TestCase):
 
         # Open direct input url and check if the html is correct via the
         # numbers of variable form
-        response = self.client.post('/contour/models/number-of-variables/',
+        response = self.client.post('/models/number-of-variables/',
                                     {'variable_number' : 3},
                                     follow=True)
         self.assertContains(response, "The first character should be "

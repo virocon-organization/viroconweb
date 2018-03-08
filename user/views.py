@@ -28,7 +28,7 @@ def authentication(request):
         form = AuthenticationForm(None, request.POST or None)
         if form.is_valid():
             auth.login(request, form.get_user())
-            return HttpResponseRedirect(reverse('home:home'))
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             return render(request, 'user/login.html', {'form': form})
 
@@ -79,10 +79,10 @@ def logout(request):
     HttpResponseRedirect to home.
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         auth.logout(request)
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
 
 
 def profile(request):
@@ -98,7 +98,7 @@ def profile(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         path = PATH_STATIC + PATH_USER_GENERATED + str(request.user)
         storage_space = user_storage_space(path)
@@ -120,7 +120,7 @@ def edit(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         if request.method == 'POST':
             form = CustomUserEditForm(request.POST, instance=request.user)
@@ -148,7 +148,7 @@ def change_password(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         if request.method == 'POST':
             form = PasswordChangeForm(data=request.POST, user=request.user)

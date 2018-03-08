@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'contour.apps.ContourConfig',
     'user.apps.UserConfig',
     'info.apps.InfoConfig',
-    'home.apps.HomeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
