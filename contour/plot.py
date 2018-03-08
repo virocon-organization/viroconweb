@@ -51,7 +51,7 @@ for gui in gui_env:
     except:
         continue
 print("Using:",matplotlib.get_backend())
-if matplotlib.get_backend()=='TKAgg':
+if matplotlib.get_backend()=='TkAgg':
     plt.switch_backend('agg')
     print("Switched backend to agg")
 
