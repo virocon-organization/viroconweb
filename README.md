@@ -6,7 +6,7 @@
 ViroCon is an easy-to-use web-based software to compute environmental contours.
 
 ## About
-This is the code of the web application [ViroCon](www.not-hosted-yet.com).
+This is the code of the web application [ViroCon](https://serene-sierra-98066.herokuapp.com/).
 
 ViroCon helps you to design marine structures, which need to withstand load 
 combinations based on wave, wind and current. It lets you define extreme 
@@ -29,7 +29,7 @@ statistical computations.
 
 If you want to compute environmental contours with a simple web-based user 
 interface, go to our hosted application at 
-[www.not-hosted-yet.com](www.not-hosted-yet.com)
+[www.not-hosted-yet.com](https://serene-sierra-98066.herokuapp.com/)
 ++ GIF SHOWING A USER INTERACTING WITH THE APP ++
 
 If you want to compute environmental contours with Python, use the package we 
