@@ -39,14 +39,19 @@ from subprocess import Popen, PIPE
 # thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
-gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
+gui_env = ['GTK', 'GTKAgg', 'GTKCairo', 'GTK3Agg', 'GTK3Cairo', 'MacOSX', 'nbAgg',
+         'Qt4Agg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo',
+         'WebAgg', 'WX', 'WXAgg', 'WXCairo']
 for gui in gui_env:
     try:
+        print("testing", gui)
         matplotlib.use(gui,warn=False, force=True)
         from matplotlib import pyplot as plt
         break
     except:
         continue
+print("Using:",matplotlib.get_backend())
+
 
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
