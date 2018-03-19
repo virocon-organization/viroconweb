@@ -42,7 +42,7 @@ import matplotlib
 gui_env = ['TkAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg', 'GTK', 'GTKCairo', 'GTK3Agg',
            'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo',
            'TkCairo', 'WebAgg', 'WX', 'WXCairo']
-non_gui_env =['agg', 'cairo', 'gdk', 'pdf', 'pgf', 'ps', 'svg', 'template']
+non_gui_env =['Agg', 'agg', 'cairo', 'gdk', 'pdf', 'pgf', 'ps', 'svg', 'template']
 backend_worked = False
 for gui in gui_env:
     try:
