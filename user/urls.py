@@ -1,9 +1,14 @@
-"""Urls.py manages the urls for the user management
+"""
+Url design for the user app.
 
 Attributes
 ----------
 app_name : str
     sets the app name to call it e.g. in templates.
+
+urlpatterns : list of url's
+    stores the url design of the user app.
+
 """
 from django.conf.urls import url
 from . import views

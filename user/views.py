@@ -6,24 +6,26 @@ from .forms import CustomUserCreationForm
 from .forms import CustomUserEditForm
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, \
+    PasswordResetConfirmView
 import os
 import math
 from contour.settings import PATH_STATIC, PATH_USER_GENERATED
 
 
-
 def authentication(request):
-    """This method to login users.
+    """
+    Login users.
 
     Parameters
     ----------
-    request : to authenticate the user.
+    request : HttpRequest
+        To authenticate the user.
 
     Returns
     -------
     HttpResponse
-        if method post and login successful to home. if method post and login unsuccessful to again to login with error
+        If method post and login successful to home. if method post and login unsuccessful to again to login with error
         information. else to login.
     """
     form = AuthenticationForm()
@@ -41,33 +43,37 @@ def authentication(request):
 
 # Method is called after userdata is entered and checks database for verification
 def authentic(request, username, password):
-    """Validates the user login details.
+    """
+    Validates the user login details.
+
     Parameters
     ----------
-    request : request
-        to validate user login details.
+    request : HttpRequest
+        To validate user login details.
 
     username : str
-        name for the login.
+        Name for the login.
 
     password : str
-        password for the login.
+        Password for the login.
     """
     user = auth.authenticate(username=username, password=password)
     auth.login(request, user)
 
 
 def create(request):
-    """Creates a new user account .
+    """
+    Creates a new user account .
 
     Parameters
     ----------
-    request : request
-        to create a new user account.
+    request : HttpRequest
+        For user/edit.html to create a new user account.
 
     Returns
     -------
     HttpResponse
+        Combines the user/edit.html template and a certain dictionary.
     """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -82,17 +88,18 @@ def create(request):
 
 
 def logout(request):
-    """The method logs out a user.
+    """
+    Logs out a user.
 
     Parameters
     ---------
-    request : request
-        to log out.
+    request : HttpRequest
+        To log out a user.
 
     Return
     ------
     HttpResponseRedirect
-        to home.
+        Redirect to home.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -102,16 +109,18 @@ def logout(request):
 
 
 def profile(request):
-    """The method views the user profile.
+    """
+    Shows the user profile.
 
     Parameters
     ----------
-    request : request
-        to view the user profile.
+    request : HttpRequest
+        For user/profile.html to view the user profile.
 
     Returns
     -------
     HttpResponse
+        Ff user is logged in to user/profile.html template combined with a dictionary. Else to the index page.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -124,16 +133,20 @@ def profile(request):
 
 
 def edit(request):
-    """The method allows users to edit their profiles.
+    """
+    Shows the user edit page.
 
     Parameters
     ---------
-    request : request
-        request to edit a user profile.
+    request : HttpRequest
+        For user/edit.html to edit a user profile.
 
     Returns
     -------
     HttpResponse
+        IF the user is not logged in: Redirct to the index page. Else to the user/edit.html template combined with
+        a dictionary.
+
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -153,16 +166,18 @@ def edit(request):
 
 def change_password(request):
     """
-    The method allows a user to change his password.
+    Shows the change password page.
 
     Parameters
     ----------
-    request : request
-        to change the user password
+    request : HttpRequest
+        for user/edit.html to change the user password
 
     Returns
     -------
     HttpResponse
+        IF the user is not logged in: Redirct to the index page. Else to the user/edit.html template combined with
+        a dictionary.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -182,18 +197,19 @@ def change_password(request):
 
 
 class ResetView(PasswordResetView):
-    """inherits form PasswordResetView and modifies some attributes.
+    """
+    Shows the page to reset a password.
 
     Attributes
     ----------
     template_name : str
-        defines the path to the html template.
+        Defines the path to the html template.
     email_template_name : str
-        defines the path of the email content file.
+        Defines the path of the email content file.
     subject_template_name : str
-        defines the path of the email subject file.
+        Defines the path of the email subject file.
     succes_url : str
-        url if the password reset was a success.
+        Url if the password reset was a success.
     """
     template_name = 'user/password_reset/form.html'
     email_template_name = 'user/password_reset/email.html'
@@ -202,7 +218,9 @@ class ResetView(PasswordResetView):
 
 
 class ResetDoneView(PasswordResetDoneView):
-    """inherits from PasswordResetDoneView and modifies some values
+    """
+    Shows the done.html page after a user has been emailed a link to reset their password.
+
     Attributes
     ----------
     template_name : str
@@ -212,31 +230,35 @@ class ResetDoneView(PasswordResetDoneView):
 
 
 class ResetConfirmView(PasswordResetConfirmView):
-    """inherits from PasswordResetConfirm and modifies some values
+    """
+    Shows a form for entering a new password.
+
     Attributes
     ----------
     template_name : str
-        defines the path to the html template.
+        Defines the path to the html template.
     succes_url : str
-        url if the password reset was a success.
+        Url if the password reset was a success.
     """
     template_name = 'user/password_reset/confirm.html'
     success_url = '/user/reset/done'
 
 
 class ResetCompleteView(PasswordResetCompleteView):
-    """inherits from PasswordResetCompleteView and modifies some values
+    """
+    Informs the user that the password has been successfully changed.
+
     Attributes
     ----------
     template_name : str
-        defines the path to the html template.
+        Defines the path to the html template.
     """
     template_name = 'user/password_reset/complete.html'
 
 
 # Thanks to: https://stackoverflow.com/questions/1392413/calculating-a-
 # directorys-size-using-python
-def user_storage_space(start_path = '.'):
+def user_storage_space(start_path='.'):
     """
     Calculates the storage space that the user's file occupy in byte.
 
@@ -253,13 +275,28 @@ def user_storage_space(start_path = '.'):
     total_size = convert_size(total_size)
     return total_size
 
+
 # Thanks to: https://stackoverflow.com/questions/5194057/better-way-to-convert-
 # file-sizes-in-python
 def convert_size(size_bytes):
-   if size_bytes == 0:
-       return "0B"
-   size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-   i = int(math.floor(math.log(size_bytes, 1024)))
-   p = math.pow(1024, i)
-   s = round(size_bytes / p, 2)
-   return "%s %s" % (s, size_name[i])
+    """
+    Converts the storage size of a file to a better readable value with unit prefixes.
+
+    Parameters
+    ----------
+    size_bytes : int
+        Storage size of a file.
+
+    Return
+    ------
+    str
+        better readable storage size of a file with unit prefixes.
+
+    """
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])

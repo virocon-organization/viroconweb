@@ -4,7 +4,8 @@ from django.core import validators
 
 
 class User(AbstractUser):
-    """This class inherits form AbstractUser and represents the user.
+    """
+    Inherits form AbstractUser and represents the custom user model with own fields.
 
     Attributes
     ----------

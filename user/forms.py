@@ -1,3 +1,6 @@
+"""
+All user forms that are used to edit or generate a user.
+"""
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
@@ -5,44 +8,51 @@ from .models import User
 
 
 class CustomUserCreationForm(UserCreationForm):
-    """This class represents a form to create a new user.
+    """
+    A form to create a new user.
     """
     class Meta(UserCreationForm.Meta):
-        """metadata for the model User. Selects fields of the moodel.
+        """
+        Metadata for the model User. Selects which fields should be editable in this form.
         """
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name', 'organisation', 'type_of_use',)
 
 
 class CustomUserChangeForm(UserChangeForm):
-    """This class represents a form to change attributes of a user. The Form is used in the admin area.
+    """
+    A form to change attributes of a user. This form is only used in the admin area.
     """
     class Meta(UserChangeForm.Meta):
-        """metadata for the model User. Selects fields of the model.
+        """
+        Metadata for the model User. Selects which fields should be editable in this form.
         """
         model = User
         fields = '__all__'
 
 
 class CustomUserEditForm(UserChangeForm):
-    """This class represents a form to change attributes of a user by himself.
+    """
+    A form to change attributes of a user by himself.
 
     Attributes
     ----------
     password : str
-        None
+        None - to erase the password in the form.
     """
     password = None
 
     class Meta(UserChangeForm.Meta):
-        """metadata for the model User. Selects fields of the model.
+        """
+        Metadata for the model User. Selects which fields should be editable in this form.
         """
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'organisation', 'type_of_use')
 
 
 class CustomUserAdmin(UserAdmin):
-    """This class provides which fields are seen in the admin area.
+    """
+    Provides which fields are seen in the admin area.
 
     Attributes
     ---------
