@@ -42,10 +42,11 @@ import matplotlib
 gui_env = ['TkAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg', 'GTK', 'GTKCairo', 'GTK3Agg',
            'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo',
            'TkCairo', 'WebAgg', 'WX', 'WXCairo']
+non_gui_env =['agg', 'cairo', 'gdk', 'pdf', 'pgf', 'ps', 'svg', 'template']
 backend_worked = False
 for gui in gui_env:
     try:
-        print("testing", gui)
+        print("Testing", gui)
         matplotlib.use(gui,warn=False, force=True)
         from matplotlib import pyplot as plt
         backend_worked = True
@@ -54,8 +55,14 @@ for gui in gui_env:
         continue
 print("Using:",matplotlib.get_backend())
 if backend_worked==False or matplotlib.get_backend()=='TkAgg':
-    plt.switch_backend('agg')
-    print("Switched backend to agg")
+    for env in non_gui_env:
+        try:
+            print("Testing ", env)
+            plt.switch_backend(env)
+            break
+        except:
+            continue
+print("Using:",matplotlib.get_backend())
 
 
 from descartes import PolygonPatch
