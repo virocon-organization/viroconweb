@@ -42,16 +42,18 @@ import matplotlib
 gui_env = ['TkAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg', 'GTK', 'GTKCairo', 'GTK3Agg',
            'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo',
            'TkCairo', 'WebAgg', 'WX', 'WXCairo']
+backend_worked = False
 for gui in gui_env:
     try:
         print("testing", gui)
         matplotlib.use(gui,warn=False, force=True)
         from matplotlib import pyplot as plt
+        backend_worked = True
         break
     except:
         continue
 print("Using:",matplotlib.get_backend())
-if matplotlib.get_backend()=='TkAgg':
+if backend_worked==False or matplotlib.get_backend()=='TkAgg':
     plt.switch_backend('agg')
     print("Switched backend to agg")
 
