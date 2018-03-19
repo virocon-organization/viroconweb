@@ -17,7 +17,7 @@ def about(request):
     Return
     ------
     HttpResponse
-        Rendered text with the request in combination with the template info/about.html
+        Is based on the template info/about.html.
 
     """
     return render(request, 'info/about.html')
@@ -36,7 +36,7 @@ def imprint(request):
     Return
     ------
     HttpResponse
-        Rendered text with the request in combination with the template info/imprint.html
+        Is based on the template info/imprint.html.
 
     """
     return render(request, 'info/imprint.html')
@@ -55,7 +55,7 @@ def help(request):
     Return
     ------
     HttpResponse
-        Rendered text with the request in combination with the template info/help.html
+        Is based on the template info/help.html.
 
     """
     return render(request, 'info/help.html')
