@@ -1,0 +1,45 @@
+{% extends "../base.html" %}
+{% load static %}
+{% block content %}
+    <div class="page-header">
+        <h1>Contour settings</h1>
+    </div>
+    <br>
+    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Reliability level</h3>
+            </div>
+            {% for x in form %}
+                <div class="panel-body">
+                    <div class="form-group CreateDataText">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-2"> {{ x.label_tag }}</div>
+                        <div class="col-md-4"> {{ x }}</div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-3"><span class="text-danger small">{{ x.errors }}</span></div>
+                    </div>
+                </div>
+                {% if x.name == 'sea_state'%}
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Numerical computation</h3>
+                    </div>
+                    {% if form.method == 'HDC' %}
+                        <span style="color: #737373;"><small>
+                            <br>
+                            The numerical grid has to be bigger than the contour.
+                            <br>
+                        </small></span>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            <div class="form-group">
+                <span style="color: gray;"><small>Please consider that the calculation may take a few minutes.</small></span>
+                <br>
+                <button type="submit" class="btn btn-primary">Calculate</button>
+            </div>
+        </div>
+    </form>
+
+{% endblock content %}

@@ -17,6 +17,7 @@ a:hover {
     text-decoration: none
 }
 
+
 .textlink {
     color: #21467a !important;
     font-family: 'Rajdhani', sans-serif;
@@ -26,6 +27,15 @@ a:hover {
 .textlink:hover {
     color:#b61231 !important;
     text-decoration: underline;
+}
+
+/* headlines */
+h1 {
+    font-size: 35px !important;
+}
+
+h2 {
+    font-size: 30px !important;
 }
 
 .navbar-default .navbar-nav>li>a {

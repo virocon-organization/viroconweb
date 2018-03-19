@@ -8,6 +8,6 @@ class AboutTestCase(TestCase):
         self.client = Client()
 
     def test_renders_correctly(self):
-        response = self.client.get(reverse('contact:about'), follow=True)
+        response = self.client.get(reverse('info:about'), follow=True)
         self.assertContains(response, "ViroCon GitHub repository",
                             status_code = 200)

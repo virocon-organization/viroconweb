@@ -1,1 +1,1 @@
-web: gunicorn EngineeringApp.wsgi --log-file -
+web: gunicorn virocon.wsgi --log-file -

@@ -7,6 +7,10 @@ from .forms import CustomUserEditForm
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
+import os
+import math
+from contour.settings import PATH_STATIC, PATH_USER_GENERATED
+
 
 
 def authentication(request):
@@ -27,7 +31,7 @@ def authentication(request):
         form = AuthenticationForm(None, request.POST or None)
         if form.is_valid():
             auth.login(request, form.get_user())
-            return HttpResponseRedirect(reverse('home:home'))
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             return render(request, 'user/login.html', {'form': form})
 
@@ -91,10 +95,10 @@ def logout(request):
         to home.
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         auth.logout(request)
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
 
 
 def profile(request):
@@ -110,9 +114,13 @@ def profile(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
-        return render(request, 'user/profile.html')
+        path = PATH_STATIC + PATH_USER_GENERATED + str(request.user)
+        storage_space = user_storage_space(path)
+        return render(request,
+                      'user/profile.html',
+                      {'storage_space': storage_space})
 
 
 def edit(request):
@@ -128,7 +136,7 @@ def edit(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         if request.method == 'POST':
             form = CustomUserEditForm(request.POST, instance=request.user)
@@ -157,7 +165,7 @@ def change_password(request):
     HttpResponse
     """
     if request.user.is_anonymous:
-        return HttpResponseRedirect(reverse('home:home'))
+        return HttpResponseRedirect(reverse('contour:index'))
     else:
         if request.method == 'POST':
             form = PasswordChangeForm(data=request.POST, user=request.user)
@@ -224,3 +232,34 @@ class ResetCompleteView(PasswordResetCompleteView):
         defines the path to the html template.
     """
     template_name = 'user/password_reset/complete.html'
+
+
+# Thanks to: https://stackoverflow.com/questions/1392413/calculating-a-
+# directorys-size-using-python
+def user_storage_space(start_path = '.'):
+    """
+    Calculates the storage space that the user's file occupy in byte.
+
+    Parameters
+    ----------
+    start_path : String
+        The path to the directory of the user.
+    """
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    total_size = convert_size(total_size)
+    return total_size
+
+# Thanks to: https://stackoverflow.com/questions/5194057/better-way-to-convert-
+# file-sizes-in-python
+def convert_size(size_bytes):
+   if size_bytes == 0:
+       return "0B"
+   size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+   i = int(math.floor(math.log(size_bytes, 1024)))
+   p = math.pow(1024, i)
+   s = round(size_bytes / p, 2)
+   return "%s %s" % (s, size_name[i])
