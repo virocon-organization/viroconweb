@@ -11,32 +11,16 @@ from django.template.loader import get_template
 from subprocess import Popen, PIPE
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
+#
 # The standard solution to fix it is to use:
 #   import matplotlib
 #   matplotlib.use('Agg')
 #   import matplotlib.pyplot as plt
 # see https://stackoverflow.com/questions/41319082/import-matplotlib-failing-
 # with-no-module-named-tkinter-on-heroku
-# However this does not work. Consequently we use another solution.
-# Thanks to: https://github.com/matplotlib/matplotlib/issues/3466/
 #
-# after import matplotlib.pyplot as plt
-# on Andreas' windows and travis this is works:  plt.switch_backend('agg')
-# on Heroku this does not work.
-# on Andreas Windows 10 and Heroku this works:
-#   thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-
-#   backends-in-matplotlib-python
-#   import matplotlib
-#   gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
-#   for gui in gui_env:
-#        try:
-#           matplotlib.use(gui,warn=False, force=True)
-#           from matplotlib import pyplot as plt
-#           break
-#       except:
-#            continue
-
-# thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
+# However this does not work. Consequently we use another solution, which is
+# inspired by https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
 all_backends = matplotlib.rcsetup.all_backends
@@ -44,17 +28,17 @@ backend_worked = False
 for gui in all_backends:
     try:
         print("Testing", gui)
-        matplotlib.use(gui,warn=False, force=True)
+        matplotlib.use(gui, warn=False, force=True)
         from matplotlib import pyplot as plt
         backend_worked = True
         break
     except:
         continue
-print("Using:",matplotlib.get_backend())
+print("Using", matplotlib.get_backend())
 if backend_worked==False or matplotlib.get_backend()=='TkAgg':
     from matplotlib import pyplot as plt
     plt.switch_backend('agg')
-    print("Using:",matplotlib.get_backend())
+    print("Switched backend and now using", matplotlib.get_backend())
 
 
 from descartes import PolygonPatch
