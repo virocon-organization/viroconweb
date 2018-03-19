@@ -39,9 +39,9 @@ from subprocess import Popen, PIPE
 # thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
-gui_env = ['GTK', 'GTKAgg', 'GTKCairo', 'GTK3Agg', 'GTK3Cairo', 'MacOSX', 'nbAgg',
-         'Qt4Agg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo',
-         'WebAgg', 'WX', 'WXAgg', 'WXCairo']
+gui_env = ['TkAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg', 'GTK', 'GTKCairo', 'GTK3Agg',
+           'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo',
+           'TkCairo', 'WebAgg', 'WX', 'WXCairo']
 for gui in gui_env:
     try:
         print("testing", gui)
