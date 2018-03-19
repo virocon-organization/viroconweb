@@ -8,8 +8,7 @@ before_install:
 script:
 - mkdir _build
 - python manage.py test
-- coverage run --source=contact,EngineeringApp,enviro,home,user  manage.py test
-- bash ./deploy_docs.sh
+- coverage run --source=virocon,contour,user,info  manage.py test
 
 after_success: coveralls
 

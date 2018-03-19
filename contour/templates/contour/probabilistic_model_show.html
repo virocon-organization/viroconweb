@@ -1,0 +1,63 @@
+{% extends "../base.html" %}
+{% load static %}
+{% load latexify %}
+{% block content %}
+    <div class="page-header">
+        <h1>Probabilistic model</h1>
+    </div>
+    <br>
+    <div class="container-fluid probabilstic-model-show">
+        <h2>{{ probabilistic_model.collection_name }}</h2>
+        <h3>Probability density function</h3>
+        {% for latex_string in latex_string_list %}
+            <p class="density-function-latex">
+                {% latexify latex_string math_inline=True %}
+            </p>
+        {% endfor %}
+        {% if probabilistic_model.measure_file_model %}
+            <h3>Associated measurement file</h3>
+            <p>
+                file: '{{ probabilistic_model.measure_file_model.title }}'
+            </p>
+            {% if directory_measure_plot_after_prefix %}
+                <p>
+                    <button class="btn btn-default" data-toggle="collapse" data-target="#measure-file-plot">Show plot
+                    </button>
+                <div id="measure-file-plot" class="collapse">
+                    <img src="{% static directory_measure_plot_after_prefix %}" class="img-responsive center-block">
+                </div>
+                </p>
+            {% endif %}
+            {% if imgs %}
+                <h3>Evaluation of the fit</h3>
+                <button class="btn btn-default" data-toggle="collapse" data-target="#fit-images">Show fits</button>
+                <div id="fit-images" class="collapse">
+                    {% for img in imgs %}
+                        <img src="{% static img %}" class="img-responsive center-block">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+        <h3>Environmental contour</h3>
+        <div class="col-sm-4">Compute an environmental contour:</div>
+        <div class="col-sm-1">
+            <form class="form-horizontal"
+                  action="{% url 'contour:probabilistic_model_calc' probabilistic_model.pk 'I' %}"
+                  method="post"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">IFORM</button>
+            </form>
+        </div>
+        <div class="col-sm-1">
+            <form class="form-horizontal"
+                  action="{% url 'contour:probabilistic_model_calc' probabilistic_model.pk 'H' %}"
+                  method="post"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">HDC</button>
+            </form>
+        </div>
+    </div>
+    {% include "latexify/scripts.html" %}
+{% endblock content %}

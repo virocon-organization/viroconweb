@@ -9,7 +9,7 @@ class DashboardTestCase(TestCase):
 
     def test_renders_correctly(self):
         # Without login
-        response = self.client.get(reverse('home:home'), follow=True)
+        response = self.client.get(reverse('contour:index'), follow=True)
         self.assertContains(response, "Please login to use ViroCon",
                             status_code = 200)
 
@@ -23,6 +23,6 @@ class DashboardTestCase(TestCase):
                             'type_of_use' : 'commercial',
                             'password1' : 'Musterpasswort2018',
                             'password2' : 'Musterpasswort2018'})
-        response = self.client.get(reverse('home:home'), follow=True)
+        response = self.client.get(reverse('contour:index'), follow=True)
         self.assertContains(response, "Apply methods",
                             status_code = 200)

@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
-from enviro.forms import HDCForm
+from contour.forms import HDCForm
 
 
 class EnvironmentalContourTestCase(TestCase):
@@ -45,14 +45,14 @@ class EnvironmentalContourTestCase(TestCase):
         }
 
         # create a probabilistic model
-        self.client.post(reverse('enviro:probabilistic_model_add',
+        self.client.post(reverse('contour:probabilistic_model_add',
                                  args=['02']),
                          form_input_dict,
                          follow=True)
 
 
     def test_iform_contour(self):
-        response = self.client.get(reverse('enviro:probabilistic_model_calc',
+        response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'I'}),
                                     follow=True)
@@ -67,7 +67,7 @@ class EnvironmentalContourTestCase(TestCase):
             'n_steps' : '50',
             'method' : 'IFORM'
         }
-        response = self.client.post(reverse('enviro:probabilistic_model_calc',
+        response = self.client.post(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'I'}),
                                     form_input_dict,
@@ -75,8 +75,15 @@ class EnvironmentalContourTestCase(TestCase):
         self.assertContains(response, 'Download PDF',
                             status_code=200)
 
+        # Finally delete the environmental contour. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid amassing .png and .pdf files each time the test is run
+        response = self.client.get(reverse('contour:environmental_contour_delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
+
     def test_highest_density_contour(self):
-        response = self.client.get(reverse('enviro:probabilistic_model_calc',
+        response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'H'}),
                                     follow=True)
@@ -102,10 +109,17 @@ class EnvironmentalContourTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
         # check if html of the HDC results view is correct
-        response = self.client.post(reverse('enviro:probabilistic_model_calc',
+        response = self.client.post(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
                                                     'method': 'H'}),
                                     form_input_dict,
                                     follow=True)
         self.assertContains(response, 'Download PDF',
                             status_code=200)
+
+        # Finally delete the environmental contour. This servers two purposes:
+        # 1. To test it
+        # 2. To avoid amassing .png and .pdf files each time the test is run
+        response = self.client.get(reverse('contour:environmental_contour_delete',
+                                           kwargs={'pk': 1}),
+                                   follow=True)
