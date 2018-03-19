@@ -39,12 +39,9 @@ from subprocess import Popen, PIPE
 # thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
-gui_env = ['TkAgg', 'GTKAgg', 'Qt4Agg', 'WXAgg', 'GTK', 'GTKCairo', 'GTK3Agg',
-           'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo',
-           'TkCairo', 'WebAgg', 'WX', 'WXCairo']
-non_gui_env =['Agg', 'agg', 'cairo', 'gdk', 'pdf', 'pgf', 'ps', 'svg', 'template']
+all_backends = matplotlib.rcsetup.all_backends
 backend_worked = False
-for gui in gui_env:
+for gui in all_backends:
     try:
         print("Testing", gui)
         matplotlib.use(gui,warn=False, force=True)
@@ -55,14 +52,9 @@ for gui in gui_env:
         continue
 print("Using:",matplotlib.get_backend())
 if backend_worked==False or matplotlib.get_backend()=='TkAgg':
-    for env in non_gui_env:
-        try:
-            print("Testing ", env)
-            plt.switch_backend(env)
-            break
-        except:
-            continue
-print("Using:",matplotlib.get_backend())
+    from matplotlib import pyplot as plt
+    plt.switch_backend('agg')
+    print("Using:",matplotlib.get_backend())
 
 
 from descartes import PolygonPatch
