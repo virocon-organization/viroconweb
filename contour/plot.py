@@ -631,6 +631,8 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             )
             process.communicate(rendered_tpl)
             print('Successfully ran Popen() and process.communicate. The tempdir is',tempdir)
+        print('Listing the content of the temporary directory:')
+        os.listdir(tempdir)
         with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
             pdf = f.read()
 
