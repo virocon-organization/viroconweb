@@ -619,7 +619,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     template = get_template('contour/latex_report.tex')
     rendered_tpl = template.render(render_dict).encode('utf-8')
     # Python3 only. For python2 check out the docs!
-    with tempfile.TemporaryDirectory() as tempdir:
+    with tempfile.TemporaryDirectory(dir='static') as tempdir:
         # Create subprocess, supress output with PIPE and
         # run latex twice to generate the TOC properly.
         # Finally read the generated pdf.
