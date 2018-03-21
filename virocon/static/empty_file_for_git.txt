@@ -1,3 +1,0 @@
-This file was created trying to solve the issue described here:
-https://stackoverflow.com/questions/19323513/heroku-django-oserror-no-such-
-file-or-directory-app-myappname-static
