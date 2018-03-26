@@ -19,7 +19,7 @@
             {% for object in context %}
                 <tr>
                     <td> {{ object.probabilistic_model.collection_name }},
-                        {{ object.return_period|floatformat }} year </td>
+                        {{ object.return_period|floatformat }} years </td>
                     <td class="hidden-xs"> {{ object.primary_user }}</td>
                     <td class="hidden-xs">
                         {% for secUser in object.secondary_user.all %}
