@@ -163,7 +163,8 @@ class Handler:
             return HttpResponseRedirect('/home')
         else:
             html = 'contour/' + collection.url_str() + '_show.html'
-            return render(request, html)
+            path = latex_report_path(request, pk)
+            return render(request, html, {'path': path})
 
 
 class MeasureFileHandler(Handler):
@@ -540,7 +541,8 @@ class ProbabilisticModelHandler(Handler):
                         var_symbols,
                         method)
 
-
+                    print('IFORMs path: ')
+                    print(path)
                     #probabilistic_model.measure_file_model.measure_file
                     # if matrix 4dim - send data for 4dim interactive plot.
                     if len(contour_coordinates[0]) == 4:
@@ -776,21 +778,28 @@ class EnvironmentalContourHandler(Handler):
         return Handler.delete(request, pk, collection)
 
 
-def download_pdf(request):
+def latex_report_path(request, pk):
     """
-    The function returns a pdf download with the results of the contour calculation.
-    :param request:     user request to download a certain result pdf.
-    :return:            result pdf 
+    The function returns the path of the latex report
+
+    Parameters
+    ----------
+    request : HttpRequest,
+        The HttpRequest, which contains the user.
+    pk : int,
+        Primary key of the EnvironmentalContour model.
+
+    Returns
+    -------
+    path : str,
+        The path to the latex report.
     """
-    if request.user.is_anonymous:
-        return redirect('contour:index')
-    else:
-        response = HttpResponse(content_type='application/pdf')
-        path = 'attachment; filename="' + settings.PATH_STATIC + \
-               settings.PATH_USER_GENERATED + str(request.user) + \
-               '/contour/latex_report.pdf"'
-        response['Content-Disposition'] = path
-        return response
+    path = settings.PATH_USER_GENERATED + \
+           str(request.user) + "/contour/" + \
+            str(pk) + "/latex_report.pdf"
+    print("Print latex_report_path's path:")
+    print(path)
+    return path
 
 
 def get_info_from_file(url):

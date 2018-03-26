@@ -1,5 +1,5 @@
 """
-Settings for the enviro app.
+Settings for the contour app.
 
 The constants define the directory, where user generated data are stored.
 """

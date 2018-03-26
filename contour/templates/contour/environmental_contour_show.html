@@ -37,11 +37,12 @@
 
     </div>
 
-    <br><br>
+    <br>
+    <br>
 
     <object class="contour-pdf" data="{% static path %}" type="application/pdf" style="width:80%;height:80%">
-        <a href="{% url 'contour:download_pdf' %}">PDF laden</a>
     </object>
+
     <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
     <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
