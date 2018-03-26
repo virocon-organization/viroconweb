@@ -5,6 +5,7 @@ from user.models import User
 from django.core.exceptions import ValidationError
 import random
 import string
+from . import settings
 
 # Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
@@ -195,6 +196,14 @@ class EnvironmentalContour(models.Model):
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
+
+    def path_of_latex_report(self):
+        if self.path_of_statics.startswith(settings.PATH_STATIC):
+            path = self.path_of_statics[settings.PATH_STATIC.__len__():]
+        else:
+            path = self.path_of_statics
+        path = path + "/" + settings.LATEX_REPORT_NAME
+        return path
 
     @staticmethod
     def url_str():

@@ -47,7 +47,8 @@ from .plot_generic import convert_ndarray_list_to_multipoint
 
 from . import settings
 
-from .models import ProbabilisticModel, DistributionModel, ParameterModel
+from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
+    AdditionalContourOption
 from .compute_interface import setup_mul_dist
 
 
@@ -504,7 +505,7 @@ def data_to_table(matrix, var_names):
     return table
 
 def create_latex_report(contour_coordinates, user, environmental_contour,
-                        var_names, var_symbols, method):
+                        var_names, var_symbols):
     """
     Creates a latex-based pdf report describing the performed environmental
     contour calculation.
@@ -533,11 +534,6 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     var_symbols : list of strings
         Symbols of the environental variables used in the probabilistic model,
         e.g. ['V', 'Hs']
-
-    method : enviro.views.Method
-        Contains all the information used to create the environmental contour
-        Has among other the attributes method.contour_method and
-        method.return_period
 
     Returns
     -------
@@ -606,10 +602,14 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     latex_content += r"\subsection{Environmental contour} \
         \begin{itemize}"
     latex_content += r"\item Contour method: "
-    latex_content += method.contour_method
+    latex_content += environmental_contour.contour_method
     latex_content += r"\item Return period: "
-    latex_content += str(method.return_period) + " years"
-    for key, val in method.additional_options.items():
+    latex_content += str(environmental_contour.return_period) + " years"
+    additonal_options = AdditionalContourOption.objects.filter(
+        environmental_contour=environmental_contour)
+    for additonal_option in additonal_options:
+        key = additonal_option.option_key
+        val = additonal_option.option_value
         latex_content += r"\item " + key + ": " + str(val)
     latex_content += r"\end{itemize}"
 
@@ -635,7 +635,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
 
     short_directory = settings.PATH_USER_GENERATED + user + \
                              '/contour/' + str(environmental_contour.pk) + '/'
-    short_file_path_report = short_directory + 'latex_report.pdf'
+    short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
     full_directory = settings.PATH_STATIC + short_directory
     full_file_path_report = settings.PATH_STATIC + short_file_path_report
     if not os.path.exists(full_directory):

@@ -139,7 +139,7 @@ class Handler:
         """
 
     @staticmethod
-    def show(request, pk, collection):
+    def show(request, pk, model, path=None):
         """
         Shows an object from the data base, e.g. an EnvironmentalContour object.
 
@@ -149,9 +149,9 @@ class Handler:
             The HttpRequest to show the object.
         pk : int,
             Primary key of the object in the data base.
-        collection : models.Model,
+        model : models.Model,
             A Django model, which has a database associated to it, e.g.
-            models.EnvronmentalContour.
+            models.EnvronmentalContour. This is the class, not an instance.
 
 
         Returns
@@ -162,9 +162,9 @@ class Handler:
         if request.user.is_anonymous:
             return HttpResponseRedirect('/home')
         else:
-            html = 'contour/' + collection.url_str() + '_show.html'
-            path = latex_report_path(request, pk)
-            return render(request, html, {'path': path})
+            html = 'contour/' + model.url_str() + '_show.html'
+            object = model.objects.get(pk=pk)
+            return render(request, html, {'object' : object})
 
 
 class MeasureFileHandler(Handler):
@@ -478,16 +478,11 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['return_period']),
                             float(iform_form.cleaned_data['sea_state']),
                             iform_form.cleaned_data['n_steps'])
-                        method = Method(
-                            "", "IFORM",
-                            float(iform_form.cleaned_data['return_period']),
-                            float(iform_form.cleaned_data['sea_state']),
-                            {"Number of points on the contour":
-                                 iform_form.cleaned_data['n_steps']})
                         environmental_contour = EnvironmentalContour(
                             primary_user=request.user,
                             fitting_method="",
-                            contour_method="IFORM",
+                            contour_method="Inverse first order reliability "
+                                           "method (IFORM)",
                             return_period=float(
                                 iform_form.cleaned_data['return_period']),
                             state_duration=float(
@@ -538,13 +533,10 @@ class ProbabilisticModelHandler(Handler):
                         str(request.user),
                         environmental_contour,
                         var_names,
-                        var_symbols,
-                        method)
+                        var_symbols)
 
-                    print('IFORMs path: ')
-                    print(path)
-                    #probabilistic_model.measure_file_model.measure_file
-                    # if matrix 4dim - send data for 4dim interactive plot.
+                    # If the model is 4-dimensional send data to create a 4D
+                    # interactive plot.
                     if len(contour_coordinates[0]) == 4:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -552,10 +544,11 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'u': contour_coordinates[0][3].tolist(), 'dim': 4,
                                        'labels': labels})
-                    # if matrix 3dim - send data for 3dim interactive plot
+                    # If the model is 3-dimensional send data for a 3D
+                    # interactive plot
                     elif len(contour_coordinates[0]) == 3:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -563,12 +556,12 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'labels': labels})
 
                     elif len(contour_coordinates) < 3:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'path': path, 'dim': 2})
+                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2})
                 else:
                     return render(request, 'contour/contour_settings.html', {'form': iform_form})
             else:
@@ -608,12 +601,11 @@ class ProbabilisticModelHandler(Handler):
                                 float(hdc_form.cleaned_data['n_years']),
                                 float(hdc_form.cleaned_data['sea_state']),
                                 limits, deltas)
-                            method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
-                                            hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                             environmental_contour = EnvironmentalContour(
                                 primary_user=request.user,
                                 fitting_method="",
-                                contour_method="IFORM",
+                                contour_method="Highest density contour (HDC) "
+                                               "method",
                                 return_period=float(
                                     hdc_form.cleaned_data['n_years']),
                                 state_duration=float(
@@ -665,8 +657,7 @@ class ProbabilisticModelHandler(Handler):
                                                     str(request.user),
                                                     environmental_contour,
                                                     var_names,
-                                                    var_symbols,
-                                                    method)
+                                                    var_symbols)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
                     if len(contour_coordinates[0]) > 2:
@@ -676,11 +667,11 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
                     else:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'path': path, 'dim': 2, 'warn': warn})
+                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2, 'warn': warn})
                 else:
                     return render(request, 'contour/contour_settings.html', {'form': hdc_form})
             else:
@@ -769,9 +760,8 @@ class EnvironmentalContourHandler(Handler):
 
     @staticmethod
     def show(request, pk, model=models.EnvironmentalContour):
-        # This method does not work properly yet since the _show template was
-        # written before we had a DjangoModel for EnvironmentalContour.
-        return Handler.show(request, pk, model)
+        path = latex_report_path(request, pk)
+        return Handler.show(request, pk, model, path)
 
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
@@ -797,8 +787,6 @@ def latex_report_path(request, pk):
     path = settings.PATH_USER_GENERATED + \
            str(request.user) + "/contour/" + \
             str(pk) + "/latex_report.pdf"
-    print("Print latex_report_path's path:")
-    print(path)
     return path
 
 
@@ -819,12 +807,3 @@ def get_info_from_file(url):
             var_symbols.append(reader[i])
             i += 1
         return var_names, var_symbols
-
-
-class Method:
-    def __init__(self, fitting_method, contour_method, return_period, state_duration, additional_options=None):
-        self.fitting_method = fitting_method
-        self.contour_method = contour_method
-        self.return_period = return_period
-        self.state_duration = state_duration
-        self.additional_options = additional_options

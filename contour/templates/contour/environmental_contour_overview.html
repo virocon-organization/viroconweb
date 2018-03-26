@@ -9,7 +9,7 @@
         <div class="panel-heading">Contours</div>
         <table class="table">
             <tr>
-                <td>Id</td>
+                <td>Model, return period</td>
                 <td class="hidden-xs">Owner</td>
                 <td class="hidden-xs">Other users</td>
                 <td>Add user</td>
@@ -18,7 +18,8 @@
             </tr>
             {% for object in context %}
                 <tr>
-                    <td> {{ object.pk }} </td>
+                    <td> {{ object.probabilistic_model.collection_name }},
+                        {{ object.return_period|floatformat }} year </td>
                     <td class="hidden-xs"> {{ object.primary_user }}</td>
                     <td class="hidden-xs">
                         {% for secUser in object.secondary_user.all %}
