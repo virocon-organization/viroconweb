@@ -518,19 +518,15 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     contour_coordinates : n-dimensional matrix
         The coordinates of the environmental contour.
         The format is defined by compute_interface.iform()
-
     user : django.contrib.auth.models.User
         The user, who is working with the app. The report will be saved in a
         directory named like the user.
-
     environmental_contour : enviro.models.EnvironmentalContour
         Django's environmental contour model, which contains the contour's path,
         the options that were used to create it and its probabilistc model
-
     var_names : list of strings
         Names of the environmental variables used in the probabilistic model,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-
     var_symbols : list of strings
         Symbols of the environental variables used in the probabilistic model,
         e.g. ['V', 'Hs']

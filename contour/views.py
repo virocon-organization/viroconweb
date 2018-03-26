@@ -139,7 +139,7 @@ class Handler:
         """
 
     @staticmethod
-    def show(request, pk, model, path=None):
+    def show(request, pk, model):
         """
         Shows an object from the data base, e.g. an EnvironmentalContour object.
 
@@ -760,50 +760,8 @@ class EnvironmentalContourHandler(Handler):
 
     @staticmethod
     def show(request, pk, model=models.EnvironmentalContour):
-        path = latex_report_path(request, pk)
-        return Handler.show(request, pk, model, path)
+        return Handler.show(request, pk, model)
 
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
         return Handler.delete(request, pk, collection)
-
-
-def latex_report_path(request, pk):
-    """
-    The function returns the path of the latex report
-
-    Parameters
-    ----------
-    request : HttpRequest,
-        The HttpRequest, which contains the user.
-    pk : int,
-        Primary key of the EnvironmentalContour model.
-
-    Returns
-    -------
-    path : str,
-        The path to the latex report.
-    """
-    path = settings.PATH_USER_GENERATED + \
-           str(request.user) + "/contour/" + \
-            str(pk) + "/latex_report.pdf"
-    return path
-
-
-def get_info_from_file(url):
-    """
-    The function reads the variable names form a csv. file.
-    :param url:     path of the csv. file.
-    :return:        the names of the variables.
-    """
-    with open(url, 'r') as file:
-        reader = csv.reader(file, delimiter=';').__next__()
-        var_names = []
-        var_symbols = []
-        i = 0
-        while i < (len(reader)):
-            var_names.append(reader[i])
-            i += 1
-            var_symbols.append(reader[i])
-            i += 1
-        return var_names, var_symbols
