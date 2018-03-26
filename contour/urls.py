@@ -11,9 +11,6 @@ app_name = 'contour'
 urlpatterns = [
     url(r'^$', views.index, name='index'),
 
-    # URL to download the latex-based pdf report
-    url(r'^download_pdf$', views.download_pdf, name='download_pdf'),
-
     # --------------------------------------------------------------------------
     # EnvironmentalContour
     url(r'^contours/(?P<pk>[0-9]+)/$',

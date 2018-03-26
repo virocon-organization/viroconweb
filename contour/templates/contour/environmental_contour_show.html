@@ -30,18 +30,19 @@
         {% endif %}
     </div>
     <div class="col-md-2">
-        <button type="button" class="btn btn-default" onclick="location='{% static path %}'">Download PDF</button>
+        <button type="button" class="btn btn-default" onclick="location='{% static object.path_of_latex_report  %}">Download PDF</button>
     </div>
 
     <div class="col-md-4">
 
     </div>
 
-    <br><br>
+    <br>
+    <br>
 
-    <object class="contour-pdf" data="{% static path %}" type="application/pdf" style="width:80%;height:80%">
-        <a href="{% url 'contour:download_pdf' %}">PDF laden</a>
+    <object class="contour-pdf" data="{% static object.path_of_latex_report %}" type="application/pdf" style="width:80%;height:80%">
     </object>
+
     <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
     <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
