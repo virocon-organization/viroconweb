@@ -765,3 +765,34 @@ class EnvironmentalContourHandler(Handler):
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
         return Handler.delete(request, pk, collection)
+
+
+def get_info_from_file(url):
+    """	
+    Reads the variable names form a csv. file.	
+    
+    Parameters
+    ----------
+    url : str
+        Path to the csv file.
+
+    Returns
+    -------
+    var_names : list of strings
+        Names of the environmental variables used in csv file,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    var_symbols : list of strings
+        Symbols of the environental variables used in the csv file,
+        e.g. ['V', 'Hs']
+    """
+    with open(url, 'r') as file:
+        reader = csv.reader(file, delimiter=';').__next__()
+        var_names = []
+        var_symbols = []
+        i = 0
+        while i < (len(reader)):
+            var_names.append(reader[i])
+            i += 1
+            var_symbols.append(reader[i])
+            i += 1
+        return var_names, var_symbols
