@@ -10,6 +10,7 @@ from scipy.stats import norm
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
 
+
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
 # The standard solution to fix it is to use:
