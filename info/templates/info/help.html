@@ -6,85 +6,207 @@
         <h1>Help</h1>
     </div>
     <div class="left-align-div">
-        <h2>Fitting</h2>
-        <h2>Probabilistic model</h2>
+        <h2>1. Purpose of ViroCon</h2>
+        <p>
+            ViroCon helps you design marine structures, which need to
+            withstand load combinations based on wave, wind and current. It
+            lets you identify extreme environmental conditions with a defined
+            return period using the environmental contour method. ViroCon is
+            built to cover the complete workflow to derive an
+            environmental contour, which can be seperated
+            into three steps:
+        </p>
+        <ol>
+            <li>
+                Upload data, which describes the environment (wave, wind,
+                current, ...).
+            </li>
+            <li>
+                Fit a probabilistic model to these data (or alternatively enter
+                the probabilistic model directly).
+            </li>
+            <li>
+                Compute the environmental contour.
+            </li>
+        </ol>
+        The implemented methods to address these steps align with DNVGL's
+        current recommended practices for environemntal conditions and
+        environmental loads [1].
+        <h2>2. Fitting</h2>
+        Fitting is done via maximum likelihood estimation (LME).
+        Citation for LME [2].
+        <h2>3. Probabilistic model</h2>
         <p>
             In ViroCon's context a probabilistic model represents a
             probabilistic description of the environment. It describes the
             long-term statistics of the environment with a multivariate
             distribution.
         </p>
-        <h3>Conditonal modeling approach</h3>
+        <h3>3.1 Conditonal modeling approach (CMA)</h3>
         <p>
-            In conditonal modeling aproach [BitnerGregersen1991] one
-            environmental variable has a marginal distribution and all other
-            environmental variables have conditonal distributions.
+            ViroCon uses the conditonal modeling aproach (CMA) [3] for its
+            probabilistic models. In the CMA one environmental variable has a
+            marginal distribution and all other environmental variables have
+            conditonal distributions.
         </p>
-        <h2>Environmental contour</h2>
+        <h2>4. Environmental contour</h2>
         <p>
-            An environmental contour is the boundary of the mathematical region,
-            which makes up the environmental states, which must be considered
-            in a design. Along the contour discrete extreme environmental design
-            conditions (EEDCs) can be selected for ultimate load calculations.
-            Environmental contours can be derived based on a probabilist model.
-            There exist different mathematical definitions for for environmental
-            contours.
+            An environmental contour is the boundary of the mathematical region
+             that makes up the environmental states that must be considered
+            in a design. Along the contour, discrete extreme environmental
+            design conditions (EEDCs) can be selected for ultimate load
+            calculations (Fig. 1).
+            Environmental contours are derived based on a probabilist model.
         </p>
+        <div align="center">
+            <img src="{% static 'images/coastalengineeringarticle_fig1.jpg' %}"
+                 class="img-responsive">
+        </div>
+        <div class="img-caption">
+            Fig. 1. Concept of an environmental contour. (a) The environmental
+            contour encloses all variable combinations, which must be
+            considered in the design process (the design region).
+            (b) Flowchart describing the design process utilizing an
+            environmental contour. Image and caption from Haselsteiner et al.
+            [4].
+        </div>
         <p>
-            ViroCon supports the following two definitons for environmental
-            contours:
+            There exist different mathematical definitions for environmental
+            contours. ViroCon supports the following two definitons for
+            environmental contours:
         </p>
         <ul>
-            <li>Inverse first order reliability method (IFORM) contour</li>
-            <li>Highest density contour (HDC) </li>
+            <li>Inverse first order reliability method (IFORM) contour [5]</li>
+            <li>Highest density contour (HDC) [4]</li>
         </ul>
         <p>
             Other definitions, which are currently not supported are:
         </p>
         <ul>
             <li>Huseby's approach based on hyperplanes and the Monte Carlo
-            method[Huseby2013]</li>
+            method [6]</li>
             <li>Inverse second order reliability method (ISORM) contour
-                [Chai2018]</li>
+                [7]</li>
         </ul>
-        <h3>Inverse first order reliability method (IFORM)</h3>
+        <h3>4.1 Inverse first order reliability method (IFORM)</h3>
         <p>
             Contours based on the inverse first order reliability method (IFORM)
             are defined by hyperplanes in the standard normal space.
             Consequently, the probabilistic model is first transformed to the
-            normal space. There the environmental contour is defined as a
+            normal space. There, the environmental contour is defined as a
             hypersphere. Then, this hypersphere is transformed back to the
-            original space.
+            original space (Fig. 2).
         </p>
         <div align="center">
-            <img src="{% static 'images/ViroConGruppe.png' %}"
+            <img src="{% static 'images/coastalengineeringarticle_fig3_iform.jpg' %}"
                  class="img-responsive">
         </div>
-        <h3>Highest density contour (HDC) </h3>
+        <div class="img-caption">
+            Fig. 2. Contour based on the inverse first order reliability method.
+            Image altered from Haselsteiner et al. [4].
+        </div>
+        More information on the IFORM contour can be found
+        in the publication from Winterstein et al. [5], which introduced the
+        method.
+        <h3>4.2 Highest density contour (HDC) </h3>
         <p>
-            The highest density contour (HDC) is defined in the original
-            variable space. It is the boundary of a highest density region, R:
+            A highest density contour (HDC) is defined in the original
+            variable space. It is the boundary of a highest density region R:
+            <div class="equation-at-help">
+                {% latexify 'R(f_m) = {f(x) \geq f_m}' math_inline=True %},
+            </div>
+            <div class="equation-at-help">
+                {% latexify '\int_{R(f_m)} f(x)dx = 1 - \alpha' math_inline=True %},
+            </div>
         </p>
-        <div class="equation-at-help">
-            {% latexify 'R(f_m) = {f(x) \geq f_m}' math_inline=True %},
-        </div>
-        <div class="equation-at-help">
-            {% latexify '\int_{R(f_m)} f(x)dx = 1 - \alpha' math_inline=True %},
-        </div>
+        <p>
+            where α is the exceedance
+            probability, which depends on the return period T (in years) and the
+            environmental state duration D (in hours):
+            <div class="equation-at-help">
+                {% latexify '\alpha = \dfrac{1}{n} = \dfrac{1}{T \times 365.25 \times 24/D}' math_inline=True %}.
+            </div>
+        </p>
+        <p>
+            By definition a highest density contour has constant probability
+            density along
+            its path and encloses a region that contains 1-α probability
+            (Fig. 3).
+        </p>
         <div align="center">
-            <img src="{% static 'images/ViroConGruppe.png' %}"
+            <img src="{% static 'images/coastalengineeringarticle_fig2_iform_hdc.jpg' %}"
                  class="img-responsive">
         </div>
+        <div class="img-caption">
+            Fig. 3. Definition of a highest density contour. Image altered from
+            Haselsteiner et al. [4].
+        </div>
+        More information on the highest density contour method can be found
+        in the publication from Haselsteiner et al. [4], which introduced the
+        method.
+        <h2>References</h2>
+        <p>
+            <a href="https://rules.dnvgl.com/docs/pdf/dnv/codes/docs/2010-10/
+            rp-c205.pdf" class="textlink">
+                [1] Det Norske Veritas (2010): Recommended practice - DNV-RP-
+                C205 Environmental conditions and environmental loads.
+                Technical report.
+            </a>
+            <br>
+            [2] Maximum likelihood estimation.
+            <br>
+            [3] E. Bitner- Gregersen, S. Haver (1991): Joint environmental
+            model for reliability calculations, in: Proceedings of the
+            International Offshore and Polar Engineering Conference.
+            Edinburgh, United Kingdom, 1991.
+            <br>
+            <a href="https://doi.org/10.1016/j.coastaleng.2017.03.002"
+               class="textlink">
+                [4] A.F. Haselsteiner, J.-H. Ohlendorf, W. Wosniok, K.-D.
+                Thoben (2017): Deriving environmental contours
+                from highest density regions, Coastal Engineering 123, 42-51.
+            </a>
+            <br>
+            [5] S. Winterstein, T. Ude, C. Cornell, P. Bjerager, S. Haver
+            (1993): Environmental parameters for extreme
+            response: inverse FORM with omission factors, in: Proceedings,
+            ICOSSAR-93. Innsbruck, Austria, 1993.
+            <br>
+            <a href="https://doi.org/10.1016/j.oceaneng.2012.12.034"
+               class="textlink">
+                [6] A.B. Huseby , E. Vanem, B. Natvig (2013): A new approach
+                to environmental contours for ocean engineering
+                applications based on direct Monte Carlo simulations,
+                Ocean Engineering 60, 124-135.
+            </a>
+            <br>
+            <a href="https://doi.org/10.1016/j.marstruc.2018.03.007"
+               class="textlink">
+                [7] W. Chai, B.J. Leira (2018): Environmental contours
+                based on inverse SORM,
+                Marine Structures 60, 34-51.
+            </a>
+            <br>
+        </p>
         <h2>Still questions?</h2>
         <p>
-            <a href="mailto:virocon@unibremen.de" class="textlink">Contact us</a>
+            Either open an issue at
+            <a href="https://github.com/ahaselsteiner/virocon/issues"
+               class="textlink">
+                ViroCon's repository</a>
+            or
+            <a href="mailto:virocon@unibremen.de" class="textlink">
+                send us an email
+            </a>.
         </p>
-        <h1>Developers</h1>
+        <h2>Developers</h2>
         <p>
-            Our repository can be found <a href="https://github.com/ahaselsteiner/virocon" class="textlink">here.</a>
+            Our repository can be found <a href="https://github.com/
+            ahaselsteiner/virocon" class="textlink">here.</a>
         </p>
         <p>
-            The documentation can be found <a href="https://ahaselsteiner.github.io/virocon/" class="textlink">here.</a>
+            The documentation can be found <a href="https://ahaselsteiner.
+            github.io/virocon/" class="textlink">here.</a>
         </p>
     </div>
 {% endblock content %}

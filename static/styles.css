@@ -360,9 +360,18 @@ h2 {
 }
 
 .contour_input_field {
-    width: 180px
+    width: 180px;
 }
 
 .equation-at-help {
-    font-size: 14px
+    font-size: 14px;
+}
+
+.img-caption {
+    align: center;
+    font-size: 18px;
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-top: 5px;
+    margin-bottom: 15px;
 }
