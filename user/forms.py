@@ -13,7 +13,7 @@ class CustomUserCreationForm(UserCreationForm):
     """
     class Meta(UserCreationForm.Meta):
         """
-        Metadata for the model User. Selects which fields should be editable in this form.
+        Metadata for the model User. Defines which fields should be editable in this form.
         """
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name', 'organisation', 'type_of_use',)
@@ -25,7 +25,7 @@ class CustomUserChangeForm(UserChangeForm):
     """
     class Meta(UserChangeForm.Meta):
         """
-        Metadata for the model User. Selects which fields should be editable in this form.
+        Metadata for the model User. Defines which fields should be editable in this form.
         """
         model = User
         fields = '__all__'
@@ -33,18 +33,20 @@ class CustomUserChangeForm(UserChangeForm):
 
 class CustomUserEditForm(UserChangeForm):
     """
-    A form to change attributes of a user by himself.
+    A form to change attributes of a user by herself/himself.
 
     Attributes
     ----------
     password : str
-        None - to erase the password in the form.
+       It is not possible to change the user password in this form. The password value is equal to None so
+       the encoded password is not visible in the template. Otherwise it will be possible to see the encoded password
+       in the template.
     """
     password = None
 
     class Meta(UserChangeForm.Meta):
         """
-        Metadata for the model User. Selects which fields should be editable in this form.
+        Metadata for the model User. Defines which fields should be editable in this form.
         """
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'organisation', 'type_of_use')
@@ -52,7 +54,7 @@ class CustomUserEditForm(UserChangeForm):
 
 class CustomUserAdmin(UserAdmin):
     """
-    Provides which fields are seen in the admin area.
+    Defines which fields are seen in the admin area.
 
     Attributes
     ---------

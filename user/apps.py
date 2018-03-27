@@ -1,5 +1,5 @@
 """
-UserConfig class.
+Contains a class for the configuration of the user app.
 """
 from django.apps import AppConfig
 
