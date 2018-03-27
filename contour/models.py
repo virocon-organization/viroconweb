@@ -7,6 +7,7 @@ import random
 import string
 from . import settings
 
+
 # Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
 def measurement_directory_path(instance, filename):
@@ -208,6 +209,7 @@ class EnvironmentalContour(models.Model):
     @staticmethod
     def url_str():
         return "environmental_contour"
+
 
 class AdditionalContourOption(models.Model):
     """
