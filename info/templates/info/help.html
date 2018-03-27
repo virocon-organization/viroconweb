@@ -1,27 +1,90 @@
 {% extends "../base.html" %}
 {% load static %}
+{% load latexify %}
 {% block content %}
     <div class="page-header">
         <h1>Help</h1>
     </div>
-    <h2>Fitting</h2>
-    <h2>Probabilistic model</h2>
-    In ViroCon's context a probabilistic model represents a probabilistic
-    description of the environment. It describes the long-term statistics of the
-    environment with a multivariate distribution.
-    <h3>Conditonal modeling approach</h3>
-    The conditonal modeling aproach was introduced by
-    <h2>Environmental contour</h2>
-    <h3>Inverse first order reliability method (IFORM)</h3>
-    <h3>Highest density contour (HDC) </h3>
-    <p>
-        Still questions? <a href="mailto:virocon@unibremen.de" class="textlink">Contact us</a>
-    </p>
-    <h2>Developers</h2>
-    <p>
-        The documentation can be found <a href="https://ahaselsteiner.github.io/virocon/" class="textlink">here.</a>
-    </p>
-    <p>
-        Our repository can be found <a href="https://github.com/ahaselsteiner/virocon" class="textlink">here.</a>
-    </p>
+    <div class="left-align-div">
+        <h2>Fitting</h2>
+        <h2>Probabilistic model</h2>
+        <p>
+            In ViroCon's context a probabilistic model represents a
+            probabilistic description of the environment. It describes the
+            long-term statistics of the environment with a multivariate
+            distribution.
+        </p>
+        <h3>Conditonal modeling approach</h3>
+        <p>
+            In conditonal modeling aproach [BitnerGregersen1991] one
+            environmental variable has a marginal distribution and all other
+            environmental variables have conditonal distributions.
+        </p>
+        <h2>Environmental contour</h2>
+        <p>
+            An environmental contour is the boundary of the mathematical region,
+            which makes up the environmental states, which must be considered
+            in a design. Along the contour discrete extreme environmental design
+            conditions (EEDCs) can be selected for ultimate load calculations.
+            Environmental contours can be derived based on a probabilist model.
+            There exist different mathematical definitions for for environmental
+            contours.
+        </p>
+        <p>
+            ViroCon supports the following two definitons for environmental
+            contours:
+        </p>
+        <ul>
+            <li>Inverse first order reliability method (IFORM) contour</li>
+            <li>Highest density contour (HDC) </li>
+        </ul>
+        <p>
+            Other definitions, which are currently not supported are:
+        </p>
+        <ul>
+            <li>Huseby's approach based on hyperplanes and the Monte Carlo
+            method[Huseby2013]</li>
+            <li>Inverse second order reliability method (ISORM) contour
+                [Chai2018]</li>
+        </ul>
+        <h3>Inverse first order reliability method (IFORM)</h3>
+        <p>
+            Contours based on the inverse first order reliability method (IFORM)
+            are defined by hyperplanes in the standard normal space.
+            Consequently, the probabilistic model is first transformed to the
+            normal space. There the environmental contour is defined as a
+            hypersphere. Then, this hypersphere is transformed back to the
+            original space.
+        </p>
+        <div align="center">
+            <img src="{% static 'images/ViroConGruppe.png' %}"
+                 class="img-responsive">
+        </div>
+        <h3>Highest density contour (HDC) </h3>
+        <p>
+            The highest density contour (HDC) is defined in the original
+            variable space. It is the boundary of a highest density region, R:
+        </p>
+        <div class="equation-at-help">
+            {% latexify 'R(f_m) = {f(x) \geq f_m}' math_inline=True %},
+        </div>
+        <div class="equation-at-help">
+            {% latexify '\int_{R(f_m)} f(x)dx = 1 - \alpha' math_inline=True %},
+        </div>
+        <div align="center">
+            <img src="{% static 'images/ViroConGruppe.png' %}"
+                 class="img-responsive">
+        </div>
+        <h2>Still questions?</h2>
+        <p>
+            <a href="mailto:virocon@unibremen.de" class="textlink">Contact us</a>
+        </p>
+        <h1>Developers</h1>
+        <p>
+            Our repository can be found <a href="https://github.com/ahaselsteiner/virocon" class="textlink">here.</a>
+        </p>
+        <p>
+            The documentation can be found <a href="https://ahaselsteiner.github.io/virocon/" class="textlink">here.</a>
+        </p>
+    </div>
 {% endblock content %}

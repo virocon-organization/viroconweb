@@ -322,7 +322,7 @@ h2 {
 .panel-overview > .panel-heading {
 }
 
-.probabilstic-model-show {
+.left-align-div {
     text-align: left;
 }
 
@@ -361,4 +361,8 @@ h2 {
 
 .contour_input_field {
     width: 180px
+}
+
+.equation-at-help {
+    font-size: 14px
 }
