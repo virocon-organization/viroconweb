@@ -375,3 +375,28 @@ h2 {
     margin-top: 5px;
     margin-bottom: 15px;
 }
+
+.thump-img-container {
+    width: 14vw;
+    min-width: 150px;
+    min-height: 250px;
+    float:left;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.thumb-img{
+    object-fit: cover;
+    overflow: hidden;
+    width: 14vw;
+    height: 14vw;
+    min-width: 150px;
+    min-height: 150px;
+
+
+
+}
+
+.thump-img-caption {
+   width: 14vw;
+}
