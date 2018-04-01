@@ -42,9 +42,6 @@
 
     <object class="contour-pdf" data="{% static object.path_of_latex_report %}" type="application/pdf" style="width:80%;height:80%">
     </object>
-
-    <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
-    <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
         dim_data_set = {{ dim }};
         if (dim_data_set == 3) {
