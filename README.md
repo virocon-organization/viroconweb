@@ -10,6 +10,10 @@ ViroCon is an easy-to-use web-based software to compute environmental contours.
 This is the code of the web application
 [ViroCon](https://serene-sierra-98066.herokuapp.com).
 
+**ViroCon is currently under development. There is no stable version yet. At 
+this moment the version hosted at heroku might be different than repo's 
+Master branch**
+
 ViroCon helps you to design marine structures, which need to withstand load 
 combinations based on wave, wind and current. It lets you define extreme 
 environmental conditions with a given return period using the environmental 
