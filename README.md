@@ -33,7 +33,7 @@ If you want to compute environmental contours with a simple web-based user
 interface, go to our hosted application at
 https://serene-sierra-98066.herokuapp.com
 
-Here we will input a GIF that shows how a users interacts with the app here.
+Here we will input a GIF that shows how a users interacts with the app.
 
 If you want to compute environmental contours with Python, use the package we 
 built for the needed statistical computations, 
@@ -45,10 +45,13 @@ viroconcom and then computes a environmental contour.
 
 ## Documentation
 **Code** The code's documentation can be found 
-[here](https://ahaselsteiner.github.io/virocon/).
+[here](https://ahaselsteiner.github.io/virocon/). Currently, this is the 
+documentation of the 'viroconcom' package, we will update it to become ViroCon's
+documentation.
 
 **Methods** The app has a help page, which describes the implemented methods in 
-detail. It can be found [here](https://serene-sierra-98066.herokuapp.com/help).
+detail. It can be found 
+[here](https://serene-sierra-98066.herokuapp.com/info/help).
 
 **Paper** We are currently writing an academic paper describing ViroCon. We will
 provide the a linkt to it here. 
@@ -56,12 +59,13 @@ provide the a linkt to it here.
 ## Contributing
 There are various ways you can contribute.
 
-**Issue** If you spotted a bug or have an idea for an improvement please 
-open a issue.
+**Issue** If you spotted a bug, have an idea for an improvement or a new 
+ feature please open a issue. You can either leave it to use to work on the 
+ issue or do it yourself.
 
-**Fork** If you want to fix a bug yourself or want to develop a new feature 
-please fork the repository, then develop the feature in your copy and finally 
-file a pull request.
+**Fork** If you want to work on an issue yourself please fork the repository, 
+then develop the feature in your copy of the repository and finally 
+file a pull request to merge it into our repository.
 
 **Run app** To run a copy of ViroCon locally use the following 
 commands:
