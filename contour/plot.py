@@ -40,7 +40,7 @@ if backend_worked==False or matplotlib.get_backend()=='TkAgg':
     plt.switch_backend('agg')
     print("Switched backend and now using", matplotlib.get_backend())
 
-from mpl_toolkits.mplot3d import axes3d, Axes3D # Needed for projection='3d'
+#from mpl_toolkits.mplot3d import axes3d, Axes3D # Needed for projection='3d'
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
