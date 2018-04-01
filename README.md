@@ -32,19 +32,45 @@ statistical computations.
 If you want to compute environmental contours with a simple web-based user 
 interface, go to our hosted application at
 https://serene-sierra-98066.herokuapp.com
-++ GIF SHOWING A USER INTERACTING WITH THE APP ++
+
+Here we will input a GIF that shows how a users interacts with the app here.
 
 If you want to compute environmental contours with Python, use the package we 
-built for the needed statistical computations, [viroconcom](https://github.com/ahaselsteiner/viroconcom)
-++ GIF SHOWING HOW PIP INSTALL AND THEN A USER COMPUTING AN ENVIRONMENTAL CONTOUR 
-WITH VIROCONCOM ++
+built for the needed statistical computations, 
+[viroconcom](https://github.com/ahaselsteiner/viroconcom).
+
+Here we will input a GIF that shows how a user uses pip install to install 
+viroconcom and then computes a environmental contour.
 
 
 ## Documentation
-Paper, ViroCon help page, [viroconcom documentation](https://ahaselsteiner.github.io/virocon/)
+**Code** The code's documentation can be found 
+[here](https://ahaselsteiner.github.io/virocon/).
+
+**Methods** The app has a help page, which describes the implemented methods in 
+detail. It can be found [here](https://serene-sierra-98066.herokuapp.com/help).
+
+**Paper** We are currently writing an academic paper describing ViroCon. We will
+provide the a linkt to it here. 
 
 ## Contributing
-Contribution guide, issues
+There are various ways you can contribute.
+
+**Issue** If you spotted a bug or have an idea for an improvement please 
+open a issue.
+
+**Fork** If you want to fix a bug yourself or want to develop a new feature 
+please fork the repository, then develop the feature in your copy and finally 
+file a pull request.
+
+**Run app** To run a copy of ViroCon locally use the following 
+commands:
+```
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+```
+Then you should reach a local version of your app at http://localhost:8000
 
 ## License
 This software is licensed under the MIT license. For more information, read the 
