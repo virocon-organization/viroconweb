@@ -59,7 +59,7 @@ class DirectInputProbModelTestCase(TestCase):
         form = VariablesForm(data=form_input_dict, variable_count=2)
         self.assertTrue(form.is_valid())
 
-        # test the view method and the html which will be generated
+        # Test the view method and the html which will be generated
         response = self.client.post(reverse('contour:probabilistic_model_add',
                                             args=['02']),
                                     form_input_dict,

@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 from user.models import User
+from contour.models import ProbabilisticModel, DistributionModel, ParameterModel
+import contour.settings as contour_settings
 
 
 def load_data(apps, schema_editor):
@@ -35,16 +37,181 @@ def load_data(apps, schema_editor):
     user.save()
     user.set_password('Musterpasswort2018')
     user.save()
-    user = User(
+    user2 = User(
         username='sabine_mustermann',
         email='sabine.mustermann@gmail.com',
         first_name='Sabine',
         last_name='Mustermann',
         organisation='Musterfirma',
         type_of_use='academic',
-        password='Musterpasswort2018',
     )
-    user.save()
+    user2.save()
+    user2.set_password('Musterpasswort2018')
+    user2.save()
+
+    # First probabilistic model and its dependent models (distr., param.)
+    probabilistic_model = ProbabilisticModel(
+        primary_user=user,
+        collection_name='Vanem2012 Model',
+        measure_file_model=None,
+    )
+    probabilistic_model.save()
+    path = contour_settings.PATH_STATIC + \
+           contour_settings.PATH_USER_GENERATED + str(user) + \
+           '/prob_model/' + str(probabilistic_model.pk)
+    probabilistic_model.path_of_statics = path
+    probabilistic_model.save(update_fields=['path_of_statics'])
+
+
+    distribution_model = DistributionModel(
+        name='significant wave height [m]',
+        distribution='Weibull',
+        symbol='Hs',
+        probabilistic_model=probabilistic_model)
+    distribution_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=1.471,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=0.888,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=2.776,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+
+    distribution_model = DistributionModel(
+        name='peak period [s]',
+        distribution='Lognormal_2',
+        symbol='Tp',
+        probabilistic_model=probabilistic_model)
+    distribution_model.save()
+    parameter_model = ParameterModel(
+        function='f2',
+        x0=0.0400,
+        x1=0.1748,
+        x2=-0.2243,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=0.0,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='f1',
+        x0=0.1000,
+        x1=1.489,
+        x2=0.1901,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+
+    # Second probabilistic model and its dependent models (distr., param.)
+    probabilistic_model = ProbabilisticModel(
+        primary_user=user,
+        collection_name='3D Model',
+        measure_file_model=None,
+    )
+    probabilistic_model.save()
+    path = contour_settings.PATH_STATIC + \
+           contour_settings.PATH_USER_GENERATED + str(user) + \
+           '/prob_model/' + str(probabilistic_model.pk)
+    probabilistic_model.path_of_statics = path
+    probabilistic_model.save(update_fields=['path_of_statics'])
+
+    distribution_model = DistributionModel(
+        name='significant wave height [m]',
+        distribution='Weibull',
+        symbol='Hs',
+        probabilistic_model=probabilistic_model)
+    distribution_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=1.471,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=0.888,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=2.776,
+        dependency='!',
+        distribution=distribution_model)
+    parameter_model.save()
+
+    distribution_model = DistributionModel(
+        name='peak period [s]',
+        distribution='Lognormal_2',
+        symbol='Tp',
+        probabilistic_model=probabilistic_model)
+    distribution_model.save()
+    parameter_model = ParameterModel(
+        function='f2',
+        x0=0.0400,
+        x1=0.1748,
+        x2=-0.2243,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=0.0,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='f1',
+        x0=0.1000,
+        x1=1.489,
+        x2=0.1901,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+
+    distribution_model = DistributionModel(
+        name='wind speed [m/s]',
+        distribution='Lognormal_2',
+        symbol='V',
+        probabilistic_model=probabilistic_model)
+    distribution_model.save()
+    parameter_model = ParameterModel(
+        function='f2',
+        x0=0.0400,
+        x1=0.1748,
+        x2=-0.2243,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='None',
+        x0=0.0,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
+    parameter_model = ParameterModel(
+        function='f1',
+        x0=0.1000,
+        x1=1.489,
+        x2=0.1901,
+        dependency='0',
+        distribution=distribution_model)
+    parameter_model.save()
 
 
 class Migration(migrations.Migration):
