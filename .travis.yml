@@ -12,11 +12,8 @@ script:
 
 after_success: coveralls
 
-env:
-    global:
-    - ENCRYPTION_LABEL: "2d371be78117"
-    - COMMIT_AUTHOR_EMAIL: "virocon@uni-bremen.de"
-    
+deploy:
+  github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
 
 notifications:
   email:
