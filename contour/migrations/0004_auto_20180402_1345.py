@@ -26,6 +26,8 @@ def load_data(apps, schema_editor):
     # Do not use the historic version of User since it cannot not use the
     # set_password method in that case
     #User = apps.get_model('user', 'User')
+
+    # Seed data base with two users, the first user will get two prob. models
     user = User(
         username='max_mustermann',
         email='max.mustermann@gmail.com',
@@ -61,7 +63,6 @@ def load_data(apps, schema_editor):
            '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
     probabilistic_model.save(update_fields=['path_of_statics'])
-
 
     distribution_model = DistributionModel(
         name='significant wave height [m]',
