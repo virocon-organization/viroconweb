@@ -64,7 +64,7 @@ provide the a linkt to it here.
 There are various ways you can contribute.
 
 **Issue** If you spotted a bug, have an idea for an improvement or a new 
- feature please open a issue. You can either leave it to use to work on the 
+ feature please open a issue. You can either leave it to us to work on the 
  issue or do it yourself.
 
 **Fork** If you want to work on an issue yourself please fork the repository, 
@@ -74,11 +74,13 @@ file a pull request to merge it into our repository.
 **Run app** To run a copy of ViroCon locally use the following 
 commands:
 ```
+git clone https://github.com/ahaselsteiner/virocon
+pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
 ```
-Then you should reach a local version of your app at http://localhost:8000
+Then you should reach a local version of ViroCon at http://localhost:8000
 
 ## License
 This software is licensed under the MIT license. For more information, read the 
