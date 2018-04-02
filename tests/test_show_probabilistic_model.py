@@ -5,19 +5,13 @@ from django.core.urlresolvers import reverse
 class ShowProbModelTestCase(TestCase):
 
     def setUp(self):
-        # create a user
+        # Login
         self.client = Client()
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                          {'username': 'max_mustermann',
-                          'email': 'max.mustermann@gmail.com',
-                          'first_name': 'Max',
-                          'last_name': 'Mustermann',
-                          'organisation': 'Musterfirma',
-                          'type_of_use': 'commercial',
-                          'password1': 'Musterpasswort2018',
-                          'password2': 'Musterpasswort2018'})
+                          'password': 'Musterpasswort2018'})
 
-        # create a form containing the information of the  probabilistic model
+        # Create a form containing the information of the  probabilistic model
         form_input_dict = {
             'variable_name_0': 'significant wave height [m]',
             'variable_symbol_0': 'Hs',
@@ -43,7 +37,7 @@ class ShowProbModelTestCase(TestCase):
             'collection_name': 'direct input Vanem2012'
         }
 
-        # create a probabilistic model
+        # Create a probabilistic model
         self.client.post(reverse('contour:probabilistic_model_add',
                                  args=['02']),
                          form_input_dict,
@@ -53,7 +47,7 @@ class ShowProbModelTestCase(TestCase):
         response = self.client.post(reverse('contour:probabilistic_model_show',
                                             kwargs={'pk': 1}),
                                     follow=True)
-        # check if the H of H_s is formated by latexify
+        # Check if the H of H_s is formated by latexify
         self.assertContains(response, '<span class="django-latexify'
                                       ' math inline">f_{H_{s}}(h_{s})=',
                             status_code=200)

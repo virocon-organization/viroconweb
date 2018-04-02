@@ -6,19 +6,13 @@ from contour.forms import HDCForm
 class EnvironmentalContourTestCase(TestCase):
 
     def setUp(self):
-        # create a user
+        # Login
         self.client = Client()
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                          {'username': 'max_mustermann',
-                          'email': 'max.mustermann@gmail.com',
-                          'first_name': 'Max',
-                          'last_name': 'Mustermann',
-                          'organisation': 'Musterfirma',
-                          'type_of_use': 'commercial',
-                          'password1': 'Musterpasswort2018',
-                          'password2': 'Musterpasswort2018'})
+                          'password': 'Musterpasswort2018'})
 
-        # create a form containing the information of the  probabilistic model
+        # Create a form containing the information of the  probabilistic model
         form_input_dict = {
             'variable_name_0': 'significant wave height [m]',
             'variable_symbol_0': 'Hs',
