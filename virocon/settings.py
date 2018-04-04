@@ -18,8 +18,19 @@ import string
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+# The following lines are needed to handle static files properly (i.e. CSS, Java
+# Script, Images, .csv uplaoded by users).
+# For more information, take a look at:
+# from: https://devcenter.heroku.com/articles/
+# The following 4 lines are from:
+# https://devcenter.heroku.com/articles/django-assets
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectedstatics')
+STATIC_URL = '/static/'
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 key_exists = "SECRET_KEY" in os.environ
@@ -181,23 +192,9 @@ else:
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-#PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-
-#STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
-#STATIC_URL = '/static/'
-
-# Extra places for collectstatic to find static files.
-#STATICFILES_DIRS = (
-#    os.path.join(PROJECT_ROOT, 'static'),
-#)
-
-# Simplified static file serving.
-# https://warehouse.python.org/project/whitenoise/
-
-#STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # see https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 #CSRF_COOKIE_SECURE = True
