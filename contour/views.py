@@ -253,30 +253,31 @@ class MeasureFileHandler(Handler):
                                                     variable_names=var_names)
                 if fit_form.is_valid():
                     ci = ComputeInterface()
-                    try:
-                        fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
-                                            var_number=var_number)
-                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    # try:
+                    fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
+                                        var_number=var_number)
+                    """except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'contour/error.html',
                                       {'error_message': err,
                                        'text': 'Error occured while fitting a probabilistic model to the file.'
                                                'Try it again with different settings please',
                                        'header': 'fit measurement file to probabilistic model',
-                                       'return_url': 'contour:measure_file_model_select'})
+                                       'return_url': 'contour:measure_file_model_select'}) """
                     # try:
                     directory_prefix = settings.PATH_STATIC
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
 
-                    # TODO implement a method which stores the fit result into the model.
-                    store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols, request.user, directory)
-
                     # TODO edit the plot_fit methods which shows the fit result. use a signal if the fit does not
-                    # correspond the user claims to delete the fit.
+                    # correspond the user claims to avoid store_fit().
 
-                    probabilistic_model = plot.plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
-                                                         request.user, mfm_item, directory)
+                    # TODO implement a method which stores the fit result into the model.
+                    # store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols, request.user, directory)
+
+                    probabilistic_model = plot.plot_fits_new(fit, var_names, var_symbols,
+                                                             fit_form.cleaned_data['title'],
+                                                             request.user, mfm_item, directory)
                     # except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     # return render(request, 'contour/error.html',
                     #              {'error_message': err,
@@ -818,14 +819,14 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
     probabilistic_model.save()
 
     i = 0
-    for i in range(3):  # value 10 have to be adjusted.
+    for i in range(3):  # value 3 have to be adjusted. Number of Distribution.
         distribution_model = DistributionModel(name=var_names[i],
                                                symbol=var_symbols[i],
                                                probabilistic_model=probabilistic_model,
                                                distribution='name of the dist mit Jannik besprechen')
         distribution_model.save()
 
-        for j in range(3):  # value have to be adjusted.
+        for j in range(3):  # value have to be adjusted. Number of Parameter of each Distribution.
             parameter_model = ParameterModel(function='',
                                              x0='',
                                              x1='',

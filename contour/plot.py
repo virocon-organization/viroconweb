@@ -10,7 +10,6 @@ from scipy.stats import norm
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
 
-
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
 # The standard solution to fix it is to use:
@@ -24,6 +23,7 @@ from subprocess import Popen, PIPE
 # inspired by https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
+
 all_backends = matplotlib.rcsetup.all_backends
 backend_worked = False
 for gui in all_backends:
@@ -31,16 +31,17 @@ for gui in all_backends:
         print("Testing", gui)
         matplotlib.use(gui, warn=False, force=True)
         from matplotlib import pyplot as plt
+
         backend_worked = True
         break
     except:
         continue
 print("Using", matplotlib.get_backend())
-if backend_worked==False or matplotlib.get_backend()=='TkAgg':
+if backend_worked == False or matplotlib.get_backend() == 'TkAgg':
     from matplotlib import pyplot as plt
+
     plt.switch_backend('agg')
     print("Switched backend and now using", matplotlib.get_backend())
-
 
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
@@ -117,7 +118,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     text = text + 'n=' + str(len(dist_points)) + ')'
 
     ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=distribution_type)
-    n_intervals_histogram = int(round(len(dist_points)/50.0))
+    n_intervals_histogram = int(round(len(dist_points) / 50.0))
     if n_intervals_histogram > 100:
         n_intervals_histogram = 100
     if n_intervals_histogram < 10:
@@ -144,8 +145,8 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     return
 
 
-def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
-                                data_points, fit_func, directory, dist_name):
+def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, param_at, param_values,
+                                fit_func, directory, dist_name):
     """
     The function plots an image which shows the fit of a function. 
     :param main_index:      index of the related distribution.
@@ -181,18 +182,123 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    x = np.linspace(min(data_points[0]) - 2, max(data_points[0]) + 2, 100)
+    x = np.linspace(min(param_at) - 2, max(param_at) + 2, 100)
     y = []
     for x1 in x:
         y.append(fit_func._value(x1))
     ax.plot(x, y, color='#54889c')
-    ax.scatter(data_points[0], data_points[1], color='#9C373A')
+
+    ax.scatter(param_at, param_values, color='#9C373A')
     ax.grid(True)
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
     plt.savefig(directory + '/fit_' + str(main_index) + para_name + '.png')
     plt.close(fig)
+
+
+def plot_fits_new(fit, var_names, var_symbols, title, user, measure_file,
+                  directory):
+    for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
+
+        if fit_inspection_data.shape_at is not None:
+            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'shape', fit_inspection_data.shape_at,
+                                        fit_inspection_data.shape_value, fit.mul_var_dist.distributions[i].shape,
+                                        directory, fit.mul_var_dist.distributions[i].name)
+            for j in range(len(fit_inspection_data.shape_at)):
+                basic_fit = fit_inspection_data.get_basic_fit('shape', j)
+                interval_limits = calculate_intervals(fit_inspection_data.shape_at, i, 0)
+                parent_index = fit.mul_var_dist.dependencies[i][0]
+                symbol_parent_var = None
+                if parent_index is not None:
+                    symbol_parent_var = var_symbols[parent_index]
+                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                       var_symbols[i], symbol_parent_var, directory)
+        else:
+            basic_fit = fit_inspection_data.get_basic_fit('shape', 0)
+            interval_limits = []
+            parent_index = fit.mul_var_dist.dependencies[i][0]
+            symbol_parent_var = None
+            if parent_index is not None:
+                symbol_parent_var = var_symbols[parent_index]
+            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                   var_symbols[i], symbol_parent_var, directory)
+
+        if fit_inspection_data.scale_at is not None:
+            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'loc', fit_inspection_data.loc_at,
+                                        fit_inspection_data.loc_value, fit.mul_var_dist.distributions[i].loc,
+                                        directory, fit.mul_var_dist.distributions[i].name)
+            for j in range(len(fit_inspection_data.shape_at)):
+                basic_fit = fit_inspection_data.get_basic_fit('loc', j)
+                interval_limits = calculate_intervals(fit_inspection_data.loc_at, i, 0)
+                parent_index = fit.mul_var_dist.dependencies[i][0]
+                symbol_parent_var = None
+                if parent_index is not None:
+                    symbol_parent_var = var_symbols[parent_index]
+                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                       var_symbols[i], symbol_parent_var, directory)
+
+        else:
+            basic_fit = fit_inspection_data.get_basic_fit('loc', 0)
+            interval_limits = []
+            parent_index = fit.mul_var_dist.dependencies[i][1]
+            symbol_parent_var = None
+            if parent_index is not None:
+                symbol_parent_var = var_symbols[parent_index]
+            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                   var_symbols[i], symbol_parent_var, directory)
+
+        if fit_inspection_data.loc_at is not None:
+            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'scale', fit_inspection_data.scale_at,
+                                        fit_inspection_data.scale_value, fit.mul_var_dist.distributions[i].scale,
+                                        directory, fit.mul_var_dist.distributions[i].name)
+            for j in range(len(fit_inspection_data.shape_at)):
+                basic_fit = fit_inspection_data.get_basic_fit('scale', j)
+                interval_limits = calculate_intervals(fit_inspection_data.shape_at, i, 0)
+                parent_index = fit.mul_var_dist.dependencies[i][2]
+                symbol_parent_var = None
+                if parent_index is not None:
+                    symbol_parent_var = var_symbols[parent_index]
+                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                       var_symbols[i], symbol_parent_var, directory)
+        else:
+            basic_fit = fit_inspection_data.get_basic_fit('scale', 0)
+            interval_limits = []
+            parent_index = fit.mul_var_dist.dependencies[i][2]
+            symbol_parent_var = None
+            if parent_index is not None:
+                symbol_parent_var = var_symbols[parent_index]
+            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
+                                   var_symbols[i], symbol_parent_var, directory)
+
+
+def calculate_intervals(interval_centers, dimension_index, interval_index):
+    """
+    calculates the width of a certain interval.
+
+    Parameters
+    ----------
+    interval_centers : list of floats
+        the intervals of the fit.
+
+    """
+    if dimension_index == 0 or len(interval_centers) < 2:
+        interval_limits = [min(interval_centers),
+                           max(interval_centers)]
+    else:
+        # Calculate  the interval width assuming constant
+        # interval width.
+        interval_width = interval_centers[1] - interval_centers[0]
+        interval_limits = [interval_centers[interval_index] - 0.5 * interval_width,
+                           interval_centers[interval_index] + 0.5 * interval_width]
+
+    return interval_limits
 
 
 def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
@@ -223,7 +329,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     )
     probabilistic_model.save()
     path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
-        '/prob_model/' + str(probabilistic_model.pk)
+           '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
     probabilistic_model.save(update_fields=['path_of_statics'])
 
@@ -295,7 +401,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
             # see issue #19.
             MAX_VALID_VALUE_COEFF = 1000000
             if parameter_model.x0 > MAX_VALID_VALUE_COEFF or \
-                            parameter_model.x0 < -1*MAX_VALID_VALUE_COEFF:
+                    parameter_model.x0 < -1 * MAX_VALID_VALUE_COEFF:
                 raise ValueError('The value of the fitting coefficient is '
                                  'invalid. Maybe this was caused by having too'
                                  ' little data for the fit. Or the wrong '
@@ -323,7 +429,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
                                          interval_centers[0]
                         interval_limits = [
                             interval_centers[k] - 0.5 * interval_width,
-                            interval_centers[k] + 0.5*interval_width]
+                            interval_centers[k] + 0.5 * interval_width]
                 else:
                     interval_limits = []
                 parent_index = fit.mul_var_dist.dependencies[i][j]
@@ -346,12 +452,13 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
 
     return probabilistic_model
 
+
 def is_legit_distribution_parameter_index(distribution_name, index):
     """
     Check if the distribution has this kind of parameter index
     (0 = shape, 1 = loc, 2 = scale)
     """
-    if distribution_name=='Normal':
+    if distribution_name == 'Normal':
         if index == 0:
             return False
         else:
@@ -377,7 +484,7 @@ def get_first_number_of_tuple(x):
     """
     first_number = None
     for i in range(len(x)):
-        if type(x[i])==int:
+        if type(x[i]) == int:
             first_number = x[i]
             break
 
@@ -411,7 +518,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             data_path = pm.measure_file_model.measure_file.url
             data_path = data_path[1:]
             data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
-            ax.scatter(data[:,0], data[:,1], s=5 ,c='k',
+            ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
         # plot contour
@@ -419,7 +526,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            #ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
+            # ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
                 convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
@@ -431,7 +538,6 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
                 label='environmental contour')
             ax.add_patch(patch_design_region)
             ax.add_patch(patch_environmental_contour)
-
 
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
@@ -451,15 +557,16 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
 
     ax.grid(True)
 
-    directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
-        '/contour/' + str(environmental_contour.pk) + '/'
+    directory = settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
+                '/contour/' + str(environmental_contour.pk) + '/'
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + 'contour.png', bbox_inches='tight')
     plt.close(fig)
 
+
 def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
-    fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
+    fig = plt.figure(figsize=(7.5, 5.5 * (len(var_names) - 1)))
     data_path = measure_file_model.measure_file.url
     data_path = data_path[1:]
 
@@ -467,17 +574,18 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
     # which caused a bug since the first data row was ignored, see issue #20.
     data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
 
-    for i in range(len(var_names)-1):
-        ax = fig.add_subplot(len(var_names)-1,1,i+1)
-        ax.scatter(data[:, 0], data[:, i+1], s=5, c='k')
+    for i in range(len(var_names) - 1):
+        ax = fig.add_subplot(len(var_names) - 1, 1, i + 1)
+        ax.scatter(data[:, 0], data[:, i + 1], s=5, c='k')
         ax.set_xlabel('{}'.format(var_names[0]))
-        ax.set_ylabel('{}'.format(var_names[i+1]))
-        if i==0:
+        ax.set_ylabel('{}'.format(var_names[i + 1]))
+        if i == 0:
             plt.title('measurement file: ' + measure_file_model.title)
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + '/scatter.png', bbox_inches='tight')
     plt.close(fig)
+
 
 def data_to_table(matrix, var_names):
     """
@@ -497,13 +605,13 @@ def data_to_table(matrix, var_names):
         row = []
         row.append(i)
         for j in range(len(matrix[0])):
-
             # The formating that is used is taken from https://stackoverflow.
             # com/questions/455612/limiting-floats-to-two-decimal-points
             row.append("{0:.2f}".format(matrix[0][j][i]))
 
         table.append(row)
     return table
+
 
 def create_latex_report(contour_coordinates, user, environmental_contour,
                         var_names, var_symbols):
@@ -552,7 +660,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
                     r"\subsection{Environmental contour}" \
                     r"\includegraphics[width=\textwidth]{" + \
                     file_path_contour + r"}" \
-                    r"\subsection{Extreme environmental design conditions}" + \
+                                        r"\subsection{Extreme environmental design conditions}" + \
                     get_latex_eedc_table(contour_coordinates, var_names, var_symbols) + \
                     r"\section{Methods}" \
                     r"\subsection{Associated measurement file}"
@@ -612,7 +720,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
 
     render_dict = dict(
         content=latex_content
-        )
+    )
     template = get_template('contour/latex_report.tex')
     rendered_tpl = template.render(render_dict).encode('utf-8')
     with tempfile.TemporaryDirectory() as tempdir:
@@ -629,9 +737,8 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
             pdf = f.read()
 
-
     short_directory = settings.PATH_USER_GENERATED + user + \
-                             '/contour/' + str(environmental_contour.pk) + '/'
+                      '/contour/' + str(environmental_contour.pk) + '/'
     short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
     full_directory = settings.PATH_STATIC + short_directory
     full_file_path_report = settings.PATH_STATIC + short_file_path_report
@@ -641,6 +748,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         f.write(pdf)
 
     return short_file_path_report
+
 
 def get_latex_eedc_table(matrix, var_names, var_symbols):
     """
@@ -679,7 +787,7 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
     table_string += table_head_line
 
     for i in range(len(matrix[0][1])):
-        table_string += str(i+1) + r" & "
+        table_string += str(i + 1) + r" & "
         for j in range(len(var_names)):
 
             # The formating is taken from https://stackoverflow.com/questions/
@@ -706,6 +814,7 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
                         " EEDCs are listed."
 
     return table_string
+
 
 def get_latex_eedc_table_head_line(var_names):
     """
