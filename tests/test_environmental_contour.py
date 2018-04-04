@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.core.urlresolvers import reverse
 from contour.forms import HDCForm
 
@@ -44,7 +44,9 @@ class EnvironmentalContourTestCase(TestCase):
                          form_input_dict,
                          follow=True)
 
-
+    # Since this test is affected by whitenoise, we deactive it here, see:
+    # https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+    @override_settings(STATICFILES_STORAGE=None)
     def test_iform_contour(self):
         response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
@@ -75,7 +77,9 @@ class EnvironmentalContourTestCase(TestCase):
         response = self.client.get(reverse('contour:environmental_contour_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
-
+    # Since this test is affected by whitenoise, we deactive it here, see:
+    # https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+    @override_settings(STATICFILES_STORAGE=None)
     def test_highest_density_contour(self):
         response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',

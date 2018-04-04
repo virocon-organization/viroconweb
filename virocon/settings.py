@@ -51,9 +51,6 @@ AUTH_USER_MODEL = 'user.User'
 # Application definition
 
 INSTALLED_APPS = [
-    'contour.apps.ContourConfig',
-    'user.apps.UserConfig',
-    'info.apps.InfoConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,6 +63,9 @@ INSTALLED_APPS = [
     #'django.contrib.staticfiles',
     'latexify',
     'django.contrib.staticfiles', # a requirement for latexify
+    'contour.apps.ContourConfig',
+    'user.apps.UserConfig',
+    'info.apps.InfoConfig',
 ]
 
 MIDDLEWARE = [
