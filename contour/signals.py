@@ -23,13 +23,13 @@ def _delete_file(instance, path):
        The path of the file or folder.
    """
     if path:
-        if os.path.isfile(path):
-            if USE_S3:
-                instance.content.delete(save=False)
-            else:
+        if path=='S3':
+            instance.measure_file.delete(save=False)
+        else:
+            if os.path.isfile(path):
                 os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
     else:
         warnings.warn("Cannot delete the path with the value " + str(path))
 
