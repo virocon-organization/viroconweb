@@ -26,3 +26,5 @@ db.sqlite3
 htmlcov/
 collectedstatics/
 !collectedstatics/dummy_file.md
+.env
+.aws/

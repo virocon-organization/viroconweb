@@ -8,5 +8,6 @@ sorl-thumbnail-with-amazon-s3
 """
 from storages.backends.s3boto import S3BotoStorage
 
-class MediaS3BotoStorage(S3BotoStorage):
+
+class MediaRootS3BotoStorage(S3BotoStorage):
     location = 'media'

@@ -1,7 +1,9 @@
 import os
 import csv
 import warnings
+import codecs
 
+from urllib import request
 from abc import abstractmethod
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse, \
@@ -243,7 +245,7 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             mfm_item = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
+            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url)
             var_number = len(var_names)
             fit_form = forms.MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
             if request.method == 'POST':
@@ -311,7 +313,7 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
+            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url)
             directory_prefix = settings.PATH_STATIC
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
@@ -785,14 +787,26 @@ def get_info_from_file(url):
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """
-    with open(url, 'r') as file:
+    if url[0] == '/':
+        url = url[1:]
+    if url[0:8] == 'https://':
+        is_web_url = True
+        req = request.Request(url)
+        file = request.urlopen(req)
+        reader = csv.reader(codecs.iterdecode(file, 'utf-8'), delimiter=';').__next__()
+    else:
+        is_web_url = False
+        file = open(url, 'r')
         reader = csv.reader(file, delimiter=';').__next__()
-        var_names = []
-        var_symbols = []
-        i = 0
-        while i < (len(reader)):
-            var_names.append(reader[i])
-            i += 1
-            var_symbols.append(reader[i])
-            i += 1
-        return var_names, var_symbols
+    var_names = []
+    var_symbols = []
+    i = 0
+    while i < (len(reader)):
+        var_names.append(reader[i])
+        i += 1
+        var_symbols.append(reader[i])
+        i += 1
+    return var_names, var_symbols
+    # In case it was a local file opening, finally close the file
+    if is_web_url==False:
+        file.close()

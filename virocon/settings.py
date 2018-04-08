@@ -20,17 +20,29 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # The following lines of codes are based on the description from:
 # http://martinbrochhaus.com/s3.html
-USE_S3 = False
-AWS_ACCESS_KEY_ID = 'XXXX'
-AWS_SECRET_ACCESS_KEY = 'XXXX'
+USE_S3 = True
+key_exists = "AWS_ACCESS_KEY_ID" in os.environ
+if not key_exists:
+    print('Warning: AWS_ACCESS_KEY_ID is not set. Setting it to XXX')
+    AWS_ACCESS_KEY_ID = 'XXX'
+else:
+    AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
+if not key_exists:
+    print('Warning: AWS_SECRET_ACCESS_KEY is not set. Setting it to XXX')
+    AWS_SECRET_ACCESS_KEY = 'XXX'
+else:
+    AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_STORAGE_BUCKET_NAME = 'virocon-media'
 AWS_QUERYSTRING_AUTH = False
 S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
 if USE_S3:
-    DEFAULT_FILE_STORAGE = 'virocon.s3utils.MediaRootS3BotoStorage'
-    THUMBNAIL_DEFAULT_STORAGE = 'virocon.s3utils.MediaRootS3BotoStorage'
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    THUMBNAIL_DEFAULT_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     MEDIA_URL = S3_URL + '/media/'
+    # Needed for S3 Frankfurt, see https://github.com/boto/boto/issues/2916
+    os.environ['S3_USE_SIGV4'] = 'True'
 else:
     MEDIA_URL = '/contour/static/user_generated/'
 
