@@ -6,15 +6,16 @@ from django.core.exceptions import ValidationError
 import random
 import string
 from . import settings
+from time import gmtime, strftime
 
-# Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
+# Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
 def measurement_directory_path(instance, filename):
     """
     Creates the path where to upload a measurement file.
 
     The path is:
-    MEDIA_ROOT/<username>/measurement/<pk>/<filename>_<random_hash>
+    MEDIA_ROOT/<username>/measurement/<filename>_<time_stamp>
 
     Parameters
     ----------
@@ -26,16 +27,18 @@ def measurement_directory_path(instance, filename):
 
     Returns
     -------
-    summed_fields : ndarray, dtype=Bool
-        Boolean array of shape like array with True if element was used in summation.
-    last_summed : float
-        Element that was added last to the sum.
+    path : str
     """
-    random_hash = ''.join(random.choices(
-        string.ascii_uppercase + string.digits, k=10))
-    return '{0}/measurement/{1}'.format(
+    # random_hash = ''.join(random.choices(
+    #    string.ascii_uppercase + string.digits, k=10))
+    time_stamp = file_time_stamp()
+    path = '{0}/measurement/{1}'.format(
         instance.primary_user.username,
-        filename + '_' + random_hash)
+        time_stamp + '_' + filename)
+    return path
+
+def file_time_stamp():
+    return strftime('%Y-%m-%d-%H-%m')
 
 
 class MeasureFileModel(models.Model):
@@ -54,6 +57,10 @@ class MeasureFileModel(models.Model):
     measure_file = models.FileField(
         upload_to=measurement_directory_path,
         validators=[validate_file_extension])
+    scatter_plot = models.ImageField(
+        upload_to=measurement_directory_path,
+        null=True,
+        default=None)
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
 
     @staticmethod
@@ -198,8 +205,8 @@ class EnvironmentalContour(models.Model):
                                      on_delete=models.CASCADE)
 
     def path_of_latex_report(self):
-        if self.path_of_statics.startswith(settings.PATH_STATIC):
-            path = self.path_of_statics[settings.PATH_STATIC.__len__():]
+        if self.path_of_statics.startswith(settings.PATH_MEDIA):
+            path = self.path_of_statics[settings.PATH_MEDIA.__len__():]
         else:
             path = self.path_of_statics
         path = path + "/" + settings.LATEX_REPORT_NAME

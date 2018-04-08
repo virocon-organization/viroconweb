@@ -44,9 +44,9 @@ if USE_S3:
     # Needed for S3 Frankfurt, see https://github.com/boto/boto/issues/2916
     os.environ['S3_USE_SIGV4'] = 'True'
 else:
-    MEDIA_URL = '/contour/static/user_generated/'
+    MEDIA_URL = '/contour/media/user_generated/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'contour/static/user_generated')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'contour/media/user_generated')
 
 
 # Static files (CSS, JavaScript, Images)

@@ -9,6 +9,9 @@ from scipy.stats import lognorm
 from scipy.stats import norm
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
+from io import BytesIO, StringIO
+from django.core.files.base import ContentFile
+
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
@@ -221,7 +224,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
         measure_file_model=measure_file,
     )
     probabilistic_model.save()
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
+    path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user) + \
         '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
     probabilistic_model.save(update_fields=['path_of_statics'])
@@ -396,7 +399,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
 
     pm = environmental_contour.probabilistic_model
 
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
+    path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -451,14 +454,14 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
 
     ax.grid(True)
 
-    directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
+    directory = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + user + \
         '/contour/' + str(environmental_contour.pk) + '/'
     if not os.path.exists(directory):
         os.makedirs(directory)
     plt.savefig(directory + 'contour.png', bbox_inches='tight')
     plt.close(fig)
 
-def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
+def plot_data_set_as_scatter(user, measure_file_model, var_names):
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
     data_path = measure_file_model.measure_file.url
     if data_path[0] == '/':
@@ -475,10 +478,15 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
         ax.set_ylabel('{}'.format(var_names[i+1]))
         if i==0:
             plt.title('measurement file: ' + measure_file_model.title)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    plt.savefig(directory + '/scatter.png', bbox_inches='tight')
+
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    measure_file_model.scatter_plot.save('scatter_plot.png', content_file)
+    measure_file_model.save()
 
 def data_to_table(matrix, var_names):
     """
@@ -544,7 +552,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     probabilistic_model = environmental_contour.probabilistic_model
 
     plot_contour(contour_coordinates, user, environmental_contour, var_names)
-    directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
+    directory_prefix = settings.PATH_MEDIA + settings.PATH_USER_GENERATED
     file_path_contour = directory_prefix + user + '/contour/' + \
                         str(environmental_contour.pk) + '/contour.png'
     directory_fit_images = directory_prefix + user + '/prob_model/'
@@ -634,8 +642,8 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     short_directory = settings.PATH_USER_GENERATED + user + \
                              '/contour/' + str(environmental_contour.pk) + '/'
     short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
-    full_directory = settings.PATH_STATIC + short_directory
-    full_file_path_report = settings.PATH_STATIC + short_file_path_report
+    full_directory = settings.PATH_MEDIA + short_directory
+    full_file_path_report = settings.PATH_MEDIA + short_file_path_report
     if not os.path.exists(full_directory):
         os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:

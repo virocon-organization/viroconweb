@@ -220,7 +220,7 @@ class MeasureFileHandler(Handler):
                         title=measure_file_form.cleaned_data['title'],
                         measure_file=measure_file_form.cleaned_data['measure_file'])
                     measure_model.save()
-                    path = settings.PATH_STATIC + \
+                    path = settings.PATH_MEDIA + \
                            settings.PATH_USER_GENERATED + \
                            str(request.user) + \
                            '/measurement/' + str(measure_model.pk)
@@ -263,7 +263,7 @@ class MeasureFileHandler(Handler):
                                        'header': 'fit measurement file to probabilistic model',
                                        'return_url': 'contour:measure_file_model_select'})
                     #try:
-                    directory_prefix = settings.PATH_STATIC
+                    directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
@@ -314,12 +314,12 @@ class MeasureFileHandler(Handler):
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url)
-            directory_prefix = settings.PATH_STATIC
+            directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
                                      '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
-            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
+            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names)
             return render(request, 'contour/measure_file_model_plot.html', {'user': request.user,
                                                                      'measure_file_model':measure_file_model,
                                                                      'directory': directory_after_static})
@@ -492,7 +492,7 @@ class ProbabilisticModelHandler(Handler):
                             probabilistic_model=probabilistic_model
                         )
                         environmental_contour.save()
-                        path = settings.PATH_STATIC + \
+                        path = settings.PATH_MEDIA + \
                                settings.PATH_USER_GENERATED + \
                                str(request.user) + \
                                '/contour/' + str(environmental_contour.pk)
@@ -615,7 +615,7 @@ class ProbabilisticModelHandler(Handler):
                                 probabilistic_model=probabilistic_model
                             )
                             environmental_contour.save()
-                            path = settings.PATH_STATIC + \
+                            path = settings.PATH_MEDIA + \
                                    settings.PATH_USER_GENERATED + \
                                    str(request.user) + \
                                    '/contour/' + str(environmental_contour.pk)
@@ -722,7 +722,7 @@ class ProbabilisticModelHandler(Handler):
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
-            directory_prefix = settings.PATH_STATIC
+            directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
                                      '/prob_model/' + str(pk)
             directory = directory_prefix + directory_after_static

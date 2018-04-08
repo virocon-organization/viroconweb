@@ -25,6 +25,7 @@ def _delete_file(instance, path):
     if path:
         if path=='S3':
             instance.measure_file.delete(save=False)
+            instance.scatter_plot.delete(save=False)
         else:
             if os.path.isfile(path):
                 os.remove(path)
