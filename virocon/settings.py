@@ -18,6 +18,25 @@ import string
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# The following lines of codes are based on the description from:
+# http://martinbrochhaus.com/s3.html
+USE_S3 = False
+AWS_ACCESS_KEY_ID = 'XXXX'
+AWS_SECRET_ACCESS_KEY = 'XXXX'
+AWS_STORAGE_BUCKET_NAME = 'virocon-media'
+AWS_QUERYSTRING_AUTH = False
+S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
+
+if USE_S3:
+    DEFAULT_FILE_STORAGE = 'virocon.s3utils.MediaRootS3BotoStorage'
+    THUMBNAIL_DEFAULT_STORAGE = 'virocon.s3utils.MediaRootS3BotoStorage'
+    MEDIA_URL = S3_URL + '/media/'
+else:
+    MEDIA_URL = '/contour/static/user_generated/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'contour/static/user_generated')
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 # The following lines are needed to handle static files properly (i.e. CSS, Java
@@ -66,6 +85,7 @@ INSTALLED_APPS = [
     #'django.contrib.staticfiles',
     'latexify',
     'django.contrib.staticfiles', # a requirement for latexify
+    'storages',
     'contour.apps.ContourConfig',
     'user.apps.UserConfig',
     'info.apps.InfoConfig',
@@ -164,9 +184,6 @@ ALLOWED_HOSTS = [
     '134.102.174.219',
     'serene-sierra-98066.herokuapp.com'
 ]
-
-MEDIA_ROOT = os.path.join(BASE_DIR, 'contour/static/user_generated')
-MEDIA_URL = '/contour/static/user_generated/'
 
 # execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025
