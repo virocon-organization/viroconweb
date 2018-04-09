@@ -18,6 +18,8 @@ from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
     ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, ProbabilisticModel, DistributionModel, \
     ParameterModel
 from .compute_interface import ComputeInterface
+from viroconcom import distributions, params
+from decimal import Decimal
 
 
 def index(request):
@@ -269,15 +271,13 @@ class MeasureFileHandler(Handler):
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
 
-                    # TODO edit the plot_fit methods which shows the fit result. use a signal if the fit does not
-                    # correspond the user claims to avoid store_fit().
+                    # store fit
+                    probabilistic_model = store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols,
+                                                    request.user, mfm_item)
+                    # plot fit
+                    plot.plot_fits_new(fit, var_names, var_symbols, directory, probabilistic_model)
 
-                    # TODO implement a method which stores the fit result into the model.
-                    # store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols, request.user, directory)
 
-                    probabilistic_model = plot.plot_fits_new(fit, var_names, var_symbols,
-                                                             fit_form.cleaned_data['title'],
-                                                             request.user, mfm_item, directory)
                     # except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                     # return render(request, 'contour/error.html',
                     #              {'error_message': err,
@@ -788,7 +788,6 @@ class EnvironmentalContourHandler(Handler):
         return Handler.delete(request, pk, collection)
 
 
-@staticmethod
 def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
     """
     stores the calculated fit parameters into the probabilistic model structure.
@@ -818,24 +817,34 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
                                              measure_file_model=measure_file)
     probabilistic_model.save()
 
-    i = 0
-    for i in range(3):  # value 3 have to be adjusted. Number of Distribution.
+    for i, dist in enumerate(fit.mul_var_dist.distributions):
         distribution_model = DistributionModel(name=var_names[i],
                                                symbol=var_symbols[i],
                                                probabilistic_model=probabilistic_model,
-                                               distribution='name of the dist mit Jannik besprechen')
+                                               distribution=dist.name)
         distribution_model.save()
+        store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
+        store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
+        store_parameter(dist.scale, distribution_model, fit.mul_var_dist.dependencies[i][2])
 
-        for j in range(3):  # value have to be adjusted. Number of Parameter of each Distribution.
-            parameter_model = ParameterModel(function='',
-                                             x0='',
-                                             x1='',
-                                             x2='',
-                                             dependency='',
-                                             distribution='')
-            parameter_model.save()
+    return probabilistic_model
 
-    return True
+
+def store_parameter(parameter, distribution_model, dependency):
+    if type(parameter) == params.ConstantParam:
+        parameter_model = ParameterModel(function='None',
+                                         x0=parameter(0),
+                                         dependency='!',
+                                         distribution=distribution_model)
+        parameter_model.save()
+    elif type(parameter) == params.FunctionParam:
+        parameter_model = ParameterModel(function=parameter.func_name,
+                                         x0=parameter.a,
+                                         x1=parameter.b,
+                                         x2=parameter.c,
+                                         dependency=dependency,
+                                         distribution=distribution_model)
+        parameter_model.save()
 
 
 def get_info_from_file(url):

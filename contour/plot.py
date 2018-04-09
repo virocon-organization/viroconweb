@@ -197,85 +197,94 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
     plt.close(fig)
 
 
-def plot_fits_new(fit, var_names, var_symbols, title, user, measure_file,
-                  directory):
+def plot_var_dependency(param_name, main_index, var_name, var_symbols, param,
+                        directory, dist_name, fit_inspection_data, fit):
+    """
+
+    :param param_name:
+    :param main_index:
+    :param var_name:
+    :param var_symbols:
+    :param param:
+    :param directory:
+    :param dist_name:
+    :param fit_inspection_data:
+    :param fit:
+    :return:
+    """
+    param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
+    plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index], param_name, param_at, param_value,
+                                param, directory, dist_name)
+    for j in range(len(param_at)):
+        basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
+        interval_limits = calculate_intervals(param_at, main_index, 0)
+        parent_index = fit.mul_var_dist.dependencies[main_index][0]
+        symbol_parent_var = None
+        if parent_index is not None:
+            symbol_parent_var = var_symbols[parent_index]
+        plot_pdf_with_raw_data(main_index, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                               fit.mul_var_dist.distributions[main_index].name, basic_fit.samples, interval_limits,
+                               var_symbols[main_index], symbol_parent_var, directory)
+
+
+def plot_var_no_dependency(param_name, main_index, var_symbols, directory, fit_inspection_data, fit):
+    """
+
+    :param param_name:
+    :param main_index:
+    :param var_symbols:
+    :param directory:
+    :param fit_inspection_data:
+    :param fit:
+    :return:
+    """
+    basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
+    interval_limits = []
+    parent_index = fit.mul_var_dist.dependencies[main_index][1]
+    symbol_parent_var = None
+    if parent_index is not None:
+        symbol_parent_var = var_symbols[parent_index]
+    plot_pdf_with_raw_data(main_index, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
+                           fit.mul_var_dist.distributions[main_index].name, basic_fit.samples, interval_limits,
+                           var_symbols[main_index], symbol_parent_var, directory)
+
+
+def plot_fits_new(fit, var_names, var_symbols, directory, probabilistic_model):
+    """
+    Plots the calculated fit results. The fit was calculated with the viroconcom package.
+    :param fit:
+    :param var_names:
+    :param var_symbols:
+    :param directory:
+    :return:
+    """
+
+    directory = directory + '/' + str(probabilistic_model.pk)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
-
+        # shape
         if fit_inspection_data.shape_at is not None:
-            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'shape', fit_inspection_data.shape_at,
-                                        fit_inspection_data.shape_value, fit.mul_var_dist.distributions[i].shape,
-                                        directory, fit.mul_var_dist.distributions[i].name)
-            for j in range(len(fit_inspection_data.shape_at)):
-                basic_fit = fit_inspection_data.get_basic_fit('shape', j)
-                interval_limits = calculate_intervals(fit_inspection_data.shape_at, i, 0)
-                parent_index = fit.mul_var_dist.dependencies[i][0]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                       var_symbols[i], symbol_parent_var, directory)
+            plot_var_dependency('shape', i, var_names[i], var_symbols,
+                                fit.mul_var_dist.distributions[i].shape,
+                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            basic_fit = fit_inspection_data.get_basic_fit('shape', 0)
-            interval_limits = []
-            parent_index = fit.mul_var_dist.dependencies[i][0]
-            symbol_parent_var = None
-            if parent_index is not None:
-                symbol_parent_var = var_symbols[parent_index]
-            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                   var_symbols[i], symbol_parent_var, directory)
-
-        if fit_inspection_data.scale_at is not None:
-            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'loc', fit_inspection_data.loc_at,
-                                        fit_inspection_data.loc_value, fit.mul_var_dist.distributions[i].loc,
-                                        directory, fit.mul_var_dist.distributions[i].name)
-            for j in range(len(fit_inspection_data.shape_at)):
-                basic_fit = fit_inspection_data.get_basic_fit('loc', j)
-                interval_limits = calculate_intervals(fit_inspection_data.loc_at, i, 0)
-                parent_index = fit.mul_var_dist.dependencies[i][0]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                       var_symbols[i], symbol_parent_var, directory)
-
-        else:
-            basic_fit = fit_inspection_data.get_basic_fit('loc', 0)
-            interval_limits = []
-            parent_index = fit.mul_var_dist.dependencies[i][1]
-            symbol_parent_var = None
-            if parent_index is not None:
-                symbol_parent_var = var_symbols[parent_index]
-            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                   var_symbols[i], symbol_parent_var, directory)
-
+            plot_var_no_dependency('shape', i, var_symbols, directory, fit_inspection_data, fit)
+        # loc
         if fit_inspection_data.loc_at is not None:
-            plot_parameter_fit_overview(i, var_names[i], var_symbols[i], 'scale', fit_inspection_data.scale_at,
-                                        fit_inspection_data.scale_value, fit.mul_var_dist.distributions[i].scale,
-                                        directory, fit.mul_var_dist.distributions[i].name)
-            for j in range(len(fit_inspection_data.shape_at)):
-                basic_fit = fit_inspection_data.get_basic_fit('scale', j)
-                interval_limits = calculate_intervals(fit_inspection_data.shape_at, i, 0)
-                parent_index = fit.mul_var_dist.dependencies[i][2]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                plot_pdf_with_raw_data(i, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                       fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                       var_symbols[i], symbol_parent_var, directory)
+            plot_var_dependency('loc', i, var_names[i], var_symbols,
+                                fit.mul_var_dist.distributions[i].loc,
+                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            basic_fit = fit_inspection_data.get_basic_fit('scale', 0)
-            interval_limits = []
-            parent_index = fit.mul_var_dist.dependencies[i][2]
-            symbol_parent_var = None
-            if parent_index is not None:
-                symbol_parent_var = var_symbols[parent_index]
-            plot_pdf_with_raw_data(i, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                                   fit.mul_var_dist.distributions[i].name, basic_fit.samples, interval_limits,
-                                   var_symbols[i], symbol_parent_var, directory)
+            plot_var_no_dependency('loc', i, var_symbols, directory, fit_inspection_data, fit)
+        # scale
+        if fit_inspection_data.scale_at is not None:
+            plot_var_dependency('scale', i, var_names[i], var_symbols,
+                                fit.mul_var_dist.distributions[i].scale,
+                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
+        else:
+            plot_var_no_dependency('scale', i, var_symbols, directory, fit_inspection_data, fit)
 
 
 def calculate_intervals(interval_centers, dimension_index, interval_index):
