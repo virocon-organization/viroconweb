@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='measurefilemodel',
             name='scatter_plot',
-            field=models.ImageField(default=None, null=True, upload_to='<function measurement_directory_path at 0x102b77488>_scatter_plot'),
+            field=models.ImageField(default=None, null=True, upload_to='<function image_directory_path at 0x102b77488>_scatter_plot'),
         ),
     ]

@@ -24,8 +24,11 @@ def _delete_file(instance, path):
    """
     if path:
         if path=='S3':
-            instance.measure_file.delete(save=False)
-            instance.scatter_plot.delete(save=False)
+            if instance.__class__.__name__ == 'MeasureFileModel':
+                instance.measure_file.delete(save=False)
+                instance.scatter_plot.delete(save=False)
+            elif instance.__class__.__name__ == 'PlottedFigure':
+                instance.image.delete(save=False)
         else:
             if os.path.isfile(path):
                 os.remove(path)
@@ -51,12 +54,19 @@ def delete_file(sender, instance=None, **kwargs):
     """
     list_of_models = ('MeasureFileModel, '
                       'ProbabilisticModel, '
-                      'EnvironmentalContour')
+                      'EnvironmentalContour, '
+                      'PlottedFigure')
     if sender.__name__ in list_of_models:
-        if instance.path_of_statics:
+        if hasattr(instance, 'path_of_statics') and instance.path_of_statics:
             _delete_file(instance, instance.path_of_statics)
-        if sender.__name__ == 'MeasureFileModel' and instance.measure_file:
+        elif sender.__name__ == 'MeasureFileModel' and instance.measure_file:
             if USE_S3:
                 _delete_file(instance, path='S3')
             else:
                 _delete_file(instance, instance.measure_file.path)
+        elif sender.__name__ == 'PlottedFigure' and instance.image:
+            if USE_S3:
+                print('Deleting a PlottedFigure image from S3')
+                _delete_file(instance, path='S3')
+            else:
+                _delete_file(instance, instance.image.path)

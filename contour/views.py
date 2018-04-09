@@ -17,7 +17,8 @@ from . import plot
 from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
-    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption
+    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
+    PlottedFigure
 from .compute_interface import ComputeInterface
 
 
@@ -282,7 +283,8 @@ class MeasureFileHandler(Handler):
                     send_img = []
                     for img in img_list:
                         send_img.append(directory_after_static + str(probabilistic_model.pk) + '/' + img)
-                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
+                    plotted_figures = PlottedFigure.objects.filter(probabilistic_model=probabilistic_model)
+                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'plotted_figures': plotted_figures,
                                                                        'latex_string_list': latex_string_list})
                 else:
                     return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})

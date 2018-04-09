@@ -51,13 +51,14 @@ from .plot_generic import convert_ndarray_list_to_multipoint
 from . import settings
 
 from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
-    AdditionalContourOption
+    AdditionalContourOption, PlottedFigure
 from .compute_interface import setup_mul_dist
 
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
-                           var_name, symbol_parent_var, directory):
+                           var_name, symbol_parent_var, directory,
+                           probabilistic_model):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution).
@@ -78,6 +79,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     :param symbol_parent_var:      symbol of the variable on which the
     conditional variable is based.
     :param directory        the directory where the figure should be saved
+    :param probabilistic_model     ProbabilisticModel
     :return: 
     """
     fig = plt.figure()
@@ -139,15 +141,25 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     # The convention for image name is like this: 'fit_01_00_02.png' means
     # a plot of the second variable (01) which is conditional on the first
     # variable (00) and this is the third (02) fit
-    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' +
-                parent_index_2_digits + '_' + low_index_2_digits + '.png')
-
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + main_index_2_digits + '_' + parent_index_2_digits + \
+                '_' + low_index_2_digits + '.png'
+    print('Saving a figure with the file name' + file_name)
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
+
     return
 
 
 def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
-                                data_points, fit_func, directory, dist_name):
+                                data_points, fit_func, directory, dist_name,
+                                probabilistic_model):
     """
     The function plots an image which shows the fit of a function. 
     :param main_index:      index of the related distribution.
@@ -193,9 +205,17 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
-    plt.savefig(directory + '/fit_' + str(main_index) + para_name + '.png')
-    plt.close(fig)
 
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
+    plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + str(main_index) + para_name + '.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
 
 def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
               directory):
@@ -268,10 +288,12 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
                 for k, point in enumerate(spec_param_points[1]):
                     float_points.append(point)
                     interval_centers.append(spec_param_points[0][k])
-                plot_parameter_fit_overview(i, var_names[i], var_symbols[i],
-                                            params[j], [spec_param_points[0],
-                                                        float_points],
-                                            param, directory, distribution.name)
+                plot_parameter_fit_overview(
+                    i, var_names[i], var_symbols[i],
+                    params[j], [spec_param_points[0],
+                                float_points],
+                    param, directory, distribution.name,
+                    probabilistic_model=probabilistic_model)
                 parameter_model = ParameterModel(
                     function=param.func_name, x0=param.a, x1=param.b,
                     x2=param.c, dependency=fit.mul_var_dist.dependencies[i][j],
@@ -311,40 +333,45 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     # i = the variable index
     for i, dist_points in enumerate(fit.mul_dist_points):
         # j = 0-2 (shape, loc, scale)
+        iterate_shape_loc_scale_loop = True
         for j, spec_dist_points in enumerate(dist_points):
-            # k = number of intervals
-            for k, dist_point in enumerate(spec_dist_points):
-                if interval_centers:
-                    if i == 0 or len(interval_centers) < 2:
-                        interval_limits = [min(interval_centers),
-                                           max(interval_centers)]
+            if iterate_shape_loc_scale_loop:
+                # k = number of intervals
+                for k, dist_point in enumerate(spec_dist_points):
+                    if interval_centers:
+                        if i == 0 or len(interval_centers) < 2:
+                            interval_limits = [min(interval_centers),
+                                               max(interval_centers)]
+                        else:
+                            # Calculate  the interval width assuming constant
+                            # interval width.
+                            interval_width = interval_centers[1] - \
+                                             interval_centers[0]
+                            interval_limits = [
+                                interval_centers[k] - 0.5 * interval_width,
+                                interval_centers[k] + 0.5*interval_width]
                     else:
-                        # Calculate  the interval width assuming constant
-                        # interval width.
-                        interval_width = interval_centers[1] - \
-                                         interval_centers[0]
-                        interval_limits = [
-                            interval_centers[k] - 0.5 * interval_width,
-                            interval_centers[k] + 0.5*interval_width]
-                else:
-                    interval_limits = []
-                parent_index = fit.mul_var_dist.dependencies[i][j]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                if is_legit_distribution_parameter_index(
-                        fit.mul_var_dist.distributions[i].name, j):
-                    plot_pdf_with_raw_data(
-                        i, parent_index, k, mult_float_points[i][0][k],
-                        mult_float_points[i][1][k], mult_float_points[i][2][k],
-                        fit.mul_var_dist.distributions[i].name,
-                        dist_point, interval_limits, var_names[i],
-                        symbol_parent_var, directory)
+                        interval_limits = []
+                    parent_index = fit.mul_var_dist.dependencies[i][j]
+                    symbol_parent_var = None
+                    if parent_index is not None:
+                        symbol_parent_var = var_symbols[parent_index]
+                    if is_legit_distribution_parameter_index(
+                            fit.mul_var_dist.distributions[i].name, j):
+                        plot_pdf_with_raw_data(
+                            i, parent_index, k, mult_float_points[i][0][k],
+                            mult_float_points[i][1][k], mult_float_points[i][2][k],
+                            fit.mul_var_dist.distributions[i].name,
+                            dist_point, interval_limits, var_names[i],
+                            symbol_parent_var, directory, probabilistic_model)
+                        # If there is no dependency one plot is sufficient
+                        if j == 0 and symbol_parent_var==None:
+                            iterate_shape_loc_scale_loop = False
+                    # The first variable has no dependencies, consequently there is
+                    # no need to check for them.
+                    if i == 0:
+                        break
 
-                # The first variable has no dependencies, consequently there is
-                # no need to check for them.
-                if i == 0:
-                    break
 
     return probabilistic_model
 

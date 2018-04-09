@@ -10,12 +10,12 @@ from time import gmtime, strftime
 
 # Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
-def measurement_directory_path(instance, filename):
+def image_directory_path(instance, filename):
     """
     Creates the path where to upload a measurement file.
 
     The path is:
-    MEDIA_ROOT/<username>/measurement/<filename>_<time_stamp>
+    MEDIA_ROOT/<username>/<model_abbvrevation>/<filename>_<time_stamp>
 
     Parameters
     ----------
@@ -29,12 +29,22 @@ def measurement_directory_path(instance, filename):
     -------
     path : str
     """
-    # random_hash = ''.join(random.choices(
-    #    string.ascii_uppercase + string.digits, k=10))
     time_stamp = file_time_stamp()
-    path = '{0}/measurement/{1}'.format(
-        instance.primary_user.username,
-        time_stamp + '_' + filename)
+    if instance.__class__.__name__ == 'MeasureFileModel':
+        path = '{0}/{1}/{2}'.format(
+            instance.primary_user.username,
+            settings.PATH_MEASUREMENT,
+            time_stamp + '_' + filename)
+    elif instance.__class__.__name__ == 'PlottedFigure':
+        probabilistic_model = instance.probabilistic_model
+        user_name = probabilistic_model.primary_user.username
+        path = '{0}/{1}/{2}/{3}'.format(
+            user_name,
+            settings.PATH_PROB_MODEL,
+            probabilistic_model.pk,
+            time_stamp + '_' + filename)
+    else:
+        path = None
     return path
 
 def file_time_stamp():
@@ -55,10 +65,10 @@ class MeasureFileModel(models.Model):
     title = models.CharField(default="MeasureFile", max_length=50)
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(
-        upload_to=measurement_directory_path,
+        upload_to=image_directory_path,
         validators=[validate_file_extension])
     scatter_plot = models.ImageField(
-        upload_to=measurement_directory_path,
+        upload_to=image_directory_path,
         null=True,
         default=None)
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
@@ -179,6 +189,21 @@ class ParameterModel(models.Model):
                " dependency=%r, name=%r" % \
                (self.function, self.x0, self.x1, self.x2,
                 self.dependency, self.name)
+
+
+class PlottedFigure(models.Model):
+    """
+    Has an ImageField, which stores an image crated with matplotlib
+
+    By having a class with an ImageField a ProbabilisticModel can have
+    multiple images associated to it using a many-to-one relation.
+    """
+    image = models.ImageField(
+        upload_to=image_directory_path,
+        null=True,
+        default=None)
+    probabilistic_model = models.ForeignKey(ProbabilisticModel,
+                                     on_delete=models.CASCADE)
 
 
 class EnvironmentalContour(models.Model):
