@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='measurefilemodel',
             name='scatter_plot',
-            field=models.ImageField(default=None, null=True, upload_to=contour.models.image_directory_path),
+            field=models.ImageField(default=None, null=True, upload_to=contour.models.media_directory_path),
         ),
     ]

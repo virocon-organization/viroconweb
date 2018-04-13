@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='measurefilemodel',
             name='measure_file',
-            field=models.FileField(upload_to=contour.models.image_directory_path, validators=[contour.validators.validate_file_extension]),
+            field=models.FileField(upload_to=contour.models.media_directory_path, validators=[contour.validators.validate_file_extension]),
         ),
     ]

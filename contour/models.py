@@ -10,18 +10,19 @@ from time import gmtime, strftime
 
 # Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
-def image_directory_path(instance, filename):
+def media_directory_path(instance, filename):
     """
-    Creates the path where to upload a measurement file.
+    Creates the path where to upload a media file.
 
     The path is:
     MEDIA_ROOT/<username>/<model_abbvrevation>/<filename>_<time_stamp>
 
     Parameters
     ----------
-    instance : MeasureFileModel,
-        The MeasureFileModel object that has the measurement file which needs
-        a directory.
+    instance : MeasureFileModel or PlottedFigure,
+        The MeasureFileModel object that has media fiels, which need
+        a directory. Alternatively, the PlottedFigure has a ImageField, which
+        needs a directory.
     filename : String,
         Name of the measurement file, e.g. "data_points.csv".
 
@@ -36,12 +37,20 @@ def image_directory_path(instance, filename):
             settings.PATH_MEASUREMENT,
             time_stamp + '_' + filename)
     elif instance.__class__.__name__ == 'PlottedFigure':
-        probabilistic_model = instance.probabilistic_model
-        user_name = probabilistic_model.primary_user.username
+        if instance.probabilistic_model:
+            probabilistic_model = instance.probabilistic_model
+            user_name = probabilistic_model.primary_user.username
+            model_path = settings.PATH_PROB_MODEL
+            primary_key = probabilistic_model.pk
+        elif instance.environmental_contour:
+            ec = instance.environmental_contour
+            user_name = ec.probabilistic_model.primary_user.username
+            model_path = settings.PATH_CONTOUR
+            primary_key = ec.pk
         path = '{0}/{1}/{2}/{3}'.format(
             user_name,
-            settings.PATH_PROB_MODEL,
-            probabilistic_model.pk,
+            model_path,
+            primary_key,
             time_stamp + '_' + filename)
     else:
         path = None
@@ -65,10 +74,10 @@ class MeasureFileModel(models.Model):
     title = models.CharField(default="MeasureFile", max_length=50)
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(
-        upload_to=image_directory_path,
+        upload_to=media_directory_path,
         validators=[validate_file_extension])
     scatter_plot = models.ImageField(
-        upload_to=image_directory_path,
+        upload_to=media_directory_path,
         null=True,
         default=None)
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
@@ -191,21 +200,6 @@ class ParameterModel(models.Model):
                 self.dependency, self.name)
 
 
-class PlottedFigure(models.Model):
-    """
-    Has an ImageField, which stores an image crated with matplotlib
-
-    By having a class with an ImageField a ProbabilisticModel can have
-    multiple images associated to it using a many-to-one relation.
-    """
-    image = models.ImageField(
-        upload_to=image_directory_path,
-        null=True,
-        default=None)
-    probabilistic_model = models.ForeignKey(ProbabilisticModel,
-                                     on_delete=models.CASCADE)
-
-
 class EnvironmentalContour(models.Model):
     """
     Model for an environmental contour.
@@ -240,6 +234,7 @@ class EnvironmentalContour(models.Model):
     @staticmethod
     def url_str():
         return "environmental_contour"
+
 
 class AdditionalContourOption(models.Model):
     """
@@ -296,3 +291,30 @@ class EEDCScalar(models.Model):
     x = models.DecimalField(decimal_places=5, max_digits=10, null=True)
     EEDC = models.ForeignKey(ExtremeEnvDesignCondition,
                                      on_delete=models.CASCADE)
+
+
+class PlottedFigure(models.Model):
+    """
+    Has an ImageField, which stores an image crated with matplotlib
+
+    By having a class with an ImageField a ProbabilisticModel or an
+    EnvironmentalContour instance can have multiple images associated to it
+    using a many-to-one relation.
+    """
+    image = models.ImageField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None
+    )
+    probabilistic_model = models.ForeignKey(
+        ProbabilisticModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+    environmental_contour = models.ForeignKey(
+        EnvironmentalContour,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )

@@ -59,7 +59,7 @@ def delete_file(sender, instance=None, **kwargs):
     if sender.__name__ in list_of_models:
         if hasattr(instance, 'path_of_statics') and instance.path_of_statics:
             _delete_file(instance, instance.path_of_statics)
-        elif sender.__name__ == 'MeasureFileModel' and instance.measure_file:
+        if sender.__name__ == 'MeasureFileModel' and instance.measure_file:
             if USE_S3:
                 _delete_file(instance, path='S3')
             else:

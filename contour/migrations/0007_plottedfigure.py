@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='PlottedFigure',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', models.ImageField(default=None, null=True, upload_to=contour.models.image_directory_path)),
+                ('image', models.ImageField(default=None, null=True, upload_to=contour.models.media_directory_path)),
                 ('probabilistic_model', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contour.ProbabilisticModel')),
             ],
         ),
