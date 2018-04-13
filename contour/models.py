@@ -52,6 +52,12 @@ def media_directory_path(instance, filename):
             model_path,
             primary_key,
             time_stamp + '_' + filename)
+    elif instance.__class__.__name__ == 'EnvironmentalContour':
+        path = '{0}/{1}/{2}/{3}'.format(
+            instance.probabilistic_model.primary_user.username,
+            settings.PATH_CONTOUR,
+            instance.pk,
+            time_stamp + '_' + filename)
     else:
         path = None
     return path
@@ -222,6 +228,11 @@ class EnvironmentalContour(models.Model):
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
+    latex_report = models.FileField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None
+    )
 
     def path_of_latex_report(self):
         if self.path_of_statics.startswith(settings.PATH_MEDIA):

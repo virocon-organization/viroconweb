@@ -29,6 +29,8 @@ def _delete_file(instance, path):
                 instance.scatter_plot.delete(save=False)
             elif instance.__class__.__name__ == 'PlottedFigure':
                 instance.image.delete(save=False)
+            elif instance.__class__.__name__ == 'EnvironmentalContour':
+                instance.latex_report.delete(save=False)
         else:
             if os.path.isfile(path):
                 os.remove(path)
@@ -70,3 +72,10 @@ def delete_file(sender, instance=None, **kwargs):
                 _delete_file(instance, path='S3')
             else:
                 _delete_file(instance, instance.image.path)
+        elif sender.__name__ == 'EnvironmentalContour' and instance.latex_report:
+            if USE_S3:
+                print('Deleting an EnvironmentalContour latex report from S3')
+                _delete_file(instance, path='S3')
+            else:
+                _delete_file(instance, instance.latex_report.path)
+    print('called delete_file() with class: ' + sender.__name__)

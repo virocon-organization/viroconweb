@@ -30,7 +30,7 @@
         {% endif %}
     </div>
     <div class="col-md-2">
-        <button type="button" class="btn btn-default" onclick="location='{% static object.path_of_latex_report  %}">Download PDF</button>
+        <button type="button" class="btn btn-default" onclick="location='{{   object.path_of_latex_report  }}">Download PDF</button>
     </div>
 
     <div class="col-md-4">
@@ -40,7 +40,7 @@
     <br>
     <br>
 
-    <object class="contour-pdf" data="{% static object.path_of_latex_report %}" type="application/pdf" style="width:80%;height:80%">
+    <object class="contour-pdf" data="{{ object.path_of_latex_report }}" type="application/pdf" style="width:80%;height:80%">
     </object>
     <script type="text/javascript">
         dim_data_set = {{ dim }};

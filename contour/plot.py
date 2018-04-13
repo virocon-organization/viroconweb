@@ -699,6 +699,10 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
+        djangofile = ContentFile(pdf)
+        environmental_contour.latex_report.save(
+            settings.LATEX_REPORT_NAME, djangofile)
+        environmental_contour.save()
 
     return short_file_path_report
 
