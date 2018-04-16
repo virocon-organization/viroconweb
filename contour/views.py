@@ -275,7 +275,7 @@ class MeasureFileHandler(Handler):
                     probabilistic_model = store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols,
                                                     request.user, mfm_item)
                     # plot fit
-                    plot.plot_fits_new(fit, var_names, var_symbols, directory, probabilistic_model)
+                    plot.plot_fit(fit, var_names, var_symbols, directory, probabilistic_model)
 
 
                     # except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
@@ -818,10 +818,11 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
     probabilistic_model.save()
 
     for i, dist in enumerate(fit.mul_var_dist.distributions):
+        dist_name = dist.name if dist.name != 'Lognormal' else 'Lognormal_2'
         distribution_model = DistributionModel(name=var_names[i],
                                                symbol=var_symbols[i],
                                                probabilistic_model=probabilistic_model,
-                                               distribution=dist.name)
+                                               distribution=dist_name)
         distribution_model.save()
         store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
         store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
@@ -843,6 +844,12 @@ def store_parameter(parameter, distribution_model, dependency):
                                          x1=parameter.b,
                                          x2=parameter.c,
                                          dependency=dependency,
+                                         distribution=distribution_model)
+        parameter_model.save()
+    else:
+        parameter_model = ParameterModel(function='None',
+                                         x0=0,
+                                         dependency='!',
                                          distribution=distribution_model)
         parameter_model.save()
 

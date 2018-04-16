@@ -59,25 +59,33 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            var_name, symbol_parent_var, directory):
     """
     The function creates an image which shows a certain fit of a distribution.
-    :param main_index:      the index of the current variable (distribution).
-    (needed to recognize the images later)
-    :param parent_index     the index of the variable on which the conditional
-    is based (when no condition: None)
-    :param low_index:       the index of the interval. (needed to recognize the
-    images later)
-    :param shape:           the value of the shape parameter.
-    :param loc:             the value of the loc parameter. (location)
-    :param scale:           the value of the scale paramter.
-    :param distribution_type:   Type / name of the distribution, must be
-    "Normal", "Weibull" or "Lognormal"
-    :param dist_points:     the dates for the histogram.
-    :param interval:        interval of the plotted distribution.
-    :param var_name:        the name of a single variable of the probabilistic
-     model.
-    :param symbol_parent_var:      symbol of the variable on which the
-    conditional variable is based.
-    :param directory        the directory where the figure should be saved
-    :return: 
+
+    Parameters
+    ----------
+    main_index : int
+          The index of the current dimension (distribution). The index is used to recognise the image later.
+    parent_index : int
+        The index of the variable on which the conditional is based (when no condition: None).
+    low_index : int
+         The index of the interval. (needed to recognize the images later)
+    shape : float
+        The value of the shape parameter.
+    loc : float
+        The value of the loc parameter. (location)
+    scale : float
+        The value of the scale parameter.
+    distribution_type: str
+        Type / name of the distribution, must be "Normal", "Weibull" or "Lognormal"
+    dist_points: list of floats
+       The dates for the histogram.
+    interval : list of floats
+        The list contains the interval of the plotted distribution.
+    var_name : str
+        The name of a single variable of the probabilistic model.
+    symbol_parent_var : str
+        symbol of the variable on which the conditional variable is based.
+    directory : str
+        the directory where the figure should be saved
     """
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -148,15 +156,28 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
 def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, param_at, param_values,
                                 fit_func, directory, dist_name):
     """
-    The function plots an image which shows the fit of a function. 
-    :param main_index:      index of the related distribution.
-    :param var_name:        name of the variable (distribution).
-    :param var_symbol:      symbol of the variables of the probabilistic model
-    :param para_name:       parameter name like shape, location, scale.
-    :param data_points:     data point for every interval.
-    :param fit_func:        the fit function - polynomial, exponential ..
-    :param directory:       directory where the figure should be saved.
-    :param dist_name        name of the distribution, e.g. "Lognormal"
+    Plots an image which shows the fit of a function.
+
+    Parameters
+    ----------
+    main_index : int
+        Index of the related distribution.
+    var_name : str
+        Name of a multivariate distribution.
+    var_symbol : str
+          Symbol of a multivariate distribution.
+    para_name : str
+        Parameter name like shape, location, scale.
+    param_at : list of floats
+         The list contains the x-values of a fitted function for a parameter e.g. shape, loc or scale.
+    param_values : list of floats
+        The list contains the y-values of a fitted function for a parameter e.g. shape, loc or scale.
+    fit_func : str
+        The fit function e.g. power function, exponential
+    directory : str
+        The directory where the figure will be saved.
+    dist_name : str
+        Name of the distribution, e.g. "Lognormal".
     """
     if dist_name == 'Weibull':
         if para_name == 'shape':
@@ -197,20 +218,32 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
     plt.close(fig)
 
 
-def plot_var_dependency(param_name, main_index, var_name, var_symbols, param,
+def plot_var_dependent(param_name, main_index, var_name, var_symbols, param,
                         directory, dist_name, fit_inspection_data, fit):
     """
+    Plots the fitted distribution for each interval and the resulting fit function for a parameter like shape, loc or
+    scale.
 
-    :param param_name:
-    :param main_index:
-    :param var_name:
-    :param var_symbols:
-    :param param:
-    :param directory:
-    :param dist_name:
-    :param fit_inspection_data:
-    :param fit:
-    :return:
+    Parameters
+    ----------
+    param_name : str
+        The name of the parameter (e.g. shape, loc or scale).
+    main_index : int
+        The dimension of the distribution.
+    var_name: str
+        Name of the distribution.
+    var_symbols : list of str
+        The symbols of the distribution.
+    param : FunctionParam
+        The used function for the fit (e.g. exponential, power function)
+    directory : str
+        Path to the directory where the images will be stored.
+    dist_name : str
+        Name of the Distributin (e.g. Weibull, Normal, Log-Normal)
+    fit_inspection_data : FitInspectionData
+        Information for plotting the fits of a single dimension.
+    fit : Fit
+        Holds data and information about the fit.
     """
     param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
     plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index], param_name, param_at, param_value,
@@ -227,16 +260,24 @@ def plot_var_dependency(param_name, main_index, var_name, var_symbols, param,
                                var_symbols[main_index], symbol_parent_var, directory)
 
 
-def plot_var_no_dependency(param_name, main_index, var_symbols, directory, fit_inspection_data, fit):
+def plot_var_independent(param_name, main_index, var_symbols, directory, fit_inspection_data, fit):
     """
+    Plots the fitted distribution of a independent parameter (e.g. shape, loc or scale).
 
-    :param param_name:
-    :param main_index:
-    :param var_symbols:
-    :param directory:
-    :param fit_inspection_data:
-    :param fit:
-    :return:
+    Parameters
+    ----------
+    param_name : str
+        The name of the parameter (e.g. shape, loc or scale).
+    main_index : int
+        The dimension of the distribution.
+    var_symbols : list of str
+        The symbols of the distribution.
+    directory : str
+        Path to the directory where the images will be stored.
+    fit_inspection_data : FitInspectionData
+        Information for plotting the fits of a single dimension.
+    fit : Fit
+        Holds data and information about the fit.
     """
     basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
     interval_limits = []
@@ -249,16 +290,24 @@ def plot_var_no_dependency(param_name, main_index, var_symbols, directory, fit_i
                            var_symbols[main_index], symbol_parent_var, directory)
 
 
-def plot_fits_new(fit, var_names, var_symbols, directory, probabilistic_model):
+def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
     """
-    Plots the calculated fit results. The fit was calculated with the viroconcom package.
-    :param fit:
-    :param var_names:
-    :param var_symbols:
-    :param directory:
-    :return:
-    """
+    Visualise a fit generated by the virconcom package.
 
+    Parameters
+    ----------
+    fit : Fit
+        Holds data and information about the fit.
+    var_names : list of str
+        The list contains the names of distributions
+    var_symbols : list of str
+        The symbols of the distribution.
+    directory : str
+        Path to the directory where the images will be stored.
+    probabilistic_model : ProbabilisticModel
+       Model for a multivariate distribution, e.g. a sea state description.
+
+    """
     directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -266,35 +315,35 @@ def plot_fits_new(fit, var_names, var_symbols, directory, probabilistic_model):
     for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
         # shape
         if fit_inspection_data.shape_at is not None:
-            plot_var_dependency('shape', i, var_names[i], var_symbols,
+            plot_var_dependent('shape', i, var_names[i], var_symbols,
                                 fit.mul_var_dist.distributions[i].shape,
                                 directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_no_dependency('shape', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('shape', i, var_symbols, directory, fit_inspection_data, fit)
         # loc
         if fit_inspection_data.loc_at is not None:
-            plot_var_dependency('loc', i, var_names[i], var_symbols,
+            plot_var_dependent('loc', i, var_names[i], var_symbols,
                                 fit.mul_var_dist.distributions[i].loc,
                                 directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_no_dependency('loc', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('loc', i, var_symbols, directory, fit_inspection_data, fit)
         # scale
         if fit_inspection_data.scale_at is not None:
-            plot_var_dependency('scale', i, var_names[i], var_symbols,
+            plot_var_dependent('scale', i, var_names[i], var_symbols,
                                 fit.mul_var_dist.distributions[i].scale,
                                 directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_no_dependency('scale', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('scale', i, var_symbols, directory, fit_inspection_data, fit)
 
 
 def calculate_intervals(interval_centers, dimension_index, interval_index):
     """
-    calculates the width of a certain interval.
+    Calculates the width of a certain interval.
 
     Parameters
     ----------
     interval_centers : list of floats
-        the intervals of the fit.
+        The intervals of the fit.
 
     """
     if dimension_index == 0 or len(interval_centers) < 2:
@@ -310,162 +359,16 @@ def calculate_intervals(interval_centers, dimension_index, interval_index):
     return interval_limits
 
 
-def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
-              directory):
-    """
-    The function distributes the information given by the parameters and starts
-    the plot assignment. The Distribution of the parameters depends on the
-    dependencies between the variables of a probabilistic model. There are 9
-    possibilities. The structure of the possibilities is like a truth table.
-    :param fit:             fit results
-                            distribution. (Further information in the doc
-                            from compute)
-    :param var_names:       the names of the single variables of the
-    probabilistic model.
-    :param var_symbols:     symbols of the variables of the probabilistic model
-    :param title:           the title of the probabilistic model.
-    :param user:            the user who started the request (to assign the
-    images later).
-    :param directory:       directory where the figures should be saved (the
-    primary key will be added as a subfolder)
-    :return:                the primary key of the created ProbabilisticModel
-    instance.
-    """
-    probabilistic_model = ProbabilisticModel(
-        primary_user=user,
-        collection_name=title,
-        measure_file_model=measure_file,
-    )
-    probabilistic_model.save()
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
-           '/prob_model/' + str(probabilistic_model.pk)
-    probabilistic_model.path_of_statics = path
-    probabilistic_model.save(update_fields=['path_of_statics'])
-
-    directory = directory + '/' + str(probabilistic_model.pk)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    params = ['shape', 'location', 'scale']
-    mult_float_points = []
-    interval_centers = []
-
-    # prepare data to plot a function and save the data into the database tables
-    for i, param_points in enumerate(fit.mul_param_points):
-        distribution = fit.mul_var_dist.distributions[i]
-        list_float_points = []
-        name = 'Lognormal_2' if (distribution.name == 'Lognormal') \
-            else distribution.name
-        distribution_model = DistributionModel(
-            name=var_names[i], distribution=name, symbol=var_symbols[i],
-            probabilistic_model=probabilistic_model)
-        distribution_model.save()
-
-        for j, spec_param_points in enumerate(param_points):
-            float_points = []
-            # selects which parameter is currently  processed
-            if j == 0:
-                param = distribution.shape
-            elif j == 1:
-                param = distribution.loc
-            elif j == 2:
-                if name == 'Lognormal_2':
-                    param = distribution.mu
-                else:
-                    param = distribution.scale
-            else:
-                raise KeyError('{} is not a matching index of a parameter '
-                               'like shape location and scale'.format(
-                    distribution.param))
-            if spec_param_points is not None:
-                for k, point in enumerate(spec_param_points[1]):
-                    float_points.append(point)
-                    interval_centers.append(spec_param_points[0][k])
-                plot_parameter_fit_overview(i, var_names[i], var_symbols[i],
-                                            params[j], [spec_param_points[0],
-                                                        float_points],
-                                            param, directory, distribution.name)
-                parameter_model = ParameterModel(
-                    function=param.func_name, x0=param.a, x1=param.b,
-                    x2=param.c, dependency=fit.mul_var_dist.dependencies[i][j],
-                    distribution=distribution_model)
-
-            else:
-                if param is None:
-                    for k in range(fit.dist_descriptions[i].get(
-                            'used_number_of_intervals')):
-                        float_points.append(0)
-                    parameter_model = ParameterModel(
-                        function='None', x0=0, dependency='!',
-                        distribution=distribution_model)
-                else:
-                    for k in range(fit.dist_descriptions[i].get(
-                            'used_number_of_intervals')):
-                        float_points.append(param._value(1))
-                    parameter_model = ParameterModel(
-                        function='None', x0=param._value(1), dependency='!',
-                        distribution=distribution_model)
-
-            # Avoid values, which can cause probblems in the data base,
-            # see issue #19.
-            MAX_VALID_VALUE_COEFF = 1000000
-            if parameter_model.x0 > MAX_VALID_VALUE_COEFF or \
-                    parameter_model.x0 < -1 * MAX_VALID_VALUE_COEFF:
-                raise ValueError('The value of the fitting coefficient is '
-                                 'invalid. Maybe this was caused by having too'
-                                 ' little data for the fit. Or the wrong '
-                                 'distribution was selected.')
-            parameter_model.save()
-
-            list_float_points.append(float_points)
-        mult_float_points.append(list_float_points)
-
-    # prepare data to plot a distribution
-    # i = the variable index
-    for i, dist_points in enumerate(fit.mul_dist_points):
-        # j = 0-2 (shape, loc, scale)
-        for j, spec_dist_points in enumerate(dist_points):
-            # k = number of intervals
-            for k, dist_point in enumerate(spec_dist_points):
-                if interval_centers:
-                    if i == 0 or len(interval_centers) < 2:
-                        interval_limits = [min(interval_centers),
-                                           max(interval_centers)]
-                    else:
-                        # Calculate  the interval width assuming constant
-                        # interval width.
-                        interval_width = interval_centers[1] - \
-                                         interval_centers[0]
-                        interval_limits = [
-                            interval_centers[k] - 0.5 * interval_width,
-                            interval_centers[k] + 0.5 * interval_width]
-                else:
-                    interval_limits = []
-                parent_index = fit.mul_var_dist.dependencies[i][j]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                if is_legit_distribution_parameter_index(
-                        fit.mul_var_dist.distributions[i].name, j):
-                    plot_pdf_with_raw_data(
-                        i, parent_index, k, mult_float_points[i][0][k],
-                        mult_float_points[i][1][k], mult_float_points[i][2][k],
-                        fit.mul_var_dist.distributions[i].name,
-                        dist_point, interval_limits, var_names[i],
-                        symbol_parent_var, directory)
-
-                # The first variable has no dependencies, consequently there is
-                # no need to check for them.
-                if i == 0:
-                    break
-
-    return probabilistic_model
-
-
 def is_legit_distribution_parameter_index(distribution_name, index):
     """
     Check if the distribution has this kind of parameter index
-    (0 = shape, 1 = loc, 2 = scale)
+
+    Parameters
+    ----------
+    distribution_name : str
+        The name of a Distribution must be 'Normal', 'Lognormal' or 'Weibull'.
+    index : int
+        The index represents a the three possible parameter shape, loc, scale. (0 = shape, 1 = loc, 2 = scale)
     """
     if distribution_name == 'Normal':
         if index == 0:
@@ -489,7 +392,11 @@ def is_legit_distribution_parameter_index(distribution_name, index):
 def get_first_number_of_tuple(x):
     """
     Finds the first integer number of a tuple and returns it.
-    :param x:           the tuple
+
+    Parameters
+    ----------
+    x :
+    the tuple
     """
     first_number = None
     for i in range(len(x)):
@@ -503,12 +410,17 @@ def get_first_number_of_tuple(x):
 def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     """
     The function plots a png image of a contour.
-    :param contour_coordinates:      data points of the contour
-    :param user:        who gives the contour calculation order
-    :param method_label:      e.g. "T = 25 years, IFORM"
-    :param environmental_contour:       models.EnvironmentalContourenvironmental
-    :param var_names:   name of the variables of the probabilistic model
-    :param var_symbols: symbols of the variables of the probabilistic model
+
+    Parameters
+    ----------
+    contour_coordinates : list of floats
+        Data points of the contour.
+    user : str
+        Who gives the contour calculation order.
+    environmental_contour : EnvironmentalContour
+        The model object contains all information about a environmental contour.
+    var_names: list of str
+      Name of the variables of the probabilistic model
     """
 
     pm = environmental_contour.probabilistic_model
