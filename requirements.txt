@@ -1,4 +1,4 @@
-https://github.com/boto/boto3/archive/1.7.2.zip
+boto3==1.7.2
 coverage==4.5.1
 coveralls==1.3.0
 cycler==0.10.0
