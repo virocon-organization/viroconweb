@@ -181,7 +181,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
     if dist_name == 'Weibull':
         if para_name == 'shape':
             y_text = 'k (shape)'
-        elif para_name == 'location':
+        elif para_name == 'loc':
             y_text = 'θ (location)'
         elif para_name == 'scale':
             y_text = 'λ (scale)'
@@ -193,7 +193,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
     elif dist_name == 'Normal':
         if para_name == 'shape':
             return
-        elif para_name == 'location':
+        elif para_name == 'loc':
             y_text = 'μ (mean)'
         elif para_name == 'scale':
             y_text = 'σ (standard deviation)'
@@ -253,9 +253,7 @@ def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbol
     for j in range(len(param_at)):
         basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
         interval_limits = calculate_intervals(param_at, main_index, 0)
-        print('Dependency Tupel:{}'.format(fit.mul_var_dist.dependencies[main_index]))
         parent_index = fit.mul_var_dist.dependencies[main_index][param_index]
-        print('Parent_index: {}'.format(parent_index))
         symbol_parent_var = None
         if parent_index is not None:
             symbol_parent_var = var_symbols[parent_index]
@@ -264,7 +262,7 @@ def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbol
                                var_symbols[main_index], symbol_parent_var, directory)
 
 
-def plot_var_independent(param_name, main_index, var_symbols, directory, fit_inspection_data, fit):
+def plot_var_independent(param_name, param_index, main_index, var_symbols, directory, fit_inspection_data, fit):
     """
     Plots the fitted distribution of a independent parameter (e.g. shape, loc or scale).
 
@@ -272,6 +270,9 @@ def plot_var_independent(param_name, main_index, var_symbols, directory, fit_ins
     ----------
     param_name : str
         The name of the parameter (e.g. shape, loc or scale).
+    param_index : int
+        The index represents a parameter of the three possible parameter shape, loc, scale.
+        (0 = shape, 1 = loc, 2 = scale)
     main_index : int
         The dimension of the distribution.
     var_symbols : list of str
@@ -285,7 +286,7 @@ def plot_var_independent(param_name, main_index, var_symbols, directory, fit_ins
     """
     basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
     interval_limits = []
-    parent_index = fit.mul_var_dist.dependencies[main_index][1]
+    parent_index = fit.mul_var_dist.dependencies[main_index][param_index]
     symbol_parent_var = None
     if parent_index is not None:
         symbol_parent_var = var_symbols[parent_index]
@@ -323,21 +324,21 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                                fit.mul_var_dist.distributions[i].shape,
                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_independent('shape', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('shape', 0, i, var_symbols, directory, fit_inspection_data, fit)
         # loc
         if fit_inspection_data.loc_at is not None:
             plot_var_dependent('loc', 1, i, var_names[i], var_symbols,
                                fit.mul_var_dist.distributions[i].loc,
                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_independent('loc', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('loc', 1, i, var_symbols, directory, fit_inspection_data, fit)
         # scale
         if fit_inspection_data.scale_at is not None:
             plot_var_dependent('scale', 2, i, var_names[i], var_symbols,
                                fit.mul_var_dist.distributions[i].scale,
                                directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
         else:
-            plot_var_independent('scale', i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('scale', 2, i, var_symbols, directory, fit_inspection_data, fit)
 
 
 def calculate_intervals(interval_centers, dimension_index, interval_index):
