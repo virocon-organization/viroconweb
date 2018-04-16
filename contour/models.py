@@ -15,14 +15,12 @@ def media_directory_path(instance, filename):
     Creates the path where to upload a media file.
 
     The path is:
-    MEDIA_ROOT/<username>/<model_abbvrevation>/<filename>_<time_stamp>
+    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<filename>_<time_stamp>
 
     Parameters
     ----------
-    instance : MeasureFileModel or PlottedFigure,
-        The MeasureFileModel object that has media fiels, which need
-        a directory. Alternatively, the PlottedFigure has a ImageField, which
-        needs a directory.
+    instance : EnvironmentalContour, MeasureFileModel or PlottedFigure,
+        These models have media files, which need a directory.
     filename : String,
         Name of the measurement file, e.g. "data_points.csv".
 
