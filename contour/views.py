@@ -725,7 +725,7 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def show_model(request, pk):
         """
-        The method shows a probabilistic model (name, equation of the joint pdf, information about the fit)
+        Shows a probabilistic model (name, equation of the joint pdf, information about the fit)
         :return:        HttpResponse.
         """
         if request.user.is_anonymous:
@@ -790,7 +790,7 @@ class EnvironmentalContourHandler(Handler):
 
 def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
     """
-    stores the calculated fit parameters into the probabilistic model structure.
+    Stores the calculated fit parameters into the probabilistic model structure.
 
     Parameters
     ----------
@@ -832,6 +832,15 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
 
 
 def store_parameter(parameter, distribution_model, dependency):
+    """
+    Stores a fitted parameter and links it to a DistributionModel.
+    parameter : ConstantParam or FunctionParam
+        ConstantParam is a float value. FunctionParam contains a whole function like power function or exponential.
+    distribution_model : DistributionModel
+        The parameter will be linked to this DistributionModel.
+    dependency : int
+        The dimension the dependency is based on.
+    """
     if type(parameter) == params.ConstantParam:
         parameter_model = ParameterModel(function='None',
                                          x0=parameter(0),
