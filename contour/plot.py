@@ -12,6 +12,7 @@ from subprocess import Popen, PIPE
 from io import BytesIO, StringIO
 from django.core.files.base import ContentFile
 from urllib import request
+from virocon.settings import USE_S3
 
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
@@ -603,7 +604,8 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     url_contour_image = pf_contour.image.url
     local_path_contour_image = full_directory + \
                                os.path.split(url_contour_image)[1]
-    request.urlretrieve(url_contour_image, local_path_contour_image)
+    if USE_S3:
+        request.urlretrieve(url_contour_image, local_path_contour_image)
 
 
 

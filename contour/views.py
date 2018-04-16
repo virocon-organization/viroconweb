@@ -218,8 +218,12 @@ class MeasureFileHandler(Handler):
                 if measure_file_form.is_valid():
                     measure_model = MeasureFileModel(
                         primary_user=request.user,
-                        title=measure_file_form.cleaned_data['title'],
-                        measure_file=measure_file_form.cleaned_data['measure_file'])
+                        title=measure_file_form.cleaned_data['title']
+                    )
+                    measure_model.save()
+                    measure_model.measure_file.save(
+                        measure_file_form.cleaned_data['measure_file'].name,
+                        measure_file_form.cleaned_data['measure_file'].file)
                     measure_model.save()
                     path = settings.PATH_MEDIA + \
                            settings.PATH_USER_GENERATED + \

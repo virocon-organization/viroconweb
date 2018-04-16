@@ -32,9 +32,10 @@ def media_directory_path(instance, filename):
     """
     time_stamp = file_time_stamp()
     if instance.__class__.__name__ == 'MeasureFileModel':
-        path = '{0}/{1}/{2}'.format(
+        path = '{0}/{1}/{2}/{3}'.format(
             instance.primary_user.username,
             settings.PATH_MEASUREMENT,
+            instance.pk,
             time_stamp + '_' + filename)
     elif instance.__class__.__name__ == 'PlottedFigure':
         if instance.probabilistic_model:
