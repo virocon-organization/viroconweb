@@ -33,7 +33,7 @@ if not key_exists:
     AWS_SECRET_ACCESS_KEY = 'XXX'
 else:
     AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_STORAGE_BUCKET_NAME = 'virocon-media'
+AWS_STORAGE_BUCKET_NAME = 'virocon-media-dev'
 AWS_QUERYSTRING_AUTH = False
 S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
