@@ -170,7 +170,8 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
 
 
 def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
-                                data_points, fit_func, directory, dist_name,
+                                param_at, param_values, fit_func,
+                                directory, dist_name,
                                 probabilistic_model):
     """
     Plots an image which shows the fit of a function.
@@ -288,8 +289,9 @@ def plot_var_dependent(param_name,
         Probabilistic model that was created based on that fit.
     """
     param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
-    plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index], param_name, param_at, param_value,
-                                param, directory, dist_name)
+    plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index],
+                                param_name, param_at, param_value,
+                                param, directory, dist_name, probabilistic_model)
     for j in range(len(param_at)):
         basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
         interval_limits = calculate_intervals(param_at, main_index, 0)
