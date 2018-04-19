@@ -9,6 +9,11 @@ from scipy.stats import lognorm
 from scipy.stats import norm
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
+from io import BytesIO, StringIO
+from django.core.files.base import ContentFile
+from urllib import request
+from virocon.settings import USE_S3
+
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
@@ -43,22 +48,24 @@ if backend_worked == False or matplotlib.get_backend() == 'TkAgg':
     plt.switch_backend('agg')
     print("Switched backend and now using", matplotlib.get_backend())
 
+
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
 
 from . import settings
 
-from .models import ProbabilisticModel, DistributionModel, AdditionalContourOption
+from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
+    AdditionalContourOption, PlottedFigure
 from .compute_interface import setup_mul_dist
 
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
-                           var_name, symbol_parent_var, directory):
+                           var_name, symbol_parent_var, directory,
+                           probabilistic_model):
     """
     The function creates an image which shows a certain fit of a distribution.
-
     Parameters
     ----------
     main_index : int
@@ -82,9 +89,11 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     var_name : str
         The name of a single variable of the probabilistic model.
     symbol_parent_var : str
-        symbol of the variable on which the conditional variable is based.
+        Symbol of the variable on which the conditional variable is based.
     directory : str
-        the directory where the figure should be saved
+        The directory where the figure should be saved
+    probabilistic_model : ProbabilisticModel
+        Probabilistic model which has the particular pdf.
     """
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -145,15 +154,24 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     # The convention for image name is like this: 'fit_01_00_02.png' means
     # a plot of the second variable (01) which is conditional on the first
     # variable (00) and this is the third (02) fit
-    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' +
-                parent_index_2_digits + '_' + low_index_2_digits + '.png')
-
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + main_index_2_digits + '_' + parent_index_2_digits + \
+                '_' + low_index_2_digits + '.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
+
     return
 
 
-def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, param_at, param_values,
-                                fit_func, directory, dist_name):
+def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
+                                data_points, fit_func, directory, dist_name,
+                                probabilistic_model):
     """
     Plots an image which shows the fit of a function.
 
@@ -177,6 +195,8 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
         The directory where the figure will be saved.
     dist_name : str
         Name of the distribution, e.g. "Lognormal".
+    probabilistic_model : ProbabilisticModel
+        Probabilistic model that was created based on this fit.
     """
     if dist_name == 'Weibull':
         if para_name == 'shape':
@@ -213,9 +233,17 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name, par
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
-    plt.savefig(directory + '/fit_' + str(main_index) + para_name + '.png')
-    plt.close(fig)
 
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
+    plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + str(main_index) + para_name + '.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
 
 def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbols, param,
                        directory, dist_name, fit_inspection_data, fit):
@@ -297,7 +325,7 @@ def plot_var_independent(param_name, param_index, main_index, var_symbols, direc
 
 def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
     """
-    Visualise a fit generated by the virconcom package.
+    Visualize a fit generated by the virconcom package.
 
     Parameters
     ----------
@@ -414,9 +442,9 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
       Name of the variables of the probabilistic model
     """
 
-    pm = environmental_contour.probabilistic_model
+    probabilistic_model = environmental_contour.probabilistic_model
 
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
+    path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -425,20 +453,20 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     if len(contour_coordinates[0]) == 2:
         ax = fig.add_subplot(111)
 
-        # plot raw data
-        if (pm.measure_file_model):
-            data_path = pm.measure_file_model.measure_file.url
-            data_path = data_path[1:]
+        # Plot raw data
+        if (probabilistic_model.measure_file_model):
+            data_path = probabilistic_model.measure_file_model.measure_file.url
+            if data_path[0] == '/':
+                data_path = data_path[1:]
             data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
             ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
-        # plot contour
+        # Plot contour
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            # ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
                 convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
@@ -469,18 +497,27 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
 
     ax.grid(True)
 
-    directory = settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
-                '/contour/' + str(environmental_contour.pk) + '/'
+    directory = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + user + \
+        '/contour/' + str(environmental_contour.pk) + '/'
     if not os.path.exists(directory):
         os.makedirs(directory)
-    plt.savefig(directory + 'contour.png', bbox_inches='tight')
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(environmental_contour=environmental_contour)
+    file_name = 'contour.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
 
 
-def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
-    fig = plt.figure(figsize=(7.5, 5.5 * (len(var_names) - 1)))
+def plot_data_set_as_scatter(user, measure_file_model, var_names):
+    fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
     data_path = measure_file_model.measure_file.url
-    data_path = data_path[1:]
+    if data_path[0] == '/':
+        data_path = data_path[1:]
 
     # Number of lines of th header is correctly set to 0! Originally it was 1,
     # which caused a bug since the first data row was ignored, see issue #20.
@@ -493,10 +530,15 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
         ax.set_ylabel('{}'.format(var_names[i + 1]))
         if i == 0:
             plt.title('measurement file: ' + measure_file_model.title)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    plt.savefig(directory + '/scatter.png', bbox_inches='tight')
+
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    measure_file_model.scatter_plot.save('scatter_plot.png', content_file)
+    measure_file_model.save()
 
 
 def create_latex_report(contour_coordinates, user, environmental_contour,
@@ -535,19 +577,38 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
 
     """
     probabilistic_model = environmental_contour.probabilistic_model
+    short_directory = settings.PATH_USER_GENERATED + user + \
+                             '/contour/' + str(environmental_contour.pk) + '/'
+    short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
+    full_directory = settings.PATH_MEDIA + short_directory
+    full_file_path_report = settings.PATH_MEDIA + short_file_path_report
+
 
     plot_contour(contour_coordinates, user, environmental_contour, var_names)
-    directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
-    file_path_contour = directory_prefix + user + '/contour/' + \
-                        str(environmental_contour.pk) + '/contour.png'
-    directory_fit_images = directory_prefix + user + '/prob_model/'
+
+    pf_contour = PlottedFigure.objects.filter(
+        environmental_contour=environmental_contour).first()
+    # Download the image from Amazon S3 since latex needs a local version
+    url_contour_image = pf_contour.image.url
+    local_path_contour_image = full_directory + \
+                               os.path.split(url_contour_image)[1]
+    if USE_S3:
+        request.urlretrieve(url_contour_image, local_path_contour_image)
+
+
+
+    directory_prefix = settings.PATH_MEDIA + settings.PATH_USER_GENERATED
+    directory_fit_images = directory_prefix + user + '/' + settings.PATH_PROB_MODEL
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
                     r"\includegraphics[width=\textwidth]{" + \
-                    file_path_contour + r"}" \
-                                        r"\subsection{Extreme environmental design conditions}" + \
-                    get_latex_eedc_table(contour_coordinates, var_names, var_symbols) + \
+                    local_path_contour_image+ r"}" \
+                    r"\subsection{Extreme environmental design conditions}" + \
+                    get_latex_eedc_table(
+                        contour_coordinates,
+                        var_names,
+                        var_symbols) + \
                     r"\section{Methods}" \
                     r"\subsection{Associated measurement file}"
 
@@ -555,16 +616,17 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        temp = directory_fit_images + str(probabilistic_model.pk)
-        if os.path.exists(temp):
-            img_list = os.listdir(temp)
-            for img in img_list:
-                img_name = directory_fit_images + str(probabilistic_model.pk) + \
-                           "/" + img
-                latex_content += r"\begin{figure}[H]"
-                latex_content += r"\includegraphics[width=\textwidth]{" + \
-                                 img_name + r"}"
-                latex_content += r"\end{figure}"
+        plotted_figures = PlottedFigure.objects.filter(
+            probabilistic_model=probabilistic_model)
+        for plotted_figure in plotted_figures:
+            url_plotted_figure = plotted_figure.image.url
+            local_path_plotted_figure = full_directory + \
+                                       os.path.split(url_plotted_figure)[1]
+            request.urlretrieve(url_plotted_figure, local_path_plotted_figure)
+            latex_content += r"\begin{figure}[H]"
+            latex_content += r"\includegraphics[width=\textwidth]{" + \
+                             local_path_plotted_figure + r"}"
+            latex_content += r"\end{figure}"
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."
@@ -574,7 +636,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
                      probabilistic_model.collection_name + \
                      r"|'\\"
 
-    # get the probability density function equation in latex style
+    # Get the probability density function equation in latex style
     dists_model = DistributionModel.objects.filter(
         probabilistic_model=probabilistic_model)
     var_symbols = []
@@ -615,7 +677,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         # Finally read the generated pdf.
         for i in range(2):
             process = Popen(
-                ['pdflatex', '-output-directory', tempdir],
+                ['pdflatex', '--shell-escape', '-output-directory', tempdir],
                 stdin=PIPE,
                 stdout=PIPE,
             )
@@ -623,15 +685,14 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
             pdf = f.read()
 
-    short_directory = settings.PATH_USER_GENERATED + user + \
-                      '/contour/' + str(environmental_contour.pk) + '/'
-    short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
-    full_directory = settings.PATH_STATIC + short_directory
-    full_file_path_report = settings.PATH_STATIC + short_file_path_report
     if not os.path.exists(full_directory):
         os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
+        djangofile = ContentFile(pdf)
+        environmental_contour.latex_report.save(
+            settings.LATEX_REPORT_NAME, djangofile)
+        environmental_contour.save()
 
     return short_file_path_report
 
@@ -646,11 +707,9 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
         matrix : n-dimensional matrix
             The coordinates of the environmental contour.
             The format is defined by compute_interface.iform()
-
         var_names : list of strings
             Names of the environmental variables used in the probabil. model,
             e.g. ['wind speed [m/s]', 'significant wave height [m]']
-
         var_symbols : list of strings
             Symbols of the environental variables used in the probabil. model,
             e.g. ['V', 'Hs']

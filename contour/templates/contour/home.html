@@ -23,7 +23,9 @@
             <div class="col-md-6 ">
                 <div class="flow-chart-image hidden-xs hidden-sm">
                     <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
-                    <p>Start</p>
+                        <p>
+                            <a href="{% url 'contour:measure_file_model_add' %}">Start<a>
+                        </p>
                 </div>
             </div>
             <div class="col-md-6">
@@ -55,7 +57,11 @@
             <div class="col-md-6">
                 <div class="flow-chart-image  hidden-xs hidden-sm">
                     <img src=" {% static 'images/FlowChartStart_370px854px_noText.png' %}" class="image-bar">
-                    <p>Start</p>
+                    <p>
+                        <a href="{% url 'contour:probabilistic_model_add' '02' %}">
+                            Start
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>

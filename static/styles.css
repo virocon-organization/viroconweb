@@ -322,7 +322,7 @@ h2 {
 .panel-overview > .panel-heading {
 }
 
-.probabilstic-model-show {
+.left-align-div {
     text-align: left;
 }
 
@@ -360,5 +360,43 @@ h2 {
 }
 
 .contour_input_field {
-    width: 180px
+    width: 180px;
+}
+
+.equation-at-help {
+    font-size: 14px;
+}
+
+.img-caption {
+    align: center;
+    font-size: 18px;
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+.thump-img-container {
+    width: 14vw;
+    min-width: 150px;
+    min-height: 250px;
+    float:left;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.thumb-img{
+    object-fit: cover;
+    overflow: hidden;
+    width: 14vw;
+    height: 14vw;
+    min-width: 150px;
+    min-height: 150px;
+
+
+
+}
+
+.thump-img-caption {
+   width: 14vw;
 }

@@ -9,5 +9,5 @@ class AboutTestCase(TestCase):
 
     def test_renders_correctly(self):
         response = self.client.get(reverse('info:about'), follow=True)
-        self.assertContains(response, "ViroCon GitHub repository",
+        self.assertContains(response, "Current members",
                             status_code = 200)
