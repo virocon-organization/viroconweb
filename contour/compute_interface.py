@@ -19,7 +19,8 @@ class ComputeInterface:
         :return:                the results of the fits ( a lot of arrays). 
         """
         data_path = mfm_item.measure_file.url
-        data_path = data_path[1:]
+        if data_path[0] == '/':
+            data_path = data_path[1:]
         data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
         dists = []
         dates = []

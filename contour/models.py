@@ -6,36 +6,63 @@ from django.core.exceptions import ValidationError
 import random
 import string
 from . import settings
+from time import gmtime, strftime
 
-# Thanks to: https://stackoverflow.com/questions/34239877/django-save-user-
+# Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
-def measurement_directory_path(instance, filename):
+def media_directory_path(instance, filename):
     """
-    Creates the path where to upload a measurement file.
+    Creates the path where to upload a media file.
 
     The path is:
-    MEDIA_ROOT/<username>/measurement/<pk>/<filename>_<random_hash>
+    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<time_stamp>_<filename>
 
     Parameters
     ----------
-    instance : MeasureFileModel,
-        The MeasureFileModel object that has the measurement file which needs
-        a directory.
+    instance : EnvironmentalContour, MeasureFileModel or PlottedFigure,
+        These models have media files, which need a directory.
     filename : String,
         Name of the measurement file, e.g. "data_points.csv".
 
     Returns
     -------
-    summed_fields : ndarray, dtype=Bool
-        Boolean array of shape like array with True if element was used in summation.
-    last_summed : float
-        Element that was added last to the sum.
+    path : str
     """
-    random_hash = ''.join(random.choices(
-        string.ascii_uppercase + string.digits, k=10))
-    return '{0}/measurement/{1}'.format(
-        instance.primary_user.username,
-        filename + '_' + random_hash)
+    time_stamp = file_time_stamp()
+    if instance.__class__.__name__ == 'MeasureFileModel':
+        path = '{0}/{1}/{2}/{3}'.format(
+            instance.primary_user.username,
+            settings.PATH_MEASUREMENT,
+            instance.pk,
+            time_stamp + '_' + filename)
+    elif instance.__class__.__name__ == 'PlottedFigure':
+        if instance.probabilistic_model:
+            probabilistic_model = instance.probabilistic_model
+            user_name = probabilistic_model.primary_user.username
+            model_path = settings.PATH_PROB_MODEL
+            primary_key = probabilistic_model.pk
+        elif instance.environmental_contour:
+            ec = instance.environmental_contour
+            user_name = ec.probabilistic_model.primary_user.username
+            model_path = settings.PATH_CONTOUR
+            primary_key = ec.pk
+        path = '{0}/{1}/{2}/{3}'.format(
+            user_name,
+            model_path,
+            primary_key,
+            time_stamp + '_' + filename)
+    elif instance.__class__.__name__ == 'EnvironmentalContour':
+        path = '{0}/{1}/{2}/{3}'.format(
+            instance.probabilistic_model.primary_user.username,
+            settings.PATH_CONTOUR,
+            instance.pk,
+            time_stamp + '_' + filename)
+    else:
+        path = None
+    return path
+
+def file_time_stamp():
+    return strftime('%Y-%m-%d-%H-%m')
 
 
 class MeasureFileModel(models.Model):
@@ -52,8 +79,12 @@ class MeasureFileModel(models.Model):
     title = models.CharField(default="MeasureFile", max_length=50)
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(
-        upload_to=measurement_directory_path,
+        upload_to=media_directory_path,
         validators=[validate_file_extension])
+    scatter_plot = models.ImageField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None)
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
 
     @staticmethod
@@ -196,10 +227,15 @@ class EnvironmentalContour(models.Model):
     path_of_statics = models.CharField(default=None, max_length=240, null=True)
     probabilistic_model = models.ForeignKey(ProbabilisticModel,
                                      on_delete=models.CASCADE)
+    latex_report = models.FileField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None
+    )
 
     def path_of_latex_report(self):
-        if self.path_of_statics.startswith(settings.PATH_STATIC):
-            path = self.path_of_statics[settings.PATH_STATIC.__len__():]
+        if self.path_of_statics.startswith(settings.PATH_MEDIA):
+            path = self.path_of_statics[settings.PATH_MEDIA.__len__():]
         else:
             path = self.path_of_statics
         path = path + "/" + settings.LATEX_REPORT_NAME
@@ -208,6 +244,7 @@ class EnvironmentalContour(models.Model):
     @staticmethod
     def url_str():
         return "environmental_contour"
+
 
 class AdditionalContourOption(models.Model):
     """
@@ -264,3 +301,30 @@ class EEDCScalar(models.Model):
     x = models.DecimalField(decimal_places=5, max_digits=10, null=True)
     EEDC = models.ForeignKey(ExtremeEnvDesignCondition,
                                      on_delete=models.CASCADE)
+
+
+class PlottedFigure(models.Model):
+    """
+    Has an ImageField, which stores an image crated with matplotlib
+
+    By having a class with an ImageField a ProbabilisticModel or an
+    EnvironmentalContour instance can have multiple images associated to it
+    using a many-to-one relation.
+    """
+    image = models.ImageField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None
+    )
+    probabilistic_model = models.ForeignKey(
+        ProbabilisticModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+    environmental_contour = models.ForeignKey(
+        EnvironmentalContour,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )

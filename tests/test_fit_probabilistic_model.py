@@ -1,10 +1,13 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from contour.forms import MeasureFileFitForm
 
 
+# Since this test is affected by whitenoise, we deactive it here, see:
+# https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+@override_settings(STATICFILES_STORAGE=None)
 class FitProbModelTestCase(TestCase):
 
     def setUp(self):

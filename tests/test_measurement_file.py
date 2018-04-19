@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
@@ -16,6 +16,9 @@ class UploadFileTestCase(TestCase):
                            {'username' : 'max_mustermann',
                             'password' : 'Musterpasswort2018'})
 
+    # Since this test is affected by whitenoise, we deactive it here, see:
+    # https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+    @override_settings(STATICFILES_STORAGE=None)
     def test_upload_file(self):
 
         file_name = '1yeardata_vanem2012pdf_withHeader.csv'

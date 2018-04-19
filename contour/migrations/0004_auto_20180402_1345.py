@@ -58,7 +58,7 @@ def load_data(apps, schema_editor):
         measure_file_model=None,
     )
     probabilistic_model.save()
-    path = contour_settings.PATH_STATIC + \
+    path = contour_settings.PATH_MEDIA + \
            contour_settings.PATH_USER_GENERATED + str(user) + \
            '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
@@ -125,7 +125,7 @@ def load_data(apps, schema_editor):
         measure_file_model=None,
     )
     probabilistic_model.save()
-    path = contour_settings.PATH_STATIC + \
+    path = contour_settings.PATH_MEDIA + \
            contour_settings.PATH_USER_GENERATED + str(user) + \
            '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
