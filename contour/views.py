@@ -17,8 +17,8 @@ from . import plot
 from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
-    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, ProbabilisticModel, DistributionModel, \
-    ParameterModel
+    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
+    ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
 
 from .compute_interface import ComputeInterface
 from viroconcom import distributions, params
@@ -262,16 +262,18 @@ class MeasureFileHandler(Handler):
                                                     variable_names=var_names)
                 if fit_form.is_valid():
                     ci = ComputeInterface()
-                    # try:
-                    fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
-                                        var_number=var_number)
-                    """except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    try:
+                        fit = ci.fit_curves(mfm_item=mfm_item,
+                                            fit_settings=fit_form.cleaned_data,
+                                            var_number=var_number)
+                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'contour/error.html',
                                       {'error_message': err,
                                        'text': 'Error occured while fitting a probabilistic model to the file.'
                                                'Try it again with different settings please',
                                        'header': 'fit measurement file to probabilistic model',
                                        'return_url': 'contour:measure_file_model_select'})
+
                     directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
