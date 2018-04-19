@@ -79,7 +79,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# select own user model
+# Select own user model
 AUTH_USER_MODEL = 'user.User'
 
 # Application definition
@@ -197,14 +197,14 @@ ALLOWED_HOSTS = [
     'serene-sierra-98066.herokuapp.com'
 ]
 
-# execute this for debug smtp:
+# Execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025
 
-# un-comment this for debug smtp:
+# Un-comment this for debug smtp:
 # EMAIL_HOST = 'localhost'
 # EMAIL_PORT = 1025
 
-# comment out this if debug smtp should be executed:
+# Comment this if debug smtp should be executed:
 # DEFAULT_FROM_EMAIL = ''
 
 EMAIL_HOST = 'smtp.uni-bremen.de'
@@ -219,7 +219,7 @@ else:
     EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 
 
-# see https://devcenter.heroku.com/articles/django-app-configuration
+# See https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
@@ -228,6 +228,6 @@ DATABASES['default'].update(db_from_env)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
-# see https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 #CSRF_COOKIE_SECURE = True
 #SESSION_COOKIE_SECURE = True

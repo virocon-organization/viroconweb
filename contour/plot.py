@@ -436,7 +436,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     if len(contour_coordinates[0]) == 2:
         ax = fig.add_subplot(111)
 
-        # plot raw data
+        # Plot raw data
         if (probabilistic_model.measure_file_model):
             data_path = probabilistic_model.measure_file_model.measure_file.url
             if data_path[0] == '/':
@@ -445,12 +445,11 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             ax.scatter(data[:,0], data[:,1], s=5 ,c='k',
                        label='measured/simulated data')
 
-        # plot contour
+        # Plot contour
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            #ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
                 convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
@@ -496,9 +495,6 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     file_name = 'contour.png'
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
-
-    #plt.savefig(directory + 'contour.png', bbox_inches='tight')
-    #plt.close(fig)
 
 def plot_data_set_as_scatter(user, measure_file_model, var_names):
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))

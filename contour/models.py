@@ -15,7 +15,7 @@ def media_directory_path(instance, filename):
     Creates the path where to upload a media file.
 
     The path is:
-    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<filename>_<time_stamp>
+    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<time_stamp>_<filename>
 
     Parameters
     ----------
