@@ -32,11 +32,20 @@
                     <button type="submit" class="btn btn-primary">OK</button>
                 </div>
                 <hr>
-                <div> csv. file structure with two data columns</div>
-                <div class="row">
-                    <div class="col-md-3"></div>
-                    <div class="col-md-6"><img class="img-responsive" src="{% static 'img/example_csv.png' %}"></div>
-                    <div class="col-md-3"></div>
+                <div align="center">
+                    <img src="{% static 'images/example_csv.png' %}"
+                         class="img-responsive">
+                </div>
+                <div class="img-caption">
+                    The required file structure with two data columns.
+                    The first value is interpreted as "variable name 1",
+                    "variable symbol 1", "variable name 2" and
+                    "variable symbol 2". All following lines contain the
+                    numerical values of the variables, each line represents
+                    one time step.
+                    The first column is associated to variable 1, the second
+                    columne is associated to variable 2. All values must be
+                    seperated by semicolons.
                 </div>
 
             </div>
