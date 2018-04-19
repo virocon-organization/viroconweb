@@ -32,7 +32,6 @@ def _delete_file(instance, path):
             elif instance.__class__.__name__ == 'EnvironmentalContour':
                 instance.latex_report.delete(save=False)
         else:
-            print('Called _delete_file with path: ' + str(path))
             if os.path.isfile(path):
                 os.remove(path)
             elif os.path.isdir(path):

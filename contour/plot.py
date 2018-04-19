@@ -245,8 +245,18 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
 
-def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbols, param,
-                       directory, dist_name, fit_inspection_data, fit):
+
+def plot_var_dependent(param_name,
+                       param_index,
+                       main_index,
+                       var_name,
+                       var_symbols,
+                       param,
+                       directory,
+                       dist_name,
+                       fit_inspection_data,
+                       fit,
+                       probabilistic_model):
     """
     Plots the fitted distribution for each interval and the resulting fit function for a parameter like shape, loc or
     scale.
@@ -274,6 +284,8 @@ def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbol
         Information for plotting the fits of a single dimension.
     fit : Fit
         Holds data and information about the fit.
+    probabilistic_model : ProbabilisticModel
+        Probabilistic model that was created based on that fit.
     """
     param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
     plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index], param_name, param_at, param_value,
@@ -285,12 +297,22 @@ def plot_var_dependent(param_name, param_index, main_index, var_name, var_symbol
         symbol_parent_var = None
         if parent_index is not None:
             symbol_parent_var = var_symbols[parent_index]
-        plot_pdf_with_raw_data(main_index, parent_index, j, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                               fit.mul_var_dist.distributions[main_index].name, basic_fit.samples, interval_limits,
-                               var_symbols[main_index], symbol_parent_var, directory)
+        plot_pdf_with_raw_data(main_index, parent_index, j, basic_fit.shape,
+                               basic_fit.loc, basic_fit.scale,
+                               fit.mul_var_dist.distributions[main_index].name,
+                               basic_fit.samples, interval_limits,
+                               var_symbols[main_index], symbol_parent_var,
+                               directory, probabilistic_model)
 
 
-def plot_var_independent(param_name, param_index, main_index, var_symbols, directory, fit_inspection_data, fit):
+def plot_var_independent(param_name,
+                         param_index,
+                         main_index,
+                         var_symbols,
+                         directory,
+                         fit_inspection_data,
+                         fit,
+                         probabilistic_model):
     """
     Plots the fitted distribution of a independent parameter (e.g. shape, loc or scale).
 
@@ -311,6 +333,8 @@ def plot_var_independent(param_name, param_index, main_index, var_symbols, direc
         Information for plotting the fits of a single dimension.
     fit : Fit
         Holds data and information about the fit.
+    probabilistic_model : ProbabilisticModel
+        Probabilistic model that was created based on that fit.
     """
     basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
     interval_limits = []
@@ -318,9 +342,19 @@ def plot_var_independent(param_name, param_index, main_index, var_symbols, direc
     symbol_parent_var = None
     if parent_index is not None:
         symbol_parent_var = var_symbols[parent_index]
-    plot_pdf_with_raw_data(main_index, parent_index, 0, basic_fit.shape, basic_fit.loc, basic_fit.scale,
-                           fit.mul_var_dist.distributions[main_index].name, basic_fit.samples, interval_limits,
-                           var_symbols[main_index], symbol_parent_var, directory)
+    plot_pdf_with_raw_data(main_index,
+                           parent_index,
+                           0,
+                           basic_fit.shape,
+                           basic_fit.loc,
+                           basic_fit.scale,
+                           fit.mul_var_dist.distributions[main_index].name,
+                           basic_fit.samples,
+                           interval_limits,
+                           var_symbols[main_index],
+                           symbol_parent_var,
+                           directory,
+                           probabilistic_model)
 
 
 def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
@@ -346,27 +380,43 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         os.makedirs(directory)
 
     for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
-        # shape
+        # Shape
         if fit_inspection_data.shape_at is not None:
-            plot_var_dependent('shape', 0, i, var_names[i], var_symbols,
-                               fit.mul_var_dist.distributions[i].shape,
-                               directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
+            plot_var_dependent(
+                'shape', 0, i, var_names[i], var_symbols,
+                fit.mul_var_dist.distributions[i].shape, directory,
+                fit.mul_var_dist.distributions[i].name,
+                fit_inspection_data, fit, probabilistic_model
+            )
         else:
-            plot_var_independent('shape', 0, i, var_symbols, directory, fit_inspection_data, fit)
-        # loc
+            plot_var_independent(
+                'shape', 0, i, var_symbols, directory, fit_inspection_data,
+                fit, probabilistic_model
+            )
+        # Loccation
         if fit_inspection_data.loc_at is not None:
-            plot_var_dependent('loc', 1, i, var_names[i], var_symbols,
-                               fit.mul_var_dist.distributions[i].loc,
-                               directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
+            plot_var_dependent(
+                'loc', 1, i, var_names[i], var_symbols,
+                fit.mul_var_dist.distributions[i].loc, directory,
+                fit.mul_var_dist.distributions[i].name,
+                fit_inspection_data, fit, probabilistic_model
+            )
         else:
-            plot_var_independent('loc', 1, i, var_symbols, directory, fit_inspection_data, fit)
-        # scale
+            plot_var_independent('loc', 1, i, var_symbols, directory,
+                                 fit_inspection_data, fit, probabilistic_model
+                                 )
+        # Scale
         if fit_inspection_data.scale_at is not None:
             plot_var_dependent('scale', 2, i, var_names[i], var_symbols,
                                fit.mul_var_dist.distributions[i].scale,
-                               directory, fit.mul_var_dist.distributions[i].name, fit_inspection_data, fit)
+                               directory,
+                               fit.mul_var_dist.distributions[i].name,
+                               fit_inspection_data, fit, probabilistic_model
+                               )
         else:
-            plot_var_independent('scale', 2, i, var_symbols, directory, fit_inspection_data, fit)
+            plot_var_independent('scale', 2, i, var_symbols, directory,
+                                 fit_inspection_data, fit, probabilistic_model
+                                 )
 
 
 def calculate_intervals(interval_centers, dimension_index, interval_index):
