@@ -6,10 +6,15 @@ from .forms import CustomUserCreationForm
 from .forms import CustomUserEditForm
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, \
+    PasswordResetCompleteView, PasswordResetConfirmView
 import os
 import math
 from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
+from virocon.settings import USE_S3
+from contour.models import MeasureFileModel, ProbabilisticModel, \
+    EnvironmentalContour, PlottedFigure
+
 
 
 def authentication(request):
@@ -100,8 +105,7 @@ def profile(request):
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
     else:
-        path = PATH_MEDIA + PATH_USER_GENERATED + str(request.user)
-        storage_space = user_storage_space(path)
+        storage_space = user_storage_space(request.user)
         return render(request,
                       'user/profile.html',
                       {'storage_space': storage_space})
@@ -186,30 +190,65 @@ class ResetCompleteView(PasswordResetCompleteView):
 
 # Thanks to: https://stackoverflow.com/questions/1392413/calculating-a-
 # directorys-size-using-python
-def user_storage_space(start_path = '.'):
+def user_storage_space(user):
     """
     Calculates the storage space that the user's file occupy in byte.
 
     Parameters
     ----------
-    start_path : String
-        The path to the directory of the user.
+    user : User
+        The user whose storage space if of interest. Comes from request.user.
+
+    Returns
+    -------
+    total_size : str
+        The total size of the user's used storage space.
     """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
+    if USE_S3:
+        measure_models = MeasureFileModel.objects.filter(
+            primary_user=user)
+        for measure_model in measure_models:
+            total_size = total_size + \
+                            measure_model.measure_file.file.size
+        environmental_contours = EnvironmentalContour.objects.filter(
+            primary_user=user)
+        for environmental_contour in environmental_contours:
+            total_size = total_size + \
+                            environmental_contour.latex_report.file.size
+    else:
+        start_path = PATH_MEDIA + PATH_USER_GENERATED + str(user)
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
     total_size = convert_size(total_size)
     return total_size
+
 
 # Thanks to: https://stackoverflow.com/questions/5194057/better-way-to-convert-
 # file-sizes-in-python
 def convert_size(size_bytes):
-   if size_bytes == 0:
+    """
+    Converts the size in bytes into a nicely readable number with unit, for
+    example into megabytes if it is more than 1000 KB and less than 1000 MB.
+
+    Parameters
+    ----------
+    size_bytes : int
+        The size of one or multiple files in bytes.
+
+    Returns
+    -------
+    total_size : str
+        The input size formated appropriately using "B", "KB", "MB" and so forth
+        as unit.
+    """
+    if size_bytes == 0:
        return "0B"
-   size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-   i = int(math.floor(math.log(size_bytes, 1024)))
-   p = math.pow(1024, i)
-   s = round(size_bytes / p, 2)
-   return "%s %s" % (s, size_name[i])
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    size_formated = "%s %s" % (s, size_name[i])
+    return size_formated
