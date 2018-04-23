@@ -32,7 +32,6 @@ def _delete_file(instance, path):
             elif instance.__class__.__name__ == 'EnvironmentalContour':
                 instance.latex_report.delete(save=False)
         else:
-            print('Called _delete_file with path: ' + str(path))
             if os.path.isfile(path):
                 os.remove(path)
             elif os.path.isdir(path):
@@ -63,7 +62,6 @@ def delete_file(sender, instance=None, **kwargs):
         if hasattr(instance, 'path_of_statics') and instance.path_of_statics:
             _delete_file(instance, instance.path_of_statics)
         if sender.__name__ == 'MeasureFileModel' and instance.measure_file:
-            print('Deleting MeasureFile')
             if USE_S3:
                 _delete_file(instance, path='S3')
             else:

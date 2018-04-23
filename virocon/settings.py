@@ -18,18 +18,31 @@ import string
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# RUN_MODE is used to select in which mode the application is run and defines
+# the settings accordingly. Allowed values are 'local-dev', 'online-dev', and
+# 'production'
+key_exists = "RUN_MODE" in os.environ
+if not key_exists:
+    print('Warning: RUN_MODE is not set. I am setting it to "local-dev".')
+    RUN_MODE = 'local-dev'
+else:
+    RUN_MODE = os.environ["RUN_MODE"] # 'local-dev, 'online-dev', 'production'
+
 # The following lines of codes are based on the description from:
 # http://martinbrochhaus.com/s3.html
-USE_S3 = True
+if RUN_MODE == 'local-dev':
+    USE_S3 = False
+elif RUN_MODE == 'online-dev' or 'production':
+    USE_S3 = True
 key_exists = "AWS_ACCESS_KEY_ID" in os.environ
 if not key_exists:
-    print('Warning: AWS_ACCESS_KEY_ID is not set. Setting it to XXX')
+    print('Warning: AWS_ACCESS_KEY_ID is not set. I am setting it to "XXX".')
     AWS_ACCESS_KEY_ID = 'XXX'
 else:
     AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
 if not key_exists:
-    print('Warning: AWS_SECRET_ACCESS_KEY is not set. Setting it to XXX')
+    print('Warning: AWS_SECRET_ACCESS_KEY is not set. I am setting it to "XXX".')
     AWS_SECRET_ACCESS_KEY = 'XXX'
 else:
     AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
@@ -69,8 +82,8 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 # SECURITY WARNING: keep the secret key used in production secret!
 key_exists = "SECRET_KEY" in os.environ
 if not key_exists:
-    print('Warning: SECRET_KEY is not set. For test purposes I am setting '
-          'it to a random hash')
+    print('Warning: SECRET_KEY is not set. I am setting '
+          'it to a random hash.')
     SECRET_KEY = ''.join(random.choices(
         string.ascii_uppercase + string.digits, k=10))
 else:
