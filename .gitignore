@@ -17,7 +17,6 @@ user/migrations/__pycache__/
 *.DS_Store
 *_build
 *_build/*
-contour/static/*
 contour/media/*
 # a sample data base is in the repository, it should not be changed
 # use git update-index --assume-unchanged db.sqlite3
