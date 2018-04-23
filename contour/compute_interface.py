@@ -31,32 +31,40 @@ class ComputeInterface:
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None,#int(fit_settings['number_of_intervals_%s' % i]),
                      'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]),
-                     'dependency': (None, None, None)
+                     'dependency': [None, None, None]
                      })
             elif i == (var_number-1): #last variable
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None,
                      'width_of_intervals': None,
-                     'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
+                     'dependency': [adjust(fit_settings['shape_dependency_%s' % i][0]),
                                     adjust(fit_settings['location_dependency_%s' % i][0]),
-                                    adjust(fit_settings['scale_dependency_%s' % i][0])),
-                     'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
+                                    adjust(fit_settings['scale_dependency_%s' % i][0])],
+                     'functions': [adjust(fit_settings['shape_dependency_%s' % i][1:]),
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
+                                   adjust(fit_settings['scale_dependency_%s' % i][1:])]
                      })
             else:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None, #int(fit_settings['number_of_intervals_%s' % i]),
                      'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]), #None,
-                     'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
+                     'dependency': [adjust(fit_settings['shape_dependency_%s' % i][0]),
                                     adjust(fit_settings['location_dependency_%s' % i][0]),
-                                    adjust(fit_settings['scale_dependency_%s' % i][0])),
-                     'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
+                                    adjust(fit_settings['scale_dependency_%s' % i][0])],
+                     'functions': [adjust(fit_settings['shape_dependency_%s' % i][1:]),
                                    adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
+                                   adjust(fit_settings['scale_dependency_%s' % i][1:])]
                      })
+            # delete unused parameters
+            if dists[i].get('name') == 'Lognormal_2' and i > 1:
+                dists[i].get('dependency')[1] = None
+                dists[i].get('functions')[1] = None
+            elif dists[i].get('name') == 'Normal' and i > 1:
+                dists[i].get('dependency')[0] = None
+                dists[i].get('functions')[0] = None
+
         fit = Fit(dates, dists)
         return fit
 

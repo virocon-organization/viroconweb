@@ -115,7 +115,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
 
         # The scale parameter for python's lognorm  funciton is e^\mu.
         # However in the django data base we save mu as the scale parameter.
-        scale = np.exp(scale)
+        # scale = np.exp(scale)
 
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
@@ -294,7 +294,7 @@ def plot_var_dependent(param_name,
                                 param, directory, dist_name, probabilistic_model)
     for j in range(len(param_at)):
         basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
-        interval_limits = calculate_intervals(param_at, main_index, 0)
+        interval_limits = calculate_intervals(param_at, main_index, j)
         parent_index = fit.mul_var_dist.dependencies[main_index][param_index]
         symbol_parent_var = None
         if parent_index is not None:
