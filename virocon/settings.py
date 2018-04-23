@@ -98,8 +98,8 @@ if RUN_MODE == 'production':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
     DEBUG = False
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
+    #CSRF_COOKIE_SECURE = True
+    #SESSION_COOKIE_SECURE = True
 else:
     DEBUG = True
 
