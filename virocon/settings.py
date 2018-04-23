@@ -94,8 +94,14 @@ if not key_exists:
 else:
     SECRET_KEY = os.environ["SECRET_KEY"]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if RUN_MODE == 'production':
+    # Quick-start development settings - unsuitable for production
+    # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
+    DEBUG = False
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+else:
+    DEBUG = True
 
 # Select own user model
 AUTH_USER_MODEL = 'user.User'
@@ -241,11 +247,3 @@ else:
 # Change 'default' database configuration with $DATABASE_URL.
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
-
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
-#CSRF_COOKIE_SECURE = True
-#SESSION_COOKIE_SECURE = True
