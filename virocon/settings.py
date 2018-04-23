@@ -209,16 +209,9 @@ STATICFILES_DIRS = [
 ]
 
 ALLOWED_HOSTS = [
-    '192.168.2.8',
-    '0.0.0.0',
-    '192.168.178.89',
-    '127.0.0.1',
     'localhost',
-    '134.102.113.71.',
-    '134.102.162.102',
-    '134.102.162.29',
-    '134.102.174.219',
-    '.serene-sierra-98066.herokuapp.com',
+    '127.0.0.1',
+    '.herokuapp.com',
 ]
 
 # Execute this for debug smtp:
