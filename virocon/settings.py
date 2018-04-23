@@ -208,11 +208,7 @@ STATICFILES_DIRS = [
     './static/',
 ]
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.herokuapp.com',
-]
+ALLOWED_HOSTS = ['*']
 
 # Execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025
