@@ -1,7 +1,9 @@
 import os
 import csv
 import warnings
+import codecs
 
+from urllib import request
 from abc import abstractmethod
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse, \
@@ -15,8 +17,9 @@ from . import plot
 from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
-    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, ProbabilisticModel, DistributionModel, \
-    ParameterModel
+    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
+    ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
+
 from .compute_interface import ComputeInterface
 from viroconcom import distributions, params
 from decimal import Decimal
@@ -219,10 +222,14 @@ class MeasureFileHandler(Handler):
                 if measure_file_form.is_valid():
                     measure_model = MeasureFileModel(
                         primary_user=request.user,
-                        title=measure_file_form.cleaned_data['title'],
-                        measure_file=measure_file_form.cleaned_data['measure_file'])
+                        title=measure_file_form.cleaned_data['title']
+                    )
                     measure_model.save()
-                    path = settings.PATH_STATIC + \
+                    measure_model.measure_file.save(
+                        measure_file_form.cleaned_data['measure_file'].name,
+                        measure_file_form.cleaned_data['measure_file'].file)
+                    measure_model.save()
+                    path = settings.PATH_MEDIA + \
                            settings.PATH_USER_GENERATED + \
                            str(request.user) + \
                            '/measurement/' + str(measure_model.pk)
@@ -247,7 +254,7 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             mfm_item = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
+            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url)
             var_number = len(var_names)
             fit_form = forms.MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
             if request.method == 'POST':
@@ -255,26 +262,25 @@ class MeasureFileHandler(Handler):
                                                     variable_names=var_names)
                 if fit_form.is_valid():
                     ci = ComputeInterface()
-                    # try:
-                    fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
-                                        var_number=var_number)
-                    """except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    try:
+                        fit = ci.fit_curves(mfm_item=mfm_item,
+                                            fit_settings=fit_form.cleaned_data,
+                                            var_number=var_number)
+                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'contour/error.html',
                                       {'error_message': err,
                                        'text': 'Error occured while fitting a probabilistic model to the file.'
                                                'Try it again with different settings please',
                                        'header': 'fit measurement file to probabilistic model',
-                                       'return_url': 'contour:measure_file_model_select'}) """
-                    # try:
-                    directory_prefix = settings.PATH_STATIC
+                                       'return_url': 'contour:measure_file_model_select'})
+
+                    directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
 
-                    # store fit
                     probabilistic_model = store_fit(fit, fit_form.cleaned_data['title'], var_names, var_symbols,
                                                     request.user, mfm_item)
-                    # plot fit
                     plot.plot_fit(fit, var_names, var_symbols, directory, probabilistic_model)
 
 
@@ -287,12 +293,9 @@ class MeasureFileHandler(Handler):
                     #               'return_url': 'contour:measure_file_model_select'})
                     multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
                     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-                    img_list = os.listdir(directory + '/' + str(probabilistic_model.pk))
-                    send_img = []
-                    for img in img_list:
-                        send_img.append(directory_after_static + str(probabilistic_model.pk) + '/' + img)
-                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
-                                                                        'latex_string_list': latex_string_list})
+                    plotted_figures = PlottedFigure.objects.filter(probabilistic_model=probabilistic_model)
+                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'plotted_figures': plotted_figures,
+                                                                       'latex_string_list': latex_string_list})
                 else:
                     return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})
             return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})
@@ -322,13 +325,13 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
-            directory_prefix = settings.PATH_STATIC
+            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url)
+            directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
                                      '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
-            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
+            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names)
             return render(request, 'contour/measure_file_model_plot.html', {'user': request.user,
                                                                             'measure_file_model': measure_file_model,
                                                                             'directory': directory_after_static})
@@ -503,7 +506,7 @@ class ProbabilisticModelHandler(Handler):
                             probabilistic_model=probabilistic_model
                         )
                         environmental_contour.save()
-                        path = settings.PATH_STATIC + \
+                        path = settings.PATH_MEDIA + \
                                settings.PATH_USER_GENERATED + \
                                str(request.user) + \
                                '/contour/' + str(environmental_contour.pk)
@@ -630,7 +633,7 @@ class ProbabilisticModelHandler(Handler):
                                 probabilistic_model=probabilistic_model
                             )
                             environmental_contour.save()
-                            path = settings.PATH_STATIC + \
+                            path = settings.PATH_MEDIA + \
                                    settings.PATH_USER_GENERATED + \
                                    str(request.user) + \
                                    '/contour/' + str(environmental_contour.pk)
@@ -740,7 +743,7 @@ class ProbabilisticModelHandler(Handler):
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
             send_img = []
 
-            directory_prefix = settings.PATH_STATIC
+            directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
                                      '/prob_model/' + str(pk)
             directory = directory_prefix + directory_after_static
@@ -881,14 +884,26 @@ def get_info_from_file(url):
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """
-    with open(url, 'r') as file:
+    if url[0] == '/':
+        url = url[1:]
+    if url[0:8] == 'https://':
+        is_web_url = True
+        req = request.Request(url)
+        file = request.urlopen(req)
+        reader = csv.reader(codecs.iterdecode(file, 'utf-8'), delimiter=';').__next__()
+    else:
+        is_web_url = False
+        file = open(url, 'r')
         reader = csv.reader(file, delimiter=';').__next__()
-        var_names = []
-        var_symbols = []
-        i = 0
-        while i < (len(reader)):
-            var_names.append(reader[i])
-            i += 1
-            var_symbols.append(reader[i])
-            i += 1
-        return var_names, var_symbols
+    var_names = []
+    var_symbols = []
+    i = 0
+    while i < (len(reader)):
+        var_names.append(reader[i])
+        i += 1
+        var_symbols.append(reader[i])
+        i += 1
+    return var_names, var_symbols
+    # In case it was a local file opening, finally close the file
+    if is_web_url==False:
+        file.close()

@@ -9,7 +9,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetConfirmView
 import os
 import math
-from contour.settings import PATH_STATIC, PATH_USER_GENERATED
+from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
 
 
 def authentication(request):
@@ -100,7 +100,7 @@ def profile(request):
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
     else:
-        path = PATH_STATIC + PATH_USER_GENERATED + str(request.user)
+        path = PATH_MEDIA + PATH_USER_GENERATED + str(request.user)
         storage_space = user_storage_space(path)
         return render(request,
                       'user/profile.html',

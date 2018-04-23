@@ -6,8 +6,8 @@
         <h1>Fit results: visual inspection</h1>
     </div>
     <br>
-    {% for img in imgs %}
-        <img src="{% static img %}" class="img-responsive center-block">
+    {% for plotted_figure in plotted_figures %}
+        <img src="{{ plotted_figure.image.url }}" class="img-responsive center-block">
     {% endfor %}
     <hr>
     <h2>Probability density function</h2>

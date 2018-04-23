@@ -14,15 +14,9 @@ class DashboardTestCase(TestCase):
                             status_code = 200)
 
         # With login
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                            {'username' : 'max_mustermann',
-                            'email' : 'max.mustermann@gmail.com',
-                            'first_name' : 'Max',
-                            'last_name' : 'Mustermann',
-                            'organisation' : 'Musterfirma',
-                            'type_of_use' : 'commercial',
-                            'password1' : 'Musterpasswort2018',
-                            'password2' : 'Musterpasswort2018'})
+                            'password' : 'Musterpasswort2018'})
         response = self.client.get(reverse('contour:index'), follow=True)
         self.assertContains(response, "Apply methods",
                             status_code = 200)
