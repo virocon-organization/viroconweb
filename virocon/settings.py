@@ -34,21 +34,26 @@ if RUN_MODE == 'local-dev':
     USE_S3 = False
 elif RUN_MODE == 'online-dev' or 'production':
     USE_S3 = True
-key_exists = "AWS_ACCESS_KEY_ID" in os.environ
-if not key_exists:
-    print('Warning: AWS_ACCESS_KEY_ID is not set. I am setting it to "XXX".')
-    AWS_ACCESS_KEY_ID = 'XXX'
-else:
-    AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
-key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
-if not key_exists:
-    print('Warning: AWS_SECRET_ACCESS_KEY is not set. I am setting it to "XXX".')
-    AWS_SECRET_ACCESS_KEY = 'XXX'
-else:
-    AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_STORAGE_BUCKET_NAME = 'virocon-media-dev'
-AWS_QUERYSTRING_AUTH = False
-S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
+    key_exists = "AWS_ACCESS_KEY_ID" in os.environ
+    if not key_exists:
+        print('Warning: AWS_ACCESS_KEY_ID is not set. '
+              'I am setting it to "XXX".')
+        AWS_ACCESS_KEY_ID = 'XXX'
+    else:
+        AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+    key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
+    if not key_exists:
+        print('Warning: AWS_SECRET_ACCESS_KEY is not set. '
+              'I am setting it to "XXX".')
+        AWS_SECRET_ACCESS_KEY = 'XXX'
+    else:
+        AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+    if RUN_MODE == 'online-dev':
+        AWS_STORAGE_BUCKET_NAME = 'virocon-media-dev'
+    elif RUN_MODE == 'production':
+        AWS_STORAGE_BUCKET_NAME = 'virocon-media'
+    AWS_QUERYSTRING_AUTH = False
+    S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
 if USE_S3:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
