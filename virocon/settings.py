@@ -218,7 +218,7 @@ ALLOWED_HOSTS = [
     '134.102.162.102',
     '134.102.162.29',
     '134.102.174.219',
-    'serene-sierra-98066.herokuapp.com'
+    '.serene-sierra-98066.herokuapp.com',
 ]
 
 # Execute this for debug smtp:
