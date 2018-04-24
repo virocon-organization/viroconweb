@@ -78,7 +78,6 @@
             </div>
         </div>
     </form>
-    <!--Le JavaScript-->
     <script>
         function dist_select(dist_id, var_number) {
             if (document.getElementById(dist_id).value === 'Lognormal_2') {
@@ -107,15 +106,6 @@
         $(document).ready(function () {
             $('[data-toggle="popover"]').popover();
         });
-
-        $(document).ready(function () {
-            /* Hier der jQuery-Code */
-            $('#help-einausblenden').click(function () {
-                $('#helpPanel').toggle('slow');
-                return false;
-            })
-        });
-
     </script>
 
 {% endblock content %}
