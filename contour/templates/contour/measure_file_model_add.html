@@ -32,6 +32,7 @@
                     <button type="submit" class="btn btn-primary">OK</button>
                 </div>
                 <hr>
+                <h2>Required file structure</h2>
                 <div align="center">
                     <img src="{% static 'images/example_csv.png' %}"
                          class="img-responsive">
@@ -49,7 +50,11 @@
                     columne is associated with variable 2. All values must be
                     seperated by semicolons.
                 </div>
-
+                <button type="button"
+                        class="btn btn-default"
+                        onclick="location='{% static 'data/1yeardata_vanem2012pdf_withHeader.csv'  %}'">
+                    Download example file
+                </button>
             </div>
         </div>
     </form>
