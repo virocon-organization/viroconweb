@@ -81,14 +81,18 @@
     <script>
         function dist_select(dist_id, var_number) {
             if (document.getElementById(dist_id).value === 'Lognormal_2') {
-                document.getElementById('loc_'.concat(var_number)).style.display = 'none';
+                locationSelect = document.getElementById('loc_'.concat(var_number));
+                locationSelect.style.display = 'none';
+                locationSelect.value = '!None';
                 document.getElementById('shape_'.concat(var_number)).style.display = 'block';
                 document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '&sigma; (sigma) dependency';
                 document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&mu; (mu) dependency';
                 document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '';
             }
             else if (document.getElementById(dist_id).value === 'Normal') {
-                document.getElementById('shape_'.concat(var_number)).style.display = 'none';
+                shapeSelect = document.getElementById('shape_'.concat(var_number));
+                shapeSelect.style.display = 'none';
+                shapeSelect.value='!None';
                 document.getElementById('loc_'.concat(var_number)).style.display = 'block';
                 document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '';
                 document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = ' &mu; (location) dependency';
