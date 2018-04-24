@@ -235,9 +235,17 @@ class MeasureFileHandler(Handler):
 
                     return redirect('contour:measure_file_model_plot', measure_model.pk)
                 else:
-                    return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                    return render(
+                        request,
+                        'contour/measure_file_model_add.html',
+                        {'form': measure_file_form}
+                    )
             else:
-                return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                return render(
+                    request,
+                    'contour/measure_file_model_add.html',
+                    {'form': measure_file_form}
+                )
 
     @staticmethod
     def fit_file(request, pk):
