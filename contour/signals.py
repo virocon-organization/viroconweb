@@ -31,6 +31,7 @@ def _delete_file(instance, path):
                 instance.image.delete(save=False)
             elif instance.__class__.__name__ == 'EnvironmentalContour':
                 instance.latex_report.delete(save=False)
+                instance.design_conditions_csv.delete(save=False)
         else:
             if os.path.isfile(path):
                 os.remove(path)

@@ -19,30 +19,46 @@
         {% endfor %}
         <br>
     {% endif %}
-    <div class="col-md-4">
+    <div class="col-md-3">
     </div>
-    <div class="col-md-2">
-        {% if dim == 3 %}
-            <button type="button"
-                    class="btn btn-default"
-                    id="btn-interactive-visualization">
-                interactive 3D Contour
-            </button>
-        {% elif dim == 4 %}
-            <button type="button" class="btn btn-default">
-                interactive 4D Contour
-            </button>
-        {% endif %}
-    </div>
-    <div class="col-md-2">
+    {% if dim > 2 %}
+        <div class="col-md-2">
+            {% if dim == 3 %}
+                <button type="button"
+                        class="btn btn-default"
+                        id="btn-interactive-visualization">
+                    interactive 3D Contour
+                </button>
+            {% elif dim == 4 %}
+                <button type="button" class="btn btn-default">
+                    interactive 4D Contour
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if dim > 2 %}
+        <div class="col-md-2">
+    {%  else %}
+        <div class="col-md-3">
+    {% endif %}
         <button type="button"
                 class="btn btn-default"
                 onclick="location='{{   object.latex_report.url  }}'">
-            Download PDF
+            Download report
         </button>
     </div>
-
-    <div class="col-md-4">
+    {% if dim > 2 %}
+        <div class="col-md-2">
+    {%  else %}
+        <div class="col-md-3">
+    {% endif %}
+        <button type="button"
+                class="btn btn-default"
+                onclick="location='{{   object.design_conditions_csv.url  }}'">
+            Download design conditions
+        </button>
+    </div>
+    <div class="col-md-3">
 
     </div>
 
