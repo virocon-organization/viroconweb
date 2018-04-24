@@ -702,34 +702,36 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             settings.LATEX_REPORT_NAME, djangofile)
         environmental_contour.save()
 
+    create_design_conditions_csv(contour_coordinates, environmental_contour)
+
     return short_file_path_report
 
 def get_latex_eedc_table(matrix, var_names, var_symbols):
     """
-        Creates a latex string containing a table listing the contour's extreme
-        environmental design conditions (EEDCs).
+    Creates a latex string containing a table listing the contour's extreme
+    environmental design conditions (EEDCs).
 
-        Parameters
-        ----------
-        matrix : n-dimensional matrix
-            The coordinates of the environmental contour.
-            The format is defined by compute_interface.iform()
+    Parameters
+    ----------
+    matrix : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform()
 
-        var_names : list of strings
-            Names of the environmental variables used in the probabil. model,
-            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    var_names : list of strings
+        Names of the environmental variables used in the probabil. model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
 
-        var_symbols : list of strings
-            Symbols of the environental variables used in the probabil. model,
-            e.g. ['V', 'Hs']
+    var_symbols : list of strings
+        Symbols of the environental variables used in the probabil. model,
+        e.g. ['V', 'Hs']
 
-        Returns
-        -------
-        table_string : string,
-            A string in latex format containing a table, which lists the first
-            X extreme environmental design conditions
+    Returns
+    -------
+    table_string : string,
+        A string in latex format containing a table, which lists the first
+        X extreme environmental design conditions
 
-        """
+    """
 
     MAX_EEDCS_TO_LIST_IN_TABLE = 100
     LINES_FOR_PAGE_BREAK = 40
@@ -771,25 +773,25 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
 
 def get_latex_eedc_table_head_line(var_names):
     """
-        Creates a latex string containing the first line of a table.
+    Creates a latex string containing the first line of a table.
 
-        The table lists the contour's extreme environmental design
-        conditions (EEDCs).
+    The table lists the contour's extreme environmental design
+    conditions (EEDCs).
 
-        Parameters
-        ----------
-        var_names : list of strings
-            Names of the environmental variables used in the probabil. model,
-            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    Parameters
+    ----------
+    var_names : list of strings
+        Names of the environmental variables used in the probabil. model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
 
 
-        Returns
-        -------
-        head_line_string : string,
-            A string in latex format containing the first row of the table,
-            e.g. "EEDC & significant wave height [m] & peak period [s]\\"
+    Returns
+    -------
+    head_line_string : string,
+        A string in latex format containing the first row of the table,
+        e.g. "EEDC & significant wave height [m] & peak period [s]\\"
 
-        """
+    """
 
     head_line_string = ""
 
@@ -806,3 +808,30 @@ def get_latex_eedc_table_head_line(var_names):
             head_line_string += r" & "
 
     return head_line_string
+
+
+def create_design_conditions_csv(contour_coordinates, environmental_contour):
+    """
+    Creates a .csv file containing the extreme env. design conditions.
+
+    Parameters
+    ----------
+    contour_coordinates : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform()
+    environmental_contour : EnvironmentalContour
+        The django model of the environmental contour.
+
+    """
+    file_content_as_string = ""
+    for i in range(len(contour_coordinates)):
+        for j in range(len(contour_coordinates[0][0])):
+            for k in range(len(contour_coordinates[0])):
+                file_content_as_string += str(contour_coordinates[i][k][j])
+                if k < (len(contour_coordinates[0]) - 1):
+                    file_content_as_string += ";"
+            file_content_as_string += "\n"
+    djangofile = ContentFile(file_content_as_string)
+    environmental_contour.design_conditions_csv.save(
+        settings.EEDC_FILE_NAME, djangofile)
+    environmental_contour.save()
