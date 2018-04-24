@@ -831,7 +831,8 @@ def create_design_conditions_csv(contour_coordinates, environmental_contour):
                 if k < (len(contour_coordinates[0]) - 1):
                     file_content_as_string += ";"
             file_content_as_string += "\n"
-    djangofile = ContentFile(file_content_as_string)
+    content_bytes = file_content_as_string.encode('utf-8')
+    content_file = ContentFile(content_bytes)
     environmental_contour.design_conditions_csv.save(
-        settings.EEDC_FILE_NAME, djangofile)
+        settings.EEDC_FILE_NAME, content_file)
     environmental_contour.save()
