@@ -292,10 +292,6 @@ class MeasureFileHandler(Handler):
                         #               'return_url': 'contour:measure_file_model_select'})
                     multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
                     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-                    img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
-                    send_img = []
-                    for img in img_list:
-                        send_img.append(directory_after_static + str(probabilistic_model.pk) + '/' + img)
                     plotted_figures = PlottedFigure.objects.filter(probabilistic_model=probabilistic_model)
                     return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'plotted_figures': plotted_figures,
                                                                        'latex_string_list': latex_string_list})
@@ -735,28 +731,16 @@ class ProbabilisticModelHandler(Handler):
                 var_symbols.append(dist.symbol)
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-            send_img = []
+            plotted_figures = PlottedFigure.objects.filter(
+                probabilistic_model=probabilistic_model)
 
-            directory_prefix = settings.PATH_MEDIA
-            directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
-                                     '/prob_model/' + str(pk)
-            directory = directory_prefix + directory_after_static
-            if os.path.isdir(directory):
-                img_list = os.listdir(directory)
-                for img in img_list:
-                    send_img.append(directory_after_static + '/' + img)
-            directory_measure_plot_after_prefix = ''
-            if probabilistic_model.measure_file_model:
-                directory_measure_plot_after_prefix = \
-                    settings.PATH_USER_GENERATED +str(request.user) + \
-                    '/measurement/' + \
-                    str(probabilistic_model.measure_file_model.pk) + \
-                    '/scatter.png'
-
-            return render(request, 'contour/probabilistic_model_show.html',
-                          {'user': request.user, 'probabilistic_model': probabilistic_model,
-                           'latex_string_list': latex_string_list, 'imgs': send_img,
-                          'directory_measure_plot_after_prefix': directory_measure_plot_after_prefix})
+            return render(
+                request,
+                'contour/probabilistic_model_show.html',
+                {'user': request.user,
+                 'probabilistic_model': probabilistic_model,
+                 'latex_string_list': latex_string_list,
+                 'plotted_figures': plotted_figures})
 
 
 class EnvironmentalContourHandler(Handler):
