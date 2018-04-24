@@ -10,6 +10,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse, \
     HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
+from django.urls import reverse
 
 from . import forms
 from . import models
@@ -163,7 +164,7 @@ class Handler:
             Renders an html response showing the object.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             html = 'contour/' + model.url_str() + '_show.html'
             object = model.objects.get(pk=pk)

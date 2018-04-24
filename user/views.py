@@ -63,7 +63,7 @@ def create(request):
         if form.is_valid():
             form.save()
             authentic(request, username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
-            return HttpResponseRedirect('/home')
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             return render(request, 'user/edit.html', {'form': form})
     else:
