@@ -1,6 +1,7 @@
 **I'm submitting a ...**
   - [ ] bug report
   - [ ] feature request
+  - [ ] code improvement request
 
 ## Expected behavior
 **How should it work (with the bug fixed or the feature implemented)?**
