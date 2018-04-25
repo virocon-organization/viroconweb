@@ -190,7 +190,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
          The list contains the x-values of a fitted function for a parameter e.g. shape, loc or scale.
     param_values : list of floats
         The list contains the y-values of a fitted function for a parameter e.g. shape, loc or scale.
-    fit_func : str
+    fit_func : FunctionParam
         The fit function e.g. power function, exponential
     directory : str
         The directory where the figure will be saved.
@@ -226,7 +226,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     x = np.linspace(min(param_at) - 2, max(param_at) + 2, 100)
     y = []
     for x1 in x:
-        y.append(fit_func._value(x1))  #TODO neue methode von Jannik einbinden
+        y.append(fit_func(x1))  #TODO neue methode von Jannik einbinden
     ax.plot(x, y, color='#54889c')
 
     ax.scatter(param_at, param_values, color='#9C373A')

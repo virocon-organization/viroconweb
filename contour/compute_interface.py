@@ -58,10 +58,10 @@ class ComputeInterface:
                                    adjust(fit_settings['scale_dependency_%s' % i][1:])]
                      })
             # delete unused parameters
-            if dists[i].get('name') == 'Lognormal_2' and i > 1:
+            if dists[i].get('name') == 'Lognormal_2' and i > 0:
                 dists[i].get('dependency')[1] = None
                 dists[i].get('functions')[1] = None
-            elif dists[i].get('name') == 'Normal' and i > 1:
+            elif dists[i].get('name') == 'Normal' and i > 0:
                 dists[i].get('dependency')[0] = None
                 dists[i].get('functions')[0] = None
 
