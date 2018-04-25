@@ -1,5 +1,16 @@
+"""
+Url design for the user app.
+
+Attributes
+----------
+app_name : str
+    sets the app name to call it e.g. in templates.
+
+urlpatterns : list of url's
+    stores the url design of the user app.
+
+"""
 from django.conf.urls import url
-from django.contrib.auth import views as auth_views
 from . import views
 
 app_name = 'user'
@@ -26,7 +37,5 @@ urlpatterns = [
         views.ResetConfirmView.as_view(), name='password_reset_confirm'),
 
     url(r'^reset/done$', views.ResetCompleteView.as_view(), name='password_reset_complete'),
-
-    # es muss die set password methode gesetzt werden
 
 ]
