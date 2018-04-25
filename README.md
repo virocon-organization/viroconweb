@@ -83,6 +83,9 @@ python manage.py runserver
 ```
 Then you should reach a local version of ViroCon at http://localhost:8000
 
+**Conventions** We follow the python styleguide PEP8:
+https://www.python.org/dev/peps/pep-0008
+
 ## License
 This software is licensed under the MIT license. For more information, read the 
 file [LICENSE](https://github.com/ahaselsteiner/virocon/blob/master/LICENSE).
