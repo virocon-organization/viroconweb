@@ -15,27 +15,46 @@ import dj_database_url
 import random
 import string
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# RUN_MODE is used to select in which mode the application is run and defines
+# the settings accordingly. Allowed values are 'local-dev', 'online-dev', and
+# 'production'
+key_exists = "RUN_MODE" in os.environ
+if not key_exists:
+    print('Warning: RUN_MODE is not set. I am setting it to "local-dev".')
+    RUN_MODE = 'local-dev'
+else:
+    RUN_MODE = os.environ["RUN_MODE"] # 'local-dev, 'online-dev', 'production'
+
 # The following lines of codes are based on the description from:
 # http://martinbrochhaus.com/s3.html
-USE_S3 = True
-key_exists = "AWS_ACCESS_KEY_ID" in os.environ
-if not key_exists:
-    print('Warning: AWS_ACCESS_KEY_ID is not set. Setting it to XXX')
-    AWS_ACCESS_KEY_ID = 'XXX'
-else:
-    AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
-key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
-if not key_exists:
-    print('Warning: AWS_SECRET_ACCESS_KEY is not set. Setting it to XXX')
-    AWS_SECRET_ACCESS_KEY = 'XXX'
-else:
-    AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_STORAGE_BUCKET_NAME = 'virocon-media-dev'
-AWS_QUERYSTRING_AUTH = False
-S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
+if RUN_MODE == 'local-dev':
+    USE_S3 = False
+elif RUN_MODE == 'online-dev' or 'production':
+    USE_S3 = True
+    key_exists = "AWS_ACCESS_KEY_ID" in os.environ
+    if not key_exists:
+        print('Warning: AWS_ACCESS_KEY_ID is not set. '
+              'I am setting it to "XXX".')
+        AWS_ACCESS_KEY_ID = 'XXX'
+    else:
+        AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+    key_exists = "AWS_SECRET_ACCESS_KEY" in os.environ
+    if not key_exists:
+        print('Warning: AWS_SECRET_ACCESS_KEY is not set. '
+              'I am setting it to "XXX".')
+        AWS_SECRET_ACCESS_KEY = 'XXX'
+    else:
+        AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+    if RUN_MODE == 'online-dev':
+        AWS_STORAGE_BUCKET_NAME = 'virocon-media-dev'
+    elif RUN_MODE == 'production':
+        AWS_STORAGE_BUCKET_NAME = 'virocon-media'
+    AWS_QUERYSTRING_AUTH = False
+    S3_URL = 'https://s3.eu-central-1.amazonaws.com/%s' % AWS_STORAGE_BUCKET_NAME
 
 if USE_S3:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -69,15 +88,21 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 # SECURITY WARNING: keep the secret key used in production secret!
 key_exists = "SECRET_KEY" in os.environ
 if not key_exists:
-    print('Warning: SECRET_KEY is not set. For test purposes I am setting '
-          'it to a random hash')
+    print('Warning: SECRET_KEY is not set. I am setting '
+          'it to a random hash.')
     SECRET_KEY = ''.join(random.choices(
         string.ascii_uppercase + string.digits, k=10))
 else:
     SECRET_KEY = os.environ["SECRET_KEY"]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if RUN_MODE == 'production':
+    # Quick-start development settings - unsuitable for production
+    # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
+    DEBUG = False
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+else:
+    DEBUG = True
 
 # Select own user model
 AUTH_USER_MODEL = 'user.User'
@@ -92,9 +117,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     # Disable Django's own staticfiles handling in favour of WhiteNoise, for
     # greater consistency between gunicorn and `./manage.py runserver`. See:
-    # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
-    #'whitenoise.runserver_nostatic',
-    #'django.contrib.staticfiles',
+    # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-
+    # in-development
     'latexify',
     'django.contrib.staticfiles', # a requirement for latexify
     'storages',
@@ -185,16 +209,10 @@ STATICFILES_DIRS = [
 ]
 
 ALLOWED_HOSTS = [
-    '192.168.2.8',
     '0.0.0.0',
-    '192.168.178.89',
     '127.0.0.1',
     'localhost',
-    '134.102.113.71.',
-    '134.102.162.102',
-    '134.102.162.29',
-    '134.102.174.219',
-    'serene-sierra-98066.herokuapp.com'
+    '.herokuapp.com'
 ]
 
 # Execute this for debug smtp:
@@ -223,11 +241,3 @@ else:
 # Change 'default' database configuration with $DATABASE_URL.
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
-
-# See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
-#CSRF_COOKIE_SECURE = True
-#SESSION_COOKIE_SECURE = True

@@ -68,7 +68,7 @@ class EnvironmentalContourTestCase(TestCase):
                                                     'method': 'I'}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, 'Download PDF',
+        self.assertContains(response, 'Download report',
                             status_code=200)
 
         # Finally delete the environmental contour. This servers two purposes:
@@ -112,7 +112,7 @@ class EnvironmentalContourTestCase(TestCase):
                                                     'method': 'H'}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, 'Download PDF',
+        self.assertContains(response, 'Download report',
                             status_code=200)
 
         # Finally delete the environmental contour. This servers two purposes:

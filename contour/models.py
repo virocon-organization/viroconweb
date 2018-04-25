@@ -232,6 +232,11 @@ class EnvironmentalContour(models.Model):
         null=True,
         default=None
     )
+    design_conditions_csv = models.FileField(
+        upload_to=media_directory_path,
+        null=True,
+        default=None
+    )
 
     def path_of_latex_report(self):
         if self.path_of_statics.startswith(settings.PATH_MEDIA):

@@ -10,6 +10,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse, \
     HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
+from django.urls import reverse
 
 from . import forms
 from . import models
@@ -167,7 +168,7 @@ class Handler:
             Renders an html response showing the object.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             html = 'contour/' + model.url_str() + '_show.html'
             object = model.objects.get(pk=pk)
@@ -239,9 +240,17 @@ class MeasureFileHandler(Handler):
 
                     return redirect('contour:measure_file_model_plot', measure_model.pk)
                 else:
-                    return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                    return render(
+                        request,
+                        'contour/measure_file_model_add.html',
+                        {'form': measure_file_form}
+                    )
             else:
-                return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                return render(
+                    request,
+                    'contour/measure_file_model_add.html',
+                    {'form': measure_file_form}
+                )
 
     @staticmethod
     def fit_file(request, pk):
@@ -741,28 +750,16 @@ class ProbabilisticModelHandler(Handler):
                 var_symbols.append(dist.symbol)
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-            send_img = []
+            plotted_figures = PlottedFigure.objects.filter(
+                probabilistic_model=probabilistic_model)
 
-            directory_prefix = settings.PATH_MEDIA
-            directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
-                                     '/prob_model/' + str(pk)
-            directory = directory_prefix + directory_after_static
-            if os.path.isdir(directory):
-                img_list = os.listdir(directory)
-                for img in img_list:
-                    send_img.append(directory_after_static + '/' + img)
-            directory_measure_plot_after_prefix = ''
-            if probabilistic_model.measure_file_model:
-                directory_measure_plot_after_prefix = \
-                    settings.PATH_USER_GENERATED + str(request.user) + \
-                    '/measurement/' + \
-                    str(probabilistic_model.measure_file_model.pk) + \
-                    '/scatter.png'
-
-            return render(request, 'contour/probabilistic_model_show.html',
-                          {'user': request.user, 'probabilistic_model': probabilistic_model,
-                           'latex_string_list': latex_string_list, 'imgs': send_img,
-                           'directory_measure_plot_after_prefix': directory_measure_plot_after_prefix})
+            return render(
+                request,
+                'contour/probabilistic_model_show.html',
+                {'user': request.user,
+                 'probabilistic_model': probabilistic_model,
+                 'latex_string_list': latex_string_list,
+                 'plotted_figures': plotted_figures})
 
 
 class EnvironmentalContourHandler(Handler):

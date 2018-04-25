@@ -32,13 +32,29 @@
                     <button type="submit" class="btn btn-primary">OK</button>
                 </div>
                 <hr>
-                <div> csv. file structure with two data columns</div>
-                <div class="row">
-                    <div class="col-md-3"></div>
-                    <div class="col-md-6"><img class="img-responsive" src="{% static 'img/example_csv.png' %}"></div>
-                    <div class="col-md-3"></div>
+                <h2>Required file structure</h2>
+                <div align="center">
+                    <img src="{% static 'images/example_csv.png' %}"
+                         class="img-responsive">
                 </div>
-
+                <div class="img-caption">
+                    Example showing the required file structure if two
+                    environmental variables are used.
+                    The first row represents the header. It is interpreted as
+                    "variable name 1",
+                    "variable symbol 1", "variable name 2" and
+                    "variable symbol 2". All following rows contain the
+                    numerical values of the variables, each row represents
+                    one time step.
+                    The first column is associated with variable 1, the second
+                    columne is associated with variable 2. All values must be
+                    seperated by semicolons.
+                </div>
+                <button type="button"
+                        class="btn btn-default"
+                        onclick="location='{% static 'data/1yeardata_vanem2012pdf_withHeader.csv'  %}'">
+                    Download example file
+                </button>
             </div>
         </div>
     </form>
