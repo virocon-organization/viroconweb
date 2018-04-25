@@ -1,24 +1,21 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.core.urlresolvers import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 import os
 from contour.forms import MeasureFileFitForm
 
 
+# Since this test is affected by whitenoise, we deactive it here, see:
+# https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+@override_settings(STATICFILES_STORAGE=None)
 class FitProbModelTestCase(TestCase):
 
     def setUp(self):
-        # Create a user
+        # Login
         self.client = Client()
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                            {'username' : 'max_mustermann',
-                            'email': 'max.mustermann@gmail.com',
-                            'first_name': 'Max',
-                            'last_name': 'Mustermann',
-                            'organisation': 'Musterfirma',
-                            'type_of_use': 'commercial',
-                            'password1' : 'Musterpasswort2018',
-                            'password2': 'Musterpasswort2018'})
+                            'password': 'Musterpasswort2018'})
 
     def test_fit_probabilistic_model_vanem2012(self):
         # Create a measurement file

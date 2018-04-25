@@ -17,12 +17,14 @@ user/migrations/__pycache__/
 *.DS_Store
 *_build
 *_build/*
-contour/static/*
-!contour/static/vis-*
-!contour/static/bullshit.js
+contour/media/*
 # a sample data base is in the repository, it should not be changed
 # use git update-index --assume-unchanged db.sqlite3
 # (see https://stackoverflow.com/questions/9794931/keep-file-in-a-git-repo-but-dont-track-changes)
 db.sqlite3
 .coverage
 htmlcov/
+collectedstatics/
+!collectedstatics/dummy_file.md
+.env
+.aws/

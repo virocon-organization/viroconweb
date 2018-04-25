@@ -19,39 +19,66 @@
         {% endfor %}
         <br>
     {% endif %}
-    <div class="col-md-4">
+    <div class="col-md-3">
     </div>
-    <div class="col-md-2">
-        {% if dim == 3 %}
-            <button type="button" class="btn btn-default" id="btn-interactive-visualization">interactive 3D Contour
-            </button>
-        {% elif dim == 4 %}
-            <button type="button" class="btn btn-default">interactive 4D Contour</button>
-        {% endif %}
+    {% if dim > 2 %}
+        <div class="col-md-2">
+            {% if dim == 3 %}
+                <button type="button"
+                        class="btn btn-default"
+                        id="btn-interactive-visualization">
+                    interactive 3D Contour
+                </button>
+            {% elif dim == 4 %}
+                <button type="button" class="btn btn-default">
+                    interactive 4D Contour
+                </button>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if dim > 2 %}
+        <div class="col-md-2">
+    {%  else %}
+        <div class="col-md-3">
+    {% endif %}
+        <button type="button"
+                class="btn btn-default"
+                onclick="location='{{   object.latex_report.url  }}'">
+            Download report
+        </button>
     </div>
-    <div class="col-md-2">
-        <button type="button" class="btn btn-default" onclick="location='{% static path %}'">Download PDF</button>
+    {% if dim > 2 %}
+        <div class="col-md-2">
+    {%  else %}
+        <div class="col-md-3">
+    {% endif %}
+        <button type="button"
+                class="btn btn-default"
+                onclick="location='{{   object.design_conditions_csv.url  }}'">
+            Download design conditions
+        </button>
+    </div>
+    <div class="col-md-3">
+
     </div>
 
-    <div class="col-md-4">
+    <br>
+    <br>
 
-    </div>
-
-    <br><br>
-
-    <object class="contour-pdf" data="{% static path %}" type="application/pdf" style="width:80%;height:80%">
-        <a href="{% url 'contour:download_pdf' %}">PDF laden</a>
+    <object class="contour-pdf"
+            data="{{ object.latex_report.url }}"
+            type="application/pdf" style="width:80%;height:80%">
     </object>
-    <script type="text/javascript" src="{% static 'bullshit.js' %}"></script>
-    <script type="text/javascript" src="{% static 'vis-4.20.1/dist/vis.js' %}"></script>
     <script type="text/javascript">
         dim_data_set = {{ dim }};
         if (dim_data_set == 3) {
-            document.getElementById("btn-interactive-visualization").addEventListener("click", drawVisualization3D, false);
+            document.getElementById("btn-interactive-visualization")
+                .addEventListener("click", drawVisualization3D, false);
         }
         if (dim_data_set == 4) {
             console.log('is 4')
-            document.getElementById("btn-interactive-visualization").addEventListener("click", drawVisualization4D, false);
+            document.getElementById("btn-interactive-visualization")
+                .addEventListener("click", drawVisualization4D, false);
         }
 
         var data = null;
@@ -115,10 +142,10 @@
 
         // Called when the Visualization API is loaded.
         function drawVisualization4D() {
-            // create the data table.
+            // Create the data table.
             data = new vis.DataSet();
 
-            // create the animation data
+            // Create the animation data
             var imax = x_data.length;
             for (var i = 0; i < imax; i++) {
                 var x = x_data[i];
@@ -129,7 +156,7 @@
                 data.add({x: x, y: y, z: z, style: style});
             }
 
-            // specify options
+            // Specify options
             var options = {
                 width: '600px',
                 height: '600px',
@@ -156,17 +183,17 @@
                 legendLabel: "{{ labels.3|safe }}"
             };
 
-            // create our graph
+            // Create our graph
             var container = document.getElementById('mygraph');
             graph = new vis.Graph3d(container, data, options);
         }
 
         // Called when the Visualization API is loaded.
         function drawVisualization3D() {
-            // create the data table.
+            // Create the data table
             data = new vis.DataSet();
 
-            // create the animation data
+            // Create the animation data
             var imax = x_data.length;
             for (var i = 0; i < imax; i++) {
                 var x = x_data[i];
@@ -177,7 +204,7 @@
                 data.add({x: x, y: y, z: z, style: style});
             }
 
-            // specify options
+            // Specify options
             var options = {
                 width: '600px',
                 height: '600px',
@@ -203,7 +230,7 @@
                 zLabel: "{{ labels.2|safe }}"
             };
 
-            // create our graph
+            // Create our graph
             var container = document.getElementById('mygraph');
             graph = new vis.Graph3d(container, data, options);
         }

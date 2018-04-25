@@ -1,13 +1,16 @@
 import os
 import csv
 import warnings
+import codecs
 
+from urllib import request
 from abc import abstractmethod
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse, \
     HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
+from django.urls import reverse
 
 from . import forms
 from . import models
@@ -15,7 +18,8 @@ from . import plot
 from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
-    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption
+    ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
+    PlottedFigure
 from .compute_interface import ComputeInterface
 
 
@@ -139,7 +143,7 @@ class Handler:
         """
 
     @staticmethod
-    def show(request, pk, collection):
+    def show(request, pk, model):
         """
         Shows an object from the data base, e.g. an EnvironmentalContour object.
 
@@ -149,9 +153,9 @@ class Handler:
             The HttpRequest to show the object.
         pk : int,
             Primary key of the object in the data base.
-        collection : models.Model,
+        model : models.Model,
             A Django model, which has a database associated to it, e.g.
-            models.EnvronmentalContour.
+            models.EnvronmentalContour. This is the class, not an instance.
 
 
         Returns
@@ -160,10 +164,11 @@ class Handler:
             Renders an html response showing the object.
         """
         if request.user.is_anonymous:
-            return HttpResponseRedirect('/home')
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
-            html = 'contour/' + collection.url_str() + '_show.html'
-            return render(request, html)
+            html = 'contour/' + model.url_str() + '_show.html'
+            object = model.objects.get(pk=pk)
+            return render(request, html, {'object' : object})
 
 
 class MeasureFileHandler(Handler):
@@ -214,10 +219,14 @@ class MeasureFileHandler(Handler):
                 if measure_file_form.is_valid():
                     measure_model = MeasureFileModel(
                         primary_user=request.user,
-                        title=measure_file_form.cleaned_data['title'],
-                        measure_file=measure_file_form.cleaned_data['measure_file'])
+                        title=measure_file_form.cleaned_data['title']
+                    )
                     measure_model.save()
-                    path = settings.PATH_STATIC + \
+                    measure_model.measure_file.save(
+                        measure_file_form.cleaned_data['measure_file'].name,
+                        measure_file_form.cleaned_data['measure_file'].file)
+                    measure_model.save()
+                    path = settings.PATH_MEDIA + \
                            settings.PATH_USER_GENERATED + \
                            str(request.user) + \
                            '/measurement/' + str(measure_model.pk)
@@ -227,9 +236,17 @@ class MeasureFileHandler(Handler):
 
                     return redirect('contour:measure_file_model_plot', measure_model.pk)
                 else:
-                    return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                    return render(
+                        request,
+                        'contour/measure_file_model_add.html',
+                        {'form': measure_file_form}
+                    )
             else:
-                return render(request, 'contour/measure_file_model_add.html', {'form': measure_file_form})
+                return render(
+                    request,
+                    'contour/measure_file_model_add.html',
+                    {'form': measure_file_form}
+                )
 
     @staticmethod
     def fit_file(request, pk):
@@ -242,7 +259,7 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             mfm_item = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url[1:])
+            var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url)
             var_number = len(var_names)
             fit_form = forms.MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
             if request.method == 'POST':
@@ -260,7 +277,7 @@ class MeasureFileHandler(Handler):
                                        'header': 'fit measurement file to probabilistic model',
                                        'return_url': 'contour:measure_file_model_select'})
                     #try:
-                    directory_prefix = settings.PATH_STATIC
+                    directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
@@ -275,11 +292,8 @@ class MeasureFileHandler(Handler):
                         #               'return_url': 'contour:measure_file_model_select'})
                     multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
                     latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-                    img_list = os.listdir(directory + '/' +  str(probabilistic_model.pk))
-                    send_img = []
-                    for img in img_list:
-                        send_img.append(directory_after_static + str(probabilistic_model.pk) + '/' + img)
-                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'imgs': send_img,
+                    plotted_figures = PlottedFigure.objects.filter(probabilistic_model=probabilistic_model)
+                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'plotted_figures': plotted_figures,
                                                                        'latex_string_list': latex_string_list})
                 else:
                     return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})
@@ -310,13 +324,13 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url[1:])
-            directory_prefix = settings.PATH_STATIC
+            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url)
+            directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
                                      '/measurement/' + str(pk)
             directory = directory_prefix + directory_after_static
-            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names, directory)
+            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names)
             return render(request, 'contour/measure_file_model_plot.html', {'user': request.user,
                                                                      'measure_file_model':measure_file_model,
                                                                      'directory': directory_after_static})
@@ -477,16 +491,11 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['return_period']),
                             float(iform_form.cleaned_data['sea_state']),
                             iform_form.cleaned_data['n_steps'])
-                        method = Method(
-                            "", "IFORM",
-                            float(iform_form.cleaned_data['return_period']),
-                            float(iform_form.cleaned_data['sea_state']),
-                            {"Number of points on the contour":
-                                 iform_form.cleaned_data['n_steps']})
                         environmental_contour = EnvironmentalContour(
                             primary_user=request.user,
                             fitting_method="",
-                            contour_method="IFORM",
+                            contour_method="Inverse first order reliability "
+                                           "method (IFORM)",
                             return_period=float(
                                 iform_form.cleaned_data['return_period']),
                             state_duration=float(
@@ -494,7 +503,7 @@ class ProbabilisticModelHandler(Handler):
                             probabilistic_model=probabilistic_model
                         )
                         environmental_contour.save()
-                        path = settings.PATH_STATIC + \
+                        path = settings.PATH_MEDIA + \
                                settings.PATH_USER_GENERATED + \
                                str(request.user) + \
                                '/contour/' + str(environmental_contour.pk)
@@ -537,12 +546,10 @@ class ProbabilisticModelHandler(Handler):
                         str(request.user),
                         environmental_contour,
                         var_names,
-                        var_symbols,
-                        method)
+                        var_symbols)
 
-
-                    #probabilistic_model.measure_file_model.measure_file
-                    # if matrix 4dim - send data for 4dim interactive plot.
+                    # If the model is 4-dimensional send data to create a 4D
+                    # interactive plot.
                     if len(contour_coordinates[0]) == 4:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -550,10 +557,11 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'u': contour_coordinates[0][3].tolist(), 'dim': 4,
                                        'labels': labels})
-                    # if matrix 3dim - send data for 3dim interactive plot
+                    # If the model is 3-dimensional send data for a 3D
+                    # interactive plot
                     elif len(contour_coordinates[0]) == 3:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -561,12 +569,12 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'labels': labels})
 
                     elif len(contour_coordinates) < 3:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'path': path, 'dim': 2})
+                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2})
                 else:
                     return render(request, 'contour/contour_settings.html', {'form': iform_form})
             else:
@@ -606,12 +614,11 @@ class ProbabilisticModelHandler(Handler):
                                 float(hdc_form.cleaned_data['n_years']),
                                 float(hdc_form.cleaned_data['sea_state']),
                                 limits, deltas)
-                            method = Method("", "Highest Density Contour (HDC)", float(hdc_form.cleaned_data['n_years']),
-                                            hdc_form.cleaned_data['sea_state'], {"Limits of the grid":limits, r"""Grid cell size ($\Delta x_i$)""":deltas})
                             environmental_contour = EnvironmentalContour(
                                 primary_user=request.user,
                                 fitting_method="",
-                                contour_method="IFORM",
+                                contour_method="Highest density contour (HDC) "
+                                               "method",
                                 return_period=float(
                                     hdc_form.cleaned_data['n_years']),
                                 state_duration=float(
@@ -619,7 +626,7 @@ class ProbabilisticModelHandler(Handler):
                                 probabilistic_model=probabilistic_model
                             )
                             environmental_contour.save()
-                            path = settings.PATH_STATIC + \
+                            path = settings.PATH_MEDIA + \
                                    settings.PATH_USER_GENERATED + \
                                    str(request.user) + \
                                    '/contour/' + str(environmental_contour.pk)
@@ -663,8 +670,7 @@ class ProbabilisticModelHandler(Handler):
                                                     str(request.user),
                                                     environmental_contour,
                                                     var_names,
-                                                    var_symbols,
-                                                    method)
+                                                    var_symbols)
 
                     # if matrix 3dim - send data for 3dim interactive plot.
                     if len(contour_coordinates[0]) > 2:
@@ -674,11 +680,11 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'path': path, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
+                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
                                        'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
                     else:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'path': path, 'dim': 2, 'warn': warn})
+                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2, 'warn': warn})
                 else:
                     return render(request, 'contour/contour_settings.html', {'form': hdc_form})
             else:
@@ -725,28 +731,16 @@ class ProbabilisticModelHandler(Handler):
                 var_symbols.append(dist.symbol)
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-            send_img = []
+            plotted_figures = PlottedFigure.objects.filter(
+                probabilistic_model=probabilistic_model)
 
-            directory_prefix = settings.PATH_STATIC
-            directory_after_static = settings.PATH_USER_GENERATED + str(request.user) + \
-                                     '/prob_model/' + str(pk)
-            directory = directory_prefix + directory_after_static
-            if os.path.isdir(directory):
-                img_list = os.listdir(directory)
-                for img in img_list:
-                    send_img.append(directory_after_static + '/' + img)
-            directory_measure_plot_after_prefix = ''
-            if probabilistic_model.measure_file_model:
-                directory_measure_plot_after_prefix = \
-                    settings.PATH_USER_GENERATED +str(request.user) + \
-                    '/measurement/' + \
-                    str(probabilistic_model.measure_file_model.pk) + \
-                    '/scatter.png'
-
-            return render(request, 'contour/probabilistic_model_show.html',
-                          {'user': request.user, 'probabilistic_model': probabilistic_model,
-                           'latex_string_list': latex_string_list, 'imgs': send_img,
-                          'directory_measure_plot_after_prefix': directory_measure_plot_after_prefix})
+            return render(
+                request,
+                'contour/probabilistic_model_show.html',
+                {'user': request.user,
+                 'probabilistic_model': probabilistic_model,
+                 'latex_string_list': latex_string_list,
+                 'plotted_figures': plotted_figures})
 
 
 class EnvironmentalContourHandler(Handler):
@@ -767,8 +761,6 @@ class EnvironmentalContourHandler(Handler):
 
     @staticmethod
     def show(request, pk, model=models.EnvironmentalContour):
-        # This method does not work properly yet since the _show template was
-        # written before we had a DjangoModel for EnvironmentalContour.
         return Handler.show(request, pk, model)
 
     @staticmethod
@@ -776,46 +768,44 @@ class EnvironmentalContourHandler(Handler):
         return Handler.delete(request, pk, collection)
 
 
-def download_pdf(request):
-    """
-    The function returns a pdf download with the results of the contour calculation.
-    :param request:     user request to download a certain result pdf.
-    :return:            result pdf 
-    """
-    if request.user.is_anonymous:
-        return redirect('contour:index')
-    else:
-        response = HttpResponse(content_type='application/pdf')
-        path = 'attachment; filename="' + settings.PATH_STATIC + \
-               settings.PATH_USER_GENERATED + str(request.user) + \
-               '/contour/latex_report.pdf"'
-        response['Content-Disposition'] = path
-        return response
-
-
 def get_info_from_file(url):
+    """	
+    Reads the variable names form a csv. file.	
+    
+    Parameters
+    ----------
+    url : str
+        Path to the csv file.
+
+    Returns
+    -------
+    var_names : list of strings
+        Names of the environmental variables used in csv file,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    var_symbols : list of strings
+        Symbols of the environental variables used in the csv file,
+        e.g. ['V', 'Hs']
     """
-    The function reads the variable names form a csv. file.
-    :param url:     path of the csv. file.
-    :return:        the names of the variables.
-    """
-    with open(url, 'r') as file:
+    if url[0] == '/':
+        url = url[1:]
+    if url[0:8] == 'https://':
+        is_web_url = True
+        req = request.Request(url)
+        file = request.urlopen(req)
+        reader = csv.reader(codecs.iterdecode(file, 'utf-8'), delimiter=';').__next__()
+    else:
+        is_web_url = False
+        file = open(url, 'r')
         reader = csv.reader(file, delimiter=';').__next__()
-        var_names = []
-        var_symbols = []
-        i = 0
-        while i < (len(reader)):
-            var_names.append(reader[i])
-            i += 1
-            var_symbols.append(reader[i])
-            i += 1
-        return var_names, var_symbols
-
-
-class Method:
-    def __init__(self, fitting_method, contour_method, return_period, state_duration, additional_options=None):
-        self.fitting_method = fitting_method
-        self.contour_method = contour_method
-        self.return_period = return_period
-        self.state_duration = state_duration
-        self.additional_options = additional_options
+    var_names = []
+    var_symbols = []
+    i = 0
+    while i < (len(reader)):
+        var_names.append(reader[i])
+        i += 1
+        var_symbols.append(reader[i])
+        i += 1
+    return var_names, var_symbols
+    # In case it was a local file opening, finally close the file
+    if is_web_url==False:
+        file.close()

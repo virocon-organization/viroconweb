@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.core.urlresolvers import reverse
 from contour.forms import HDCForm
 
@@ -6,19 +6,13 @@ from contour.forms import HDCForm
 class EnvironmentalContourTestCase(TestCase):
 
     def setUp(self):
-        # create a user
+        # Login
         self.client = Client()
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                          {'username': 'max_mustermann',
-                          'email': 'max.mustermann@gmail.com',
-                          'first_name': 'Max',
-                          'last_name': 'Mustermann',
-                          'organisation': 'Musterfirma',
-                          'type_of_use': 'commercial',
-                          'password1': 'Musterpasswort2018',
-                          'password2': 'Musterpasswort2018'})
+                          'password': 'Musterpasswort2018'})
 
-        # create a form containing the information of the  probabilistic model
+        # Create a form containing the information of the  probabilistic model
         form_input_dict = {
             'variable_name_0': 'significant wave height [m]',
             'variable_symbol_0': 'Hs',
@@ -50,7 +44,9 @@ class EnvironmentalContourTestCase(TestCase):
                          form_input_dict,
                          follow=True)
 
-
+    # Since this test is affected by whitenoise, we deactive it here, see:
+    # https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+    @override_settings(STATICFILES_STORAGE=None)
     def test_iform_contour(self):
         response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
@@ -72,7 +68,7 @@ class EnvironmentalContourTestCase(TestCase):
                                                     'method': 'I'}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, 'Download PDF',
+        self.assertContains(response, 'Download report',
                             status_code=200)
 
         # Finally delete the environmental contour. This servers two purposes:
@@ -81,7 +77,9 @@ class EnvironmentalContourTestCase(TestCase):
         response = self.client.get(reverse('contour:environmental_contour_delete',
                                            kwargs={'pk': 1}),
                                    follow=True)
-
+    # Since this test is affected by whitenoise, we deactive it here, see:
+    # https://stackoverflow.com/questions/30638300/django-test-redirection-fail
+    @override_settings(STATICFILES_STORAGE=None)
     def test_highest_density_contour(self):
         response = self.client.get(reverse('contour:probabilistic_model_calc',
                                             kwargs={'pk' : '1',
@@ -114,7 +112,7 @@ class EnvironmentalContourTestCase(TestCase):
                                                     'method': 'H'}),
                                     form_input_dict,
                                     follow=True)
-        self.assertContains(response, 'Download PDF',
+        self.assertContains(response, 'Download report',
                             status_code=200)
 
         # Finally delete the environmental contour. This servers two purposes:

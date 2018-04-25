@@ -6,7 +6,7 @@
         <h1>Probabilistic model</h1>
     </div>
     <br>
-    <div class="container-fluid probabilstic-model-show">
+    <div class="container-fluid left-align-div">
         <h2>{{ probabilistic_model.collection_name }}</h2>
         <h3>Probability density function</h3>
         {% for latex_string in latex_string_list %}
@@ -19,21 +19,28 @@
             <p>
                 file: '{{ probabilistic_model.measure_file_model.title }}'
             </p>
-            {% if directory_measure_plot_after_prefix %}
-                <p>
-                    <button class="btn btn-default" data-toggle="collapse" data-target="#measure-file-plot">Show plot
-                    </button>
+            <p>
+                <button class="btn btn-default"
+                        data-toggle="collapse"
+                        data-target="#measure-file-plot">
+                    Show plot
+                </button>
                 <div id="measure-file-plot" class="collapse">
-                    <img src="{% static directory_measure_plot_after_prefix %}" class="img-responsive center-block">
+                    <img src="{{ probabilistic_model.measure_file_model.scatter_plot.url }}"
+                         class="img-responsive center-block">
                 </div>
-                </p>
-            {% endif %}
-            {% if imgs %}
+            </p>
+            {% if plotted_figures %}
                 <h3>Evaluation of the fit</h3>
-                <button class="btn btn-default" data-toggle="collapse" data-target="#fit-images">Show fits</button>
+                <button class="btn btn-default"
+                        data-toggle="collapse"
+                        data-target="#fit-images">
+                    Show fits
+                </button>
                 <div id="fit-images" class="collapse">
-                    {% for img in imgs %}
-                        <img src="{% static img %}" class="img-responsive center-block">
+                    {% for plotted_figure in plotted_figures %}
+                        <img src="{{ plotted_figure.image.url }}"
+                             class="img-responsive center-block">
                     {% endfor %}
                 </div>
             {% endif %}

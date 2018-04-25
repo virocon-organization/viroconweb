@@ -6,17 +6,11 @@ from contour.forms import VariableNumber, VariablesForm
 class DirectInputProbModelTestCase(TestCase):
 
     def setUp(self):
-        # create a user
+        # Login
         self.client = Client()
-        self.client.post(reverse('user:create'),
+        self.client.post(reverse('user:authentication'),
                            {'username' : 'max_mustermann',
-                            'email': 'max.mustermann@gmail.com',
-                            'first_name': 'Max',
-                            'last_name': 'Mustermann',
-                            'organisation': 'Musterfirma',
-                            'type_of_use': 'commercial',
-                            'password1' : 'Musterpasswort2018',
-                            'password2': 'Musterpasswort2018'})
+                            'password': 'Musterpasswort2018'})
 
     def test_direct_input_prob_model(self):
         # Create a direct input form
@@ -65,7 +59,7 @@ class DirectInputProbModelTestCase(TestCase):
         form = VariablesForm(data=form_input_dict, variable_count=2)
         self.assertTrue(form.is_valid())
 
-        # test the view method and the html which will be generated
+        # Test the view method and the html which will be generated
         response = self.client.post(reverse('contour:probabilistic_model_add',
                                             args=['02']),
                                     form_input_dict,

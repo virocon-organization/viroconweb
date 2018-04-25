@@ -9,66 +9,58 @@ from scipy.stats import lognorm
 from scipy.stats import norm
 from django.template.loader import get_template
 from subprocess import Popen, PIPE
+from io import BytesIO, StringIO
+from django.core.files.base import ContentFile
+from urllib import request
+from virocon.settings import USE_S3
+
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
+#
 # The standard solution to fix it is to use:
 #   import matplotlib
 #   matplotlib.use('Agg')
 #   import matplotlib.pyplot as plt
 # see https://stackoverflow.com/questions/41319082/import-matplotlib-failing-
 # with-no-module-named-tkinter-on-heroku
-# However this does not work. Consequently we use another solution.
-# Thanks to: https://github.com/matplotlib/matplotlib/issues/3466/
 #
-# after import matplotlib.pyplot as plt
-# on Andreas' windows and travis this is works:  plt.switch_backend('agg')
-# on Heroku this does not work.
-# on Andreas Windows 10 and Heroku this works:
-#   thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-
-#   backends-in-matplotlib-python
-#   import matplotlib
-#   gui_env = ['TKAgg','GTKAgg','Qt4Agg','WXAgg']
-#   for gui in gui_env:
-#        try:
-#           matplotlib.use(gui,warn=False, force=True)
-#           from matplotlib import pyplot as plt
-#           break
-#       except:
-#            continue
-
-# thanks to: https://stackoverflow.com/questions/3285193/how-to-switch-backends
+# However this does not work. Consequently we use another solution, which is
+# inspired by https://stackoverflow.com/questions/3285193/how-to-switch-backends
 # -in-matplotlib-python
 import matplotlib
-gui_env = ['GTK', 'GTKAgg', 'GTKCairo', 'GTK3Agg', 'GTK3Cairo', 'MacOSX', 'nbAgg',
-         'Qt4Agg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo',
-         'WebAgg', 'WX', 'WXAgg', 'WXCairo']
-for gui in gui_env:
+all_backends = matplotlib.rcsetup.all_backends
+backend_worked = False
+for gui in all_backends:
     try:
-        print("testing", gui)
-        matplotlib.use(gui,warn=False, force=True)
+        print("Testing", gui)
+        matplotlib.use(gui, warn=False, force=True)
         from matplotlib import pyplot as plt
+        backend_worked = True
         break
     except:
         continue
-print("Using:",matplotlib.get_backend())
-if matplotlib.get_backend()=='TkAgg':
+print("Using", matplotlib.get_backend())
+if backend_worked==False or matplotlib.get_backend()=='TkAgg':
+    from matplotlib import pyplot as plt
     plt.switch_backend('agg')
-    print("Switched backend to agg")
+    print("Switched backend and now using", matplotlib.get_backend())
 
-
+from mpl_toolkits.mplot3d import axes3d, Axes3D # Needed for projection='3d'
 from descartes import PolygonPatch
 from .plot_generic import alpha_shape
 from .plot_generic import convert_ndarray_list_to_multipoint
 
 from . import settings
 
-from .models import ProbabilisticModel, DistributionModel, ParameterModel
+from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
+    AdditionalContourOption, PlottedFigure
 from .compute_interface import setup_mul_dist
 
 
 def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
-                           var_name, symbol_parent_var, directory):
+                           var_name, symbol_parent_var, directory,
+                           probabilistic_model):
     """
     The function creates an image which shows a certain fit of a distribution.
     :param main_index:      the index of the current variable (distribution).
@@ -89,6 +81,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     :param symbol_parent_var:      symbol of the variable on which the
     conditional variable is based.
     :param directory        the directory where the figure should be saved
+    :param probabilistic_model     ProbabilisticModel
     :return: 
     """
     fig = plt.figure()
@@ -150,15 +143,24 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     # The convention for image name is like this: 'fit_01_00_02.png' means
     # a plot of the second variable (01) which is conditional on the first
     # variable (00) and this is the third (02) fit
-    plt.savefig(directory + '/fit_' + main_index_2_digits + '_' +
-                parent_index_2_digits + '_' + low_index_2_digits + '.png')
-
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + main_index_2_digits + '_' + parent_index_2_digits + \
+                '_' + low_index_2_digits + '.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
+
     return
 
 
 def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
-                                data_points, fit_func, directory, dist_name):
+                                data_points, fit_func, directory, dist_name,
+                                probabilistic_model):
     """
     The function plots an image which shows the fit of a function. 
     :param main_index:      index of the related distribution.
@@ -204,8 +206,17 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
-    plt.savefig(directory + '/fit_' + str(main_index) + para_name + '.png')
+
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+    file_name = 'fit_' + str(main_index) + para_name + '.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
 
 
 def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
@@ -235,7 +246,7 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
         measure_file_model=measure_file,
     )
     probabilistic_model.save()
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user) + \
+    path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user) + \
         '/prob_model/' + str(probabilistic_model.pk)
     probabilistic_model.path_of_statics = path
     probabilistic_model.save(update_fields=['path_of_statics'])
@@ -279,10 +290,12 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
                 for k, point in enumerate(spec_param_points[1]):
                     float_points.append(point)
                     interval_centers.append(spec_param_points[0][k])
-                plot_parameter_fit_overview(i, var_names[i], var_symbols[i],
-                                            params[j], [spec_param_points[0],
-                                                        float_points],
-                                            param, directory, distribution.name)
+                plot_parameter_fit_overview(
+                    i, var_names[i], var_symbols[i],
+                    params[j], [spec_param_points[0],
+                                float_points],
+                    param, directory, distribution.name,
+                    probabilistic_model=probabilistic_model)
                 parameter_model = ParameterModel(
                     function=param.func_name, x0=param.a, x1=param.b,
                     x2=param.c, dependency=fit.mul_var_dist.dependencies[i][j],
@@ -322,42 +335,48 @@ def plot_fits(fit, var_names, var_symbols, title, user, measure_file,
     # i = the variable index
     for i, dist_points in enumerate(fit.mul_dist_points):
         # j = 0-2 (shape, loc, scale)
+        iterate_shape_loc_scale_loop = True
         for j, spec_dist_points in enumerate(dist_points):
-            # k = number of intervals
-            for k, dist_point in enumerate(spec_dist_points):
-                if interval_centers:
-                    if i == 0 or len(interval_centers) < 2:
-                        interval_limits = [min(interval_centers),
-                                           max(interval_centers)]
+            if iterate_shape_loc_scale_loop:
+                # k = number of intervals
+                for k, dist_point in enumerate(spec_dist_points):
+                    if interval_centers:
+                        if i == 0 or len(interval_centers) < 2:
+                            interval_limits = [min(interval_centers),
+                                               max(interval_centers)]
+                        else:
+                            # Calculate  the interval width assuming constant
+                            # interval width.
+                            interval_width = interval_centers[1] - \
+                                             interval_centers[0]
+                            interval_limits = [
+                                interval_centers[k] - 0.5 * interval_width,
+                                interval_centers[k] + 0.5*interval_width]
                     else:
-                        # Calculate  the interval width assuming constant
-                        # interval width.
-                        interval_width = interval_centers[1] - \
-                                         interval_centers[0]
-                        interval_limits = [
-                            interval_centers[k] - 0.5 * interval_width,
-                            interval_centers[k] + 0.5*interval_width]
-                else:
-                    interval_limits = []
-                parent_index = fit.mul_var_dist.dependencies[i][j]
-                symbol_parent_var = None
-                if parent_index is not None:
-                    symbol_parent_var = var_symbols[parent_index]
-                if is_legit_distribution_parameter_index(
-                        fit.mul_var_dist.distributions[i].name, j):
-                    plot_pdf_with_raw_data(
-                        i, parent_index, k, mult_float_points[i][0][k],
-                        mult_float_points[i][1][k], mult_float_points[i][2][k],
-                        fit.mul_var_dist.distributions[i].name,
-                        dist_point, interval_limits, var_names[i],
-                        symbol_parent_var, directory)
+                        interval_limits = []
+                    parent_index = fit.mul_var_dist.dependencies[i][j]
+                    symbol_parent_var = None
+                    if parent_index is not None:
+                        symbol_parent_var = var_symbols[parent_index]
+                    if is_legit_distribution_parameter_index(
+                            fit.mul_var_dist.distributions[i].name, j):
+                        plot_pdf_with_raw_data(
+                            i, parent_index, k, mult_float_points[i][0][k],
+                            mult_float_points[i][1][k], mult_float_points[i][2][k],
+                            fit.mul_var_dist.distributions[i].name,
+                            dist_point, interval_limits, var_names[i],
+                            symbol_parent_var, directory, probabilistic_model)
+                        # If there is no dependency one plot is sufficient
+                        if j == 0 and symbol_parent_var==None:
+                            iterate_shape_loc_scale_loop = False
+                    # The first variable has no dependencies, consequently there is
+                    # no need to check for them.
+                    if i == 0:
+                        break
 
-                # The first variable has no dependencies, consequently there is
-                # no need to check for them.
-                if i == 0:
-                    break
 
     return probabilistic_model
+
 
 def is_legit_distribution_parameter_index(distribution_name, index):
     """
@@ -408,9 +427,9 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     :param var_symbols: symbols of the variables of the probabilistic model
     """
 
-    pm = environmental_contour.probabilistic_model
+    probabilistic_model = environmental_contour.probabilistic_model
 
-    path = settings.PATH_STATIC + settings.PATH_USER_GENERATED + str(user)
+    path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -419,20 +438,20 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     if len(contour_coordinates[0]) == 2:
         ax = fig.add_subplot(111)
 
-        # plot raw data
-        if (pm.measure_file_model):
-            data_path = pm.measure_file_model.measure_file.url
-            data_path = data_path[1:]
+        # Plot raw data
+        if (probabilistic_model.measure_file_model):
+            data_path = probabilistic_model.measure_file_model.measure_file.url
+            if data_path[0] == '/':
+                data_path = data_path[1:]
             data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
             ax.scatter(data[:,0], data[:,1], s=5 ,c='k',
                        label='measured/simulated data')
 
-        # plot contour
+        # Plot contour
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
                        label='extreme env. design condition')
-            #ax.plot(contour_coordinates[i][0], contour_coordinates[i][1], 'b-')
             concave_hull, edge_points = alpha_shape(
                 convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
 
@@ -464,17 +483,27 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
 
     ax.grid(True)
 
-    directory =  settings.PATH_STATIC + settings.PATH_USER_GENERATED + user + \
+    directory = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + user + \
         '/contour/' + str(environmental_contour.pk) + '/'
     if not os.path.exists(directory):
         os.makedirs(directory)
-    plt.savefig(directory + 'contour.png', bbox_inches='tight')
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    plotted_figure = PlottedFigure(environmental_contour=environmental_contour)
+    file_name = 'contour.png'
+    plotted_figure.image.save(file_name, content_file)
+    plotted_figure.save()
 
-def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
+
+def plot_data_set_as_scatter(user, measure_file_model, var_names):
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
     data_path = measure_file_model.measure_file.url
-    data_path = data_path[1:]
+    if data_path[0] == '/':
+        data_path = data_path[1:]
 
     # Number of lines of th header is correctly set to 0! Originally it was 1,
     # which caused a bug since the first data row was ignored, see issue #20.
@@ -487,10 +516,16 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names, directory):
         ax.set_ylabel('{}'.format(var_names[i+1]))
         if i==0:
             plt.title('measurement file: ' + measure_file_model.title)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    plt.savefig(directory + '/scatter.png', bbox_inches='tight')
+
+    # For the following block thanks to: https://stackoverflow.com/questions/
+    # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
+    f = BytesIO()
+    plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
+    content_file = ContentFile(f.getvalue())
+    measure_file_model.scatter_plot.save('scatter_plot.png', content_file)
+    measure_file_model.save()
+
 
 def data_to_table(matrix, var_names):
     """
@@ -518,8 +553,9 @@ def data_to_table(matrix, var_names):
         table.append(row)
     return table
 
+
 def create_latex_report(contour_coordinates, user, environmental_contour,
-                        var_names, var_symbols, method):
+                        var_names, var_symbols):
     """
     Creates a latex-based pdf report describing the performed environmental
     contour calculation.
@@ -532,27 +568,18 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     contour_coordinates : n-dimensional matrix
         The coordinates of the environmental contour.
         The format is defined by compute_interface.iform()
-
     user : django.contrib.auth.models.User
         The user, who is working with the app. The report will be saved in a
         directory named like the user.
-
     environmental_contour : enviro.models.EnvironmentalContour
         Django's environmental contour model, which contains the contour's path,
         the options that were used to create it and its probabilistc model
-
     var_names : list of strings
         Names of the environmental variables used in the probabilistic model,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-
     var_symbols : list of strings
         Symbols of the environental variables used in the probabilistic model,
         e.g. ['V', 'Hs']
-
-    method : enviro.views.Method
-        Contains all the information used to create the environmental contour
-        Has among other the attributes method.contour_method and
-        method.return_period
 
     Returns
     -------
@@ -563,19 +590,38 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
 
     """
     probabilistic_model = environmental_contour.probabilistic_model
+    short_directory = settings.PATH_USER_GENERATED + user + \
+                             '/contour/' + str(environmental_contour.pk) + '/'
+    short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
+    full_directory = settings.PATH_MEDIA + short_directory
+    full_file_path_report = settings.PATH_MEDIA + short_file_path_report
+
 
     plot_contour(contour_coordinates, user, environmental_contour, var_names)
-    directory_prefix = settings.PATH_STATIC + settings.PATH_USER_GENERATED
-    file_path_contour = directory_prefix + user + '/contour/' + \
-                        str(environmental_contour.pk) + '/contour.png'
-    directory_fit_images = directory_prefix + user + '/prob_model/'
+
+    pf_contour = PlottedFigure.objects.filter(
+        environmental_contour=environmental_contour).first()
+    # Download the image from Amazon S3 since latex needs a local version
+    url_contour_image = pf_contour.image.url
+    local_path_contour_image = full_directory + \
+                               os.path.split(url_contour_image)[1]
+    if USE_S3:
+        request.urlretrieve(url_contour_image, local_path_contour_image)
+
+
+
+    directory_prefix = settings.PATH_MEDIA + settings.PATH_USER_GENERATED
+    directory_fit_images = directory_prefix + user + '/' + settings.PATH_PROB_MODEL
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
                     r"\includegraphics[width=\textwidth]{" + \
-                    file_path_contour + r"}" \
+                    local_path_contour_image+ r"}" \
                     r"\subsection{Extreme environmental design conditions}" + \
-                    get_latex_eedc_table(contour_coordinates, var_names, var_symbols) + \
+                    get_latex_eedc_table(
+                        contour_coordinates,
+                        var_names,
+                        var_symbols) + \
                     r"\section{Methods}" \
                     r"\subsection{Associated measurement file}"
 
@@ -583,16 +629,17 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        temp = directory_fit_images + str(probabilistic_model.pk)
-        if os.path.exists(temp):
-            img_list = os.listdir(temp)
-            for img in img_list:
-                img_name = directory_fit_images + str(probabilistic_model.pk) + \
-                           "/" + img
-                latex_content += r"\begin{figure}[H]"
-                latex_content += r"\includegraphics[width=\textwidth]{" + \
-                                 img_name + r"}"
-                latex_content += r"\end{figure}"
+        plotted_figures = PlottedFigure.objects.filter(
+            probabilistic_model=probabilistic_model)
+        for plotted_figure in plotted_figures:
+            url_plotted_figure = plotted_figure.image.url
+            local_path_plotted_figure = full_directory + \
+                                       os.path.split(url_plotted_figure)[1]
+            request.urlretrieve(url_plotted_figure, local_path_plotted_figure)
+            latex_content += r"\begin{figure}[H]"
+            latex_content += r"\includegraphics[width=\textwidth]{" + \
+                             local_path_plotted_figure + r"}"
+            latex_content += r"\end{figure}"
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."
@@ -621,10 +668,14 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     latex_content += r"\subsection{Environmental contour} \
         \begin{itemize}"
     latex_content += r"\item Contour method: "
-    latex_content += method.contour_method
+    latex_content += environmental_contour.contour_method
     latex_content += r"\item Return period: "
-    latex_content += str(method.return_period) + " years"
-    for key, val in method.additional_options.items():
+    latex_content += str(environmental_contour.return_period) + " years"
+    additonal_options = AdditionalContourOption.objects.filter(
+        environmental_contour=environmental_contour)
+    for additonal_option in additonal_options:
+        key = additonal_option.option_key
+        val = additonal_option.option_value
         latex_content += r"\item " + key + ": " + str(val)
     latex_content += r"\end{itemize}"
 
@@ -633,14 +684,13 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         )
     template = get_template('contour/latex_report.tex')
     rendered_tpl = template.render(render_dict).encode('utf-8')
-    # Python3 only. For python2 check out the docs!
     with tempfile.TemporaryDirectory() as tempdir:
         # Create subprocess, supress output with PIPE and
         # run latex twice to generate the TOC properly.
         # Finally read the generated pdf.
         for i in range(2):
             process = Popen(
-                ['pdflatex', '-output-directory', tempdir],
+                ['pdflatex', '--shell-escape', '-output-directory', tempdir],
                 stdin=PIPE,
                 stdout=PIPE,
             )
@@ -648,45 +698,46 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
             pdf = f.read()
 
-
-    short_directory = settings.PATH_USER_GENERATED + user + \
-                             '/contour/' + str(environmental_contour.pk) + '/'
-    short_file_path_report = short_directory + 'latex_report.pdf'
-    full_directory = settings.PATH_STATIC + short_directory
-    full_file_path_report = settings.PATH_STATIC + short_file_path_report
     if not os.path.exists(full_directory):
         os.makedirs(full_directory)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
+        djangofile = ContentFile(pdf)
+        environmental_contour.latex_report.save(
+            settings.LATEX_REPORT_NAME, djangofile)
+        environmental_contour.save()
+
+    create_design_conditions_csv(contour_coordinates, environmental_contour)
 
     return short_file_path_report
 
+
 def get_latex_eedc_table(matrix, var_names, var_symbols):
     """
-        Creates a latex string containing a table listing the contour's extreme
-        environmental design conditions (EEDCs).
+    Creates a latex string containing a table listing the contour's extreme
+    environmental design conditions (EEDCs).
 
-        Parameters
-        ----------
-        matrix : n-dimensional matrix
-            The coordinates of the environmental contour.
-            The format is defined by compute_interface.iform()
+    Parameters
+    ----------
+    matrix : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform()
 
-        var_names : list of strings
-            Names of the environmental variables used in the probabil. model,
-            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    var_names : list of strings
+        Names of the environmental variables used in the probabil. model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
 
-        var_symbols : list of strings
-            Symbols of the environental variables used in the probabil. model,
-            e.g. ['V', 'Hs']
+    var_symbols : list of strings
+        Symbols of the environental variables used in the probabil. model,
+        e.g. ['V', 'Hs']
 
-        Returns
-        -------
-        table_string : string,
-            A string in latex format containing a table, which lists the first
-            X extreme environmental design conditions
+    Returns
+    -------
+    table_string : string,
+        A string in latex format containing a table, which lists the first
+        X extreme environmental design conditions
 
-        """
+    """
 
     MAX_EEDCS_TO_LIST_IN_TABLE = 100
     LINES_FOR_PAGE_BREAK = 40
@@ -726,27 +777,28 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
 
     return table_string
 
+
 def get_latex_eedc_table_head_line(var_names):
     """
-        Creates a latex string containing the first line of a table.
+    Creates a latex string containing the first line of a table.
 
-        The table lists the contour's extreme environmental design
-        conditions (EEDCs).
+    The table lists the contour's extreme environmental design
+    conditions (EEDCs).
 
-        Parameters
-        ----------
-        var_names : list of strings
-            Names of the environmental variables used in the probabil. model,
-            e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    Parameters
+    ----------
+    var_names : list of strings
+        Names of the environmental variables used in the probabil. model,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
 
 
-        Returns
-        -------
-        head_line_string : string,
-            A string in latex format containing the first row of the table,
-            e.g. "EEDC & significant wave height [m] & peak period [s]\\"
+    Returns
+    -------
+    head_line_string : string,
+        A string in latex format containing the first row of the table,
+        e.g. "EEDC & significant wave height [m] & peak period [s]\\"
 
-        """
+    """
 
     head_line_string = ""
 
@@ -763,3 +815,33 @@ def get_latex_eedc_table_head_line(var_names):
             head_line_string += r" & "
 
     return head_line_string
+
+
+def create_design_conditions_csv(contour_coordinates, environmental_contour):
+    """
+    Creates a .csv file containing the extreme env. design conditions.
+
+    The file is saved as a FileField of the EnvironmentalContour object.
+
+    Parameters
+    ----------
+    contour_coordinates : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform().
+    environmental_contour : EnvironmentalContour
+        The django model of the environmental contour.
+
+    """
+    file_content_as_string = ""
+    for i in range(len(contour_coordinates)):
+        for j in range(len(contour_coordinates[0][0])):
+            for k in range(len(contour_coordinates[0])):
+                file_content_as_string += str(contour_coordinates[i][k][j])
+                if k < (len(contour_coordinates[0]) - 1):
+                    file_content_as_string += ";"
+            file_content_as_string += "\n"
+    content_bytes = file_content_as_string.encode('utf-8')
+    content_file = ContentFile(content_bytes)
+    environmental_contour.design_conditions_csv.save(
+        settings.EEDC_FILE_NAME, content_file)
+    environmental_contour.save()
