@@ -130,7 +130,8 @@ class Handler:
         """
        The method adds an item to a certain Model (database).
        :param request:     to add an item to the model. 
-       :return:            different HttpResponses. Success: redirect to a certain model overview, Fault: return info
+       :return:            different HttpResponses. Success: redirect
+       to a certain model overview, Fault: return info
                            about wrong input.
        """
 
@@ -138,7 +139,8 @@ class Handler:
     @abstractmethod
     def select(request):
         """
-        The method returns a HttpResponse where you can select a File from a Model to do further calculations. 
+        The method returns a HttpResponse where you can select a File
+        from a Model to do further calculations.
         :return:        HttpResponse to select an item form a certain model. 
         """
 
@@ -202,7 +204,10 @@ class MeasureFileHandler(Handler):
                 elif item.primary_user == request.user:
                     context.add(item)
 
-            return render(request, 'contour/measure_file_model_select.html', {'context': context})
+            return render(request,
+                          'contour/measure_file_model_select.html',
+                          {'context': context}
+                          )
 
     @staticmethod
     def add(request):
@@ -215,7 +220,10 @@ class MeasureFileHandler(Handler):
         else:
             measure_file_form = forms.MeasureFileForm()
             if request.method == 'POST':
-                measure_file_form = forms.MeasureFileForm(data=request.POST, files=request.FILES)
+                measure_file_form = forms.MeasureFileForm(
+                    data=request.POST,
+                    files=request.FILES
+                )
                 if measure_file_form.is_valid():
                     measure_model = MeasureFileModel(
                         primary_user=request.user,
@@ -224,7 +232,8 @@ class MeasureFileHandler(Handler):
                     measure_model.save()
                     measure_model.measure_file.save(
                         measure_file_form.cleaned_data['measure_file'].name,
-                        measure_file_form.cleaned_data['measure_file'].file)
+                        measure_file_form.cleaned_data['measure_file'].file
+                    )
                     measure_model.save()
                     path = settings.PATH_MEDIA + \
                            settings.PATH_USER_GENERATED + \
@@ -234,7 +243,10 @@ class MeasureFileHandler(Handler):
                     measure_model.save(
                         update_fields=['path_of_statics'])
 
-                    return redirect('contour:measure_file_model_plot', measure_model.pk)
+                    return redirect(
+                        'contour:measure_file_model_plot',
+                        measure_model.pk
+                    )
                 else:
                     return render(
                         request,
@@ -251,7 +263,8 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def fit_file(request, pk):
         """
-        The method fits a MeasureFile item and shows the result. If the fit isn't possible the user is going to be
+        The method fits a MeasureFile item and shows the result. If the fit
+        isn't possible the user is going to be
         informed with an error message.
         :return:        HttpResponse.
         """
@@ -261,28 +274,50 @@ class MeasureFileHandler(Handler):
             mfm_item = MeasureFileModel.objects.get(pk=pk)
             var_names, var_symbols = get_info_from_file(mfm_item.measure_file.url)
             var_number = len(var_names)
-            fit_form = forms.MeasureFileFitForm(variable_count=var_number, variable_names=var_names)
+            fit_form = forms.MeasureFileFitForm(
+                variable_count=var_number,
+                variable_names=var_names
+            )
             if request.method == 'POST':
-                fit_form = forms.MeasureFileFitForm(data=request.POST, variable_count=var_number, variable_names=var_names)
+                fit_form = forms.MeasureFileFitForm(
+                    data=request.POST,
+                    variable_count=var_number,
+                    variable_names=var_names
+                )
                 if fit_form.is_valid():
                     ci = ComputeInterface()
                     try:
-                        fit = ci.fit_curves(mfm_item=mfm_item, fit_settings=fit_form.cleaned_data,
-                                            var_number=var_number)
-                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                        return render(request, 'contour/error.html',
-                                      {'error_message': err,
-                                       'text': 'Error occured while fitting a probabliistic model to the file.'
-                                               'Try it again with different settings please',
-                                       'header': 'fit measurement file to probabilistic model',
-                                       'return_url': 'contour:measure_file_model_select'})
+                        fit = ci.fit_curves(mfm_item=mfm_item,
+                                            fit_settings=fit_form.cleaned_data,
+                                            var_number=var_number
+                                            )
+                    except (ValueError, RuntimeError, IndexError, TypeError,
+                            NameError, KeyError, Exception) as err:
+                        return render(
+                            request,
+                            'contour/error.html',
+                            {'error_message': err,
+                             'text': 'Error occured while fitting a '
+                                     'probabliistic model to the file.'
+                                     'Try it again with different settings '
+                                     'please',
+                               'header': 'fit measurement file to probabilistic '
+                                         'model',
+                               'return_url': 'contour:measure_file_model_select'
+                             }
+                        )
                     #try:
                     directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = plot.plot_fits(fit, var_names, var_symbols, fit_form.cleaned_data['title'],
-                                                         request.user, mfm_item, directory)
+                    probabilistic_model = plot.plot_fits(
+                        fit,
+                        var_names,
+                        var_symbols,
+                        fit_form.cleaned_data['title'],
+                        request.user, mfm_item, directory
+                    )
                     #except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         #return render(request, 'contour/error.html',
                         #              {'error_message': err,
@@ -290,14 +325,31 @@ class MeasureFileHandler(Handler):
                         #                       'Try it again with different settings please',
                         #               'header': 'fit measurement file to probabilistic model',
                         #               'return_url': 'contour:measure_file_model_select'})
-                    multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
-                    latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-                    plotted_figures = PlottedFigure.objects.filter(probabilistic_model=probabilistic_model)
-                    return render(request, 'contour/fit_results.html', {'pk': probabilistic_model.pk, 'plotted_figures': plotted_figures,
-                                                                       'latex_string_list': latex_string_list})
+                    multivariate_distribution = plot.setup_mul_dist(
+                        probabilistic_model
+                    )
+                    latex_string_list = multivariate_distribution.latex_repr(
+                        var_symbols
+                    )
+                    plotted_figures = PlottedFigure.objects.filter(
+                        probabilistic_model=probabilistic_model
+                    )
+                    return render(request,
+                                  'contour/fit_results.html',
+                                  {'pk': probabilistic_model.pk,
+                                   'plotted_figures': plotted_figures,
+                                   'latex_string_list': latex_string_list
+                                   }
+                                  )
                 else:
-                    return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})
-            return render(request, 'contour/measure_file_model_fit.html', {'form': fit_form})
+                    return render(request,
+                                  'contour/measure_file_model_fit.html',
+                                  {'form': fit_form}
+                                  )
+            return render(request,
+                          'contour/measure_file_model_fit.html',
+                          {'form': fit_form}
+                          )
 
     @staticmethod
     def new_fit(request, pk):
@@ -311,8 +363,13 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             plot.ProbabilisticModel.objects.all().filter(pk=pk).delete()
-            user_files = MeasureFileModel.objects.all().filter(primary_user=request.user)
-            return render(request, 'contour/measure_file_model_select.html', {'context': user_files})
+            user_files = MeasureFileModel.objects.all().filter(
+                primary_user=request.user
+            )
+            return render(request,
+                          'contour/measure_file_model_select.html',
+                          {'context': user_files}
+                          )
 
     @staticmethod
     def plot_file(request, pk):
@@ -324,16 +381,22 @@ class MeasureFileHandler(Handler):
             return redirect('contour:index')
         else:
             measure_file_model = MeasureFileModel.objects.get(pk=pk)
-            var_names, var_symbols = get_info_from_file(measure_file_model.measure_file.url)
+            var_names, var_symbols = get_info_from_file(
+                measure_file_model.measure_file.url
+            )
             directory_prefix = settings.PATH_MEDIA
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
                                      '/measurement/' + str(pk)
-            directory = directory_prefix + directory_after_static
-            plot.plot_data_set_as_scatter(request.user, measure_file_model, var_names)
-            return render(request, 'contour/measure_file_model_plot.html', {'user': request.user,
-                                                                     'measure_file_model':measure_file_model,
-                                                                     'directory': directory_after_static})
+            plot.plot_data_set_as_scatter(request.user,
+                                          measure_file_model,
+                                          var_names)
+            return render(request,
+                          'contour/measure_file_model_plot.html',
+                          {'user': request.user,
+                           'measure_file_model':measure_file_model,
+                           'directory': directory_after_static}
+                          )
 
 
 class ProbabilisticModelHandler(Handler):
@@ -354,8 +417,13 @@ class ProbabilisticModelHandler(Handler):
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
-            user_pm = models.ProbabilisticModel.objects.all().filter(primary_user=request.user)
-            return render(request, 'contour/probabilistic_model_select.html', {'context': user_pm})
+            user_pm = models.ProbabilisticModel.objects.all().filter(
+                primary_user=request.user
+            )
+            return render(request,
+                          'contour/probabilistic_model_select.html',
+                          {'context': user_pm}
+                          )
 
     @staticmethod
     def add(request, *args):
