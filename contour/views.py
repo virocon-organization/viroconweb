@@ -901,7 +901,7 @@ class EnvironmentalContourHandler(Handler):
 
 def get_info_from_file(url):
     """	
-    Reads the variable names form a csv. file.	
+    Reads the variable names and symbols form a csv. file.
     
     Parameters
     ----------
@@ -921,11 +921,36 @@ def get_info_from_file(url):
         url = url[1:]
     if url[0:8] == 'https://':
         req = request.Request(url)
-        file = request.urlopen(req)
-        reader = csv.reader(codecs.iterdecode(file, 'utf-8'), delimiter=';').__next__()
+        with request.urlopen(req) as response:
+            reader = csv.reader(codecs.iterdecode(response, 'utf-8'), delimiter=';').__next__()
+            var_names, var_symbols = get_info_from_reader(reader)
     else:
-        file = open(url, 'r')
-        reader = csv.reader(file, delimiter=';').__next__()
+        with open(url, 'r') as file:
+            reader = csv.reader(file, delimiter=';').__next__()
+            var_names, var_symbols = get_info_from_reader(reader)
+
+    return var_names, var_symbols
+
+def get_info_from_reader(reader):
+    """
+    Reads the variable names and symbols form a reader
+
+    Parameters
+    ----------
+    reader : csv.Reader
+        A Reader object that can read a file line by line.
+        See https://docs.python.org/2/library/csv.html#reader-objects for
+        a proper documentation.
+
+    Returns
+    -------
+    var_names : list of strings
+        Names of the environmental variables used in csv file,
+        e.g. ['wind speed [m/s]', 'significant wave height [m]']
+    var_symbols : list of strings
+        Symbols of the environental variables used in the csv file,
+        e.g. ['V', 'Hs']
+    """
     var_names = []
     var_symbols = []
     i = 0
@@ -934,5 +959,4 @@ def get_info_from_file(url):
         i += 1
         var_symbols.append(reader[i])
         i += 1
-    file.close()
     return var_names, var_symbols
