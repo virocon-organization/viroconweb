@@ -1,6 +1,7 @@
 from django.forms import ModelForm
 from django import forms
 from .models import MeasureFileModel
+from .validators import validate_csv_upload
 
 """
 shortens command for subscript text
@@ -22,7 +23,8 @@ class SecUserForm(ModelForm):
 
 class MeasureFileForm(forms.Form):
     title = forms.CharField(max_length=50, label='Title')
-    measure_file = forms.FileField(label='Measurement file', max_length=255)
+    measure_file = forms.FileField(label='Measurement file', max_length=255,
+                                   validators=[validate_csv_upload])
 
 
 class MeasureFileFitForm(forms.Form):

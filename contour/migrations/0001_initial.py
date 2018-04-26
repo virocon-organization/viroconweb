@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(default='MeasureFile', max_length=50)),
                 ('upload_date', models.DateTimeField(default=django.utils.timezone.now)),
-                ('measure_file', models.FileField(upload_to='', validators=[contour.validators.validate_file_extension])),
+                ('measure_file', models.FileField(upload_to='', validators=[contour.validators.validate_csv_upload])),
                 ('path_of_statics', models.CharField(default=None, max_length=240, null=True)),
                 ('primary_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='primary', to=settings.AUTH_USER_MODEL)),
                 ('secondary_user', models.ManyToManyField(max_length=50, related_name='secondary', to=settings.AUTH_USER_MODEL)),
