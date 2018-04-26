@@ -1,9 +1,10 @@
 """
 All user forms that are used to edit or generate a user.
 """
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from .models import User
 
 
@@ -67,3 +68,19 @@ class CustomUserAdmin(UserAdmin):
 
     fieldsets = UserAdmin.fieldsets + (
         (None, {'fields': ('organisation', 'type_of_use',)}),)
+
+
+# Thanks to: https://stackoverflow.com/questions/27734185/inform-user-that-
+# email-is-invalid-using-djangos-password-reset
+class EmailValidationOnForgotPassword(PasswordResetForm):
+    """
+    Informs the user if he/she tried to reset the password with an email address
+    that does not exist.
+    """
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise ValidationError("There is no user registered with the "
+                                  "specified email address.")
+
+        return email
