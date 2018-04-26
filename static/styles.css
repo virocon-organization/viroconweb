@@ -13,6 +13,10 @@ a {
     color: #343b3e !important;
 }
 
+li {
+    text-align: left;
+}
+
 a:hover {
     text-decoration: none
 }
