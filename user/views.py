@@ -1,9 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .forms import CustomUserCreationForm
-from .forms import CustomUserEditForm
+from .forms import CustomUserCreationForm, CustomUserEditForm, \
+    EmailValidationOnForgotPassword
+from .models import User
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, \
@@ -15,7 +17,6 @@ from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
 from virocon.settings import USE_S3
 from contour.models import MeasureFileModel, ProbabilisticModel, \
     EnvironmentalContour, PlottedFigure
-
 
 
 def authentication(request):
@@ -215,6 +216,7 @@ class ResetView(PasswordResetView):
     succes_url : str
         Url if the password reset was a success.
     """
+    form_class = EmailValidationOnForgotPassword
     template_name = 'user/password_reset/form.html'
     email_template_name = 'user/password_reset/email.html'
     subject_template_name = 'user/password_reset/subject.txt'
