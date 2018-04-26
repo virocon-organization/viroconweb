@@ -306,7 +306,6 @@ class MeasureFileHandler(Handler):
                                'return_url': 'contour:measure_file_model_select'
                              }
                         )
-                    #try:
                     directory_prefix = settings.PATH_MEDIA
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
@@ -318,13 +317,6 @@ class MeasureFileHandler(Handler):
                         fit_form.cleaned_data['title'],
                         request.user, mfm_item, directory
                     )
-                    #except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                        #return render(request, 'contour/error.html',
-                        #              {'error_message': err,
-                        #               'text': 'Error occured while plotting the fit.'
-                        #                       'Try it again with different settings please',
-                        #               'header': 'fit measurement file to probabilistic model',
-                        #               'return_url': 'contour:measure_file_model_select'})
                     multivariate_distribution = plot.setup_mul_dist(
                         probabilistic_model
                     )
@@ -430,8 +422,10 @@ class ProbabilisticModelHandler(Handler):
         """
         The method adds an item to the ProbabilisticModel (database).
         :param request:     to add an item to the model. 
-        :param var_num:     number of variables which should be added to the model. 
-        :return:            different HttpResponses. Success: redirect to select probabilistic model, Fault: return info
+        :param var_num:     number of variables which should be added to
+        the model.
+        :return:            different HttpResponses. Success: redirect to
+        select probabilistic model, Fault: return info
                             about wrong input.
         """
         if request.user.is_anonymous:
@@ -442,27 +436,42 @@ class ProbabilisticModelHandler(Handler):
             variable_form = forms.VariablesForm(variable_count=var_num_int)
             var_num_form = forms.VariableNumber()
             if request.method == 'POST':
-                variable_form = forms.VariablesForm(data=request.POST, variable_count=var_num_int)
+                variable_form = forms.VariablesForm(data=request.POST,
+                                                    variable_count=var_num_int)
                 if variable_form.is_valid():
                     is_valid_probabilistic_model = True
-                    probabilistic_model = models.ProbabilisticModel(primary_user=request.user,
-                                                                  collection_name=variable_form.cleaned_data[
-                                                                 'collection_name'], measure_file_model=None)
+                    probabilistic_model = models.ProbabilisticModel(
+                        primary_user=request.user,
+                        collection_name=variable_form.cleaned_data[
+                            'collection_name'],
+                        measure_file_model=None)
                     probabilistic_model.save()
                     for i in range(var_num_int):
-                        distribution = models.DistributionModel(name=variable_form.cleaned_data['variable_name_' + str(i)],
-                                                              distribution=variable_form.cleaned_data[
-                                                             'distribution_' + str(i)],
-                                                              symbol=variable_form.cleaned_data['variable_symbol_' + str(i)],
-                                                              probabilistic_model=probabilistic_model)
+                        distribution = models.DistributionModel(
+                            name=variable_form.cleaned_data[
+                                'variable_name_' + str(i)
+                            ],
+                            distribution=variable_form.cleaned_data[
+                                'distribution_' + str(i)
+                            ],
+                            symbol=variable_form.cleaned_data[
+                                'variable_symbol_' + str(i)
+                            ],
+                            probabilistic_model=probabilistic_model
+                        )
                         distribution.save()
                         params = ['shape', 'location', 'scale']
                         if i == 0:
                             for param in params:
-                                parameter = models.ParameterModel(function='None',
-                                                                x0=variable_form.cleaned_data[param + '_' + str(i) + '_0'],
-                                                                dependency='!',
-                                                                name=param, distribution=distribution)
+                                parameter = models.ParameterModel(
+                                    function='None',
+                                    x0=variable_form.cleaned_data[
+                                        param + '_' + str(i) + '_0'
+                                    ],
+                                    dependency='!',
+                                    name=param,
+                                    distribution=distribution
+                                )
                                 try:
                                     parameter.clean()
                                 except ValidationError as e:
@@ -485,9 +494,11 @@ class ProbabilisticModelHandler(Handler):
                                 try:
                                     parameter.clean()
                                 except ValidationError as e:
-                                    messages.add_message(request,
-                                                         messages.ERROR,
-                                                         e.message)
+                                    messages.add_message(
+                                        request,
+                                        messages.ERROR,
+                                        e.message
+                                    )
                                     is_valid_probabilistic_model = False
                                 else:
                                     parameter.save()
@@ -523,15 +534,27 @@ class ProbabilisticModelHandler(Handler):
             item = models.ProbabilisticModel.objects.get(pk=pk)
             var_names = []
             var_symbols = []
-            dists_model = models.DistributionModel.objects.filter(probabilistic_model=item)
+            dists_model = models.DistributionModel.objects.filter(
+                probabilistic_model=item
+            )
 
             for dist in dists_model:
                 var_names.append(dist.name)
                 var_symbols.append(dist.symbol)
             if method == 'I':
-                return ProbabilisticModelHandler.iform_calc(request, var_names, var_symbols, item)
+                return ProbabilisticModelHandler.iform_calc(
+                    request,
+                    var_names,
+                    var_symbols,
+                    item
+                )
             elif method == 'H':
-                return ProbabilisticModelHandler.hdc_calc(request, var_names, var_symbols, item)
+                return ProbabilisticModelHandler.hdc_calc(
+                    request,
+                    var_names,
+                    var_symbols,
+                    item
+                )
             else:
                 KeyError('{} no matching calculation method')
 
@@ -619,34 +642,55 @@ class ProbabilisticModelHandler(Handler):
                     # If the model is 4-dimensional send data to create a 4D
                     # interactive plot.
                     if len(contour_coordinates[0]) == 4:
-                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = models.DistributionModel.objects.filter(
+                            probabilistic_model=probabilistic_model
+                        )
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(), 'u': contour_coordinates[0][3].tolist(), 'dim': 4,
-                                       'labels': labels})
+                                      {'object': environmental_contour,
+                                       'x': contour_coordinates[0][0].tolist(),
+                                       'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(),
+                                       'u': contour_coordinates[0][3].tolist(),
+                                       'dim': 4,
+                                       'labels': labels}
+                                      )
                     # If the model is 3-dimensional send data for a 3D
                     # interactive plot
                     elif len(contour_coordinates[0]) == 3:
-                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+                        dists = models.DistributionModel.objects.filter(
+                            probabilistic_model=probabilistic_model
+                        )
                         labels = []
                         for dist in dists:
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'labels': labels})
+                                      {'object': environmental_contour,
+                                       'x': contour_coordinates[0][0].tolist(),
+                                       'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(),
+                                       'dim': 3,
+                                       'labels': labels})
 
                     elif len(contour_coordinates) < 3:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2})
+                                      'contour/environmental_contour_show.html',
+                                      {'object': environmental_contour, 'dim': 2}
+                                      )
                 else:
-                    return render(request, 'contour/contour_settings.html', {'form': iform_form})
+                    return render(request,
+                                  'contour/contour_settings.html',
+                                  {'form': iform_form}
+                                  )
             else:
-                return render(request, 'contour/contour_settings.html', {'form': iform_form})
+                return render(request,
+                              'contour/contour_settings.html',
+                              {'form': iform_form}
+                              )
 
     @staticmethod
     def hdc_calc(request, var_names, var_symbols, probabilistic_model):
@@ -728,10 +772,14 @@ class ProbabilisticModelHandler(Handler):
                                         eedc_scalar.save()
                     # catch and allocate errors caused by calculating hdc.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
-                        return render(request, 'contour/error.html', {'error_message': err,
-                                                                     'text': 'Try it again with other settings please',
-                                                                     'header': 'Calculate contour',
-                                                                     'return_url': 'contour:probabilistic_model_select'})
+                        return render(
+                            request,
+                            'contour/error.html',
+                            {'error_message': err,
+                             'text': 'Try it again with other settings please',
+                             'header': 'Calculate contour',
+                             'return_url': 'contour:probabilistic_model_select'}
+                        )
 
                     # generate path to the user specific pdf.
                     path = plot.create_latex_report(contour_coordinates,
@@ -748,15 +796,27 @@ class ProbabilisticModelHandler(Handler):
                             labels.append('{} [{}]'.format(dist.name, dist.symbol))
                         return render(request,
                                       'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour, 'x': contour_coordinates[0][0].tolist(), 'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(), 'dim': 3, 'warn': warn, 'labels': labels})
+                                      {'object': environmental_contour,
+                                       'x': contour_coordinates[0][0].tolist(),
+                                       'y': contour_coordinates[0][1].tolist(),
+                                       'z': contour_coordinates[0][2].tolist(),
+                                       'dim': 3,
+                                       'warn': warn,
+                                       'labels': labels})
                     else:
                         return render(request,
-                                      'contour/environmental_contour_show.html', {'object': environmental_contour, 'dim': 2, 'warn': warn})
+                                      'contour/environmental_contour_show.html',
+                                      {'object': environmental_contour,
+                                       'dim': 2,
+                                       'warn': warn})
                 else:
-                    return render(request, 'contour/contour_settings.html', {'form': hdc_form})
+                    return render(request, 'contour/contour_settings.html',
+                                  {'form': hdc_form}
+                                  )
             else:
-                return render(request, 'contour/contour_settings.html', {'form': hdc_form})
+                return render(request, 'contour/contour_settings.html',
+                              {'form': hdc_form}
+                              )
 
     @staticmethod
     def set_variables_number(request):
@@ -786,14 +846,17 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def show_model(request, pk):
         """
-        The method shows a probabilistic model (name, equation of the joint pdf, information about the fit)
+        The method shows a probabilistic model (name, equation of the joint pdf,
+        information about the fit)
         :return:        HttpResponse.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
             probabilistic_model = models.ProbabilisticModel.objects.get(pk=pk)
-            dists_model = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+            dists_model = models.DistributionModel.objects.filter(
+                probabilistic_model=probabilistic_model
+            )
             var_symbols = []
             for dist in dists_model:
                 var_symbols.append(dist.symbol)
