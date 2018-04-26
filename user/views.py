@@ -15,8 +15,7 @@ import os
 import math
 from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
 from virocon.settings import USE_S3
-from contour.models import MeasureFileModel, ProbabilisticModel, \
-    EnvironmentalContour, PlottedFigure
+from contour.models import MeasureFileModel, EnvironmentalContour
 
 
 def authentication(request):
@@ -31,7 +30,8 @@ def authentication(request):
     Returns
     -------
     HttpResponse
-        If method post and login successful to home. if method post and login unsuccessful to again to login with error
+        If method post and login successful to home. If method post and login
+        unsuccessful to again to login with error
         information. else to login.
     """
     form = AuthenticationForm()
@@ -85,12 +85,14 @@ def create(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            authentic(request, username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
+            authentic(request, username=form.cleaned_data['username'],
+                      password=form.cleaned_data['password1'])
             return HttpResponseRedirect(reverse('contour:index'))
         else:
             return render(request, 'user/edit.html', {'form': form})
     else:
-        return render(request, 'user/edit.html', {'form': CustomUserCreationForm()})
+        return render(request, 'user/edit.html',
+                      {'form': CustomUserCreationForm()})
 
 
 def logout(request):
@@ -126,7 +128,8 @@ def profile(request):
     Returns
     -------
     HttpResponse
-        Ff user is logged in to user/profile.html template combined with a dictionary. Else to the index page.
+        Ff user is logged in to user/profile.html template combined with a
+        dictionary. Else to the index page.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -149,7 +152,8 @@ def edit(request):
     Returns
     -------
     HttpResponse
-        IF the user is not logged in: Redirct to the index page. Else to the user/edit.html template combined with
+        If the user is not logged in: Redirct to the index page.
+        Else to the user/edit.html template combined with
         a dictionary.
 
     """
@@ -181,7 +185,8 @@ def change_password(request):
     Returns
     -------
     HttpResponse
-        IF the user is not logged in: Redirct to the index page. Else to the user/edit.html template combined with
+        If the user is not logged in: Redirct to the index page.
+        Else to the user/edit.html template combined with
         a dictionary.
     """
     if request.user.is_anonymous:
