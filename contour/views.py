@@ -921,6 +921,7 @@ def get_info_from_file(url):
         url = url[1:]
     if url[0:8] == 'https://':
         req = request.Request(url)
+        print('Trying to urlopen the url: ' + str(url))
         with request.urlopen(req) as response:
             reader = csv.reader(codecs.iterdecode(response, 'utf-8'), delimiter=';').__next__()
             var_names, var_symbols = get_info_from_reader(reader)
