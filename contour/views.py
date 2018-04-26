@@ -789,12 +789,10 @@ def get_info_from_file(url):
     if url[0] == '/':
         url = url[1:]
     if url[0:8] == 'https://':
-        is_web_url = True
         req = request.Request(url)
         file = request.urlopen(req)
         reader = csv.reader(codecs.iterdecode(file, 'utf-8'), delimiter=';').__next__()
     else:
-        is_web_url = False
         file = open(url, 'r')
         reader = csv.reader(file, delimiter=';').__next__()
     var_names = []
@@ -805,7 +803,5 @@ def get_info_from_file(url):
         i += 1
         var_symbols.append(reader[i])
         i += 1
+    file.close()
     return var_names, var_symbols
-    # In case it was a local file opening, finally close the file
-    if is_web_url==False:
-        file.close()
