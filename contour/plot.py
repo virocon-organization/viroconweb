@@ -112,7 +112,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                str(format(shape, '.3f')) + ' loc: ' + str(
             format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
-
+        # This makes no sense
         # The scale parameter for python's lognorm  funciton is e^\mu.
         # However in the django data base we save mu as the scale parameter.
         # scale = np.exp(scale)
@@ -120,6 +120,9 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
+
+        # The plot function works with the scale parameter but the user interface
+        # works with the mu value. However the scale value must be adjusted.
         text = distribution_type + ', ' + 'sigma: ' + \
                str(format(shape, '.3f')) + ' mu: ' + \
                str(format(np.log(scale), '.3f'))
