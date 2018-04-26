@@ -1,6 +1,18 @@
+"""
+Url design for the user app.
+
+Attributes
+----------
+app_name : str
+    sets the app name to call it e.g. in templates.
+
+urlpatterns : list of url's
+    stores the url design of the user app.
+
+"""
 from django.conf.urls import url
-from django.contrib.auth import views as auth_views
 from . import views
+
 
 app_name = 'user'
 
@@ -17,16 +29,17 @@ urlpatterns = [
 
     url(r'^change-password/$', views.change_password, name='change-password'),
 
-    # reset password url's
-    url(r'^password_reset/$', views.ResetView.as_view(), name='password_reset'),
+    # Thanks to: https://stackoverflow.com/questions/27734185/inform-user-
+    # that-email-is-invalid-using-djangos-password-reset
+    url(r'^password-reset/$', views.ResetView.as_view(), name='password_reset'),
 
-    url(r'^password_reset/done/$', views.ResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^password-reset/done/$',
+        views.ResetDoneView.as_view(),
+        name='password_reset_done'),
 
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.ResetConfirmView.as_view(), name='password_reset_confirm'),
 
     url(r'^reset/done$', views.ResetCompleteView.as_view(), name='password_reset_complete'),
-
-    # es muss die set password methode gesetzt werden
 
 ]

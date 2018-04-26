@@ -1,32 +1,38 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .forms import CustomUserCreationForm
-from .forms import CustomUserEditForm
+from .forms import CustomUserCreationForm, CustomUserEditForm, \
+    EmailValidationOnForgotPassword
+from .models import User
 from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, \
     PasswordResetCompleteView, PasswordResetConfirmView
+
 import os
 import math
 from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
 from virocon.settings import USE_S3
-from contour.models import MeasureFileModel, ProbabilisticModel, \
-    EnvironmentalContour, PlottedFigure
-
+from contour.models import MeasureFileModel, EnvironmentalContour
 
 
 def authentication(request):
     """
-    Thr method to login users.
+    Login users.
+
     Parameters
     ----------
-    request : to authenticate the user.
+    request : HttpRequest
+        To authenticate the user.
 
     Returns
     -------
     HttpResponse
+        If method post and login successful to home. If method post and login
+        unsuccessful to again to login with error
+        information. else to login.
     """
     form = AuthenticationForm()
     if request.method == 'POST':
@@ -37,51 +43,71 @@ def authentication(request):
         else:
             return render(request, 'user/login.html', {'form': form})
 
-    return render(request, 'user/login.html', {'form': form})
+    else:
+        return render(request, 'user/login.html', {'form': form})
 
 
 # Method is called after userdata is entered and checks database for verification
 def authentic(request, username, password):
+    """
+    Validates the user login details.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        To validate user login details.
+
+    username : str
+        Name for the login.
+
+    password : str
+        Password for the login.
+    """
     user = auth.authenticate(username=username, password=password)
     auth.login(request, user)
 
 
 def create(request):
     """
-    The method creates a new user account .
+    Creates a new user account .
 
     Parameters
     ----------
-    request : to create a new user account.
+    request : HttpRequest
+        For user/edit.html to create a new user account.
 
     Returns
     -------
     HttpResponse
+        Combines the user/edit.html template and a certain dictionary.
     """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            authentic(request, username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
-            return HttpResponseRedirect('/home')
+            authentic(request, username=form.cleaned_data['username'],
+                      password=form.cleaned_data['password1'])
+            return HttpResponseRedirect(reverse('contour:index'))
         else:
             return render(request, 'user/edit.html', {'form': form})
     else:
-        return render(request, 'user/edit.html', {'form': CustomUserCreationForm()})
+        return render(request, 'user/edit.html',
+                      {'form': CustomUserCreationForm()})
 
 
 def logout(request):
     """
-    The method logs out a user.
+    Logs out a user.
 
     Parameters
     ---------
-    request : to log out.
-
+    request : HttpRequest
+        To log out a user.
 
     Return
     ------
-    HttpResponseRedirect to home.
+    HttpResponseRedirect
+        Redirect to home.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -92,15 +118,18 @@ def logout(request):
 
 def profile(request):
     """
-    The method views the user profile.
+    Shows the user profile.
 
     Parameters
     ----------
-    request : to view the user profile.
+    request : HttpRequest
+        For user/profile.html to view the user profile.
 
     Returns
     -------
     HttpResponse
+        Ff user is logged in to user/profile.html template combined with a
+        dictionary. Else to the index page.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -113,15 +142,20 @@ def profile(request):
 
 def edit(request):
     """
-    The method allows users to edit their profiles.
+    Shows the user edit page.
 
     Parameters
     ---------
-    request : request to edit a user profile.
+    request : HttpRequest
+        For user/edit.html to edit a user profile.
 
     Returns
     -------
     HttpResponse
+        If the user is not logged in: Redirct to the index page.
+        Else to the user/edit.html template combined with
+        a dictionary.
+
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -141,15 +175,19 @@ def edit(request):
 
 def change_password(request):
     """
-    The method allows a user to change his password.
+    Shows the change password page.
 
     Parameters
     ----------
-    request : to change the user password
+    request : HttpRequest
+        for user/edit.html to change the user password
 
     Returns
     -------
     HttpResponse
+        If the user is not logged in: Redirct to the index page.
+        Else to the user/edit.html template combined with
+        a dictionary.
     """
     if request.user.is_anonymous:
         return HttpResponseRedirect(reverse('contour:index'))
@@ -169,6 +207,21 @@ def change_password(request):
 
 
 class ResetView(PasswordResetView):
+    """
+    Shows the page to reset a password.
+
+    Attributes
+    ----------
+    template_name : str
+        Defines the path to the html template.
+    email_template_name : str
+        Defines the path of the email content file.
+    subject_template_name : str
+        Defines the path of the email subject file.
+    succes_url : str
+        Url if the password reset was a success.
+    """
+    form_class = EmailValidationOnForgotPassword
     template_name = 'user/password_reset/form.html'
     email_template_name = 'user/password_reset/email.html'
     subject_template_name = 'user/password_reset/subject.txt'
@@ -176,15 +229,41 @@ class ResetView(PasswordResetView):
 
 
 class ResetDoneView(PasswordResetDoneView):
+    """
+    Shows the done.html page after a user has been emailed a link to reset their password.
+
+    Attributes
+    ----------
+    template_name : str
+        defines the path to the html template.
+    """
     template_name = 'user/password_reset/done.html'
 
 
 class ResetConfirmView(PasswordResetConfirmView):
+    """
+    Shows a form for entering a new password.
+
+    Attributes
+    ----------
+    template_name : str
+        Defines the path to the html template.
+    succes_url : str
+        Url if the password reset was a success.
+    """
     template_name = 'user/password_reset/confirm.html'
     success_url = '/user/reset/done'
 
 
 class ResetCompleteView(PasswordResetCompleteView):
+    """
+    Informs the user that the password has been successfully changed.
+
+    Attributes
+    ----------
+    template_name : str
+        Defines the path to the html template.
+    """
     template_name = 'user/password_reset/complete.html'
 
 
@@ -232,12 +311,10 @@ def convert_size(size_bytes):
     """
     Converts the size in bytes into a nicely readable number with unit, for
     example into megabytes if it is more than 1000 KB and less than 1000 MB.
-
     Parameters
     ----------
     size_bytes : int
         The size of one or multiple files in bytes.
-
     Returns
     -------
     total_size : str

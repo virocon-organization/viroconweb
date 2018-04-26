@@ -98,9 +98,9 @@ else:
 if RUN_MODE == 'production':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
-    DEBUG = True
-    #CSRF_COOKIE_SECURE = True
-    #SESSION_COOKIE_SECURE = True
+    DEBUG = False
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
 else:
     DEBUG = True
 
@@ -117,9 +117,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     # Disable Django's own staticfiles handling in favour of WhiteNoise, for
     # greater consistency between gunicorn and `./manage.py runserver`. See:
-    # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
-    #'whitenoise.runserver_nostatic',
-    #'django.contrib.staticfiles',
+    # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-
+    # in-development
     'latexify',
     'django.contrib.staticfiles', # a requirement for latexify
     'storages',
@@ -209,7 +208,12 @@ STATICFILES_DIRS = [
     './static/',
 ]
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '0.0.0.0',
+    '127.0.0.1',
+    'localhost',
+    '.herokuapp.com'
+]
 
 # Execute this for debug smtp:
 # python -m smtpd -n -c DebuggingServer localhost:1025
@@ -237,20 +241,3 @@ else:
 # Change 'default' database configuration with $DATABASE_URL.
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
-
-# thanks to: https://chrxr.com/django-error-logging-configuration-heroku/
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}

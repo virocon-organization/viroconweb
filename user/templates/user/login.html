@@ -5,21 +5,30 @@
         <h1>Profile</h1>
     </div>
     <br>
-    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+    <form class="form-horizontal"
+          action=""
+          method="post"
+          enctype="multipart/form-data">
         {% csrf_token %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Login</h3>
             </div>
             <div class="panel-body">
-                <div class="text-danger small">{{ form.non_field_errors }}</div>
+                <div class="text-danger small">
+                    {{ form.non_field_errors }}
+                </div>
                 {% for item in form %}
                     <div class="row">
                         <div class="col-sm-2"></div>
                         <label class="col-sm-3"
-                               id={{ item.html_initial_id }} for="{{ item.id_for_label }}">{{ item.label_tag }}</label>
+                               id={{ item.html_initial_id }} for="{{ item.id_for_label }}">
+                            {{ item.label_tag }}
+                        </label>
                         <div class="col-sm-4">{{ item }}</div>
-                        <div class="col-sm-2 text-danger small">{{ item.errors }}</div>
+                        <div class="col-sm-2 text-danger small">
+                            {{ item.errors }}
+                        </div>
                     </div>
                     <br>
                 {% endfor %}
@@ -35,7 +44,10 @@
                     <div class="col-sm-4"></div>
                     <div class="col-sm-4">
                         <a type="button" href="{% url 'user:create' %}">
-                            <button type="button" class="btn btn-default btn-block">Create ViroCon account</button>
+                            <button type="button"
+                                    class="btn btn-default btn-block">
+                                Create ViroCon account
+                            </button>
                         </a>
                     </div>
                     <div class="col-sm-4"></div>
@@ -44,8 +56,12 @@
                 <div class="row">
                     <div class="col-sm-4"></div>
                     <div class="col-sm-4">
-                        <a type="button" href="{% url 'user:password_reset' %}">
-                            <button type="button" class="btn btn-default btn-block">Forgot your password?</button>
+                        <a type="button"
+                           href="{% url 'user:password_reset' %}">
+                            <button type="button"
+                                    class="btn btn-default btn-block">
+                                Forgot your password?
+                            </button>
                         </a>
                     </div>
                     <div class="col-sm-4"></div>
