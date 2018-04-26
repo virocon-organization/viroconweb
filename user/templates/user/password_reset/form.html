@@ -10,13 +10,14 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3>
-                    Enter your email address and we will email
-                    instructions for setting a new one.
+                    Enter your email address to receive a confirmation link.
                 </h3>
             </div>
             <br>
-            {{ form.as_p }}
-            <button class="btn btn-default">Reset password</button>
+            <div class="email-reset-form">
+                {{ form.as_p }}
+            </div>
+            <button class="btn btn-primary">Reset password</button>
             <br>
             <br>
         </div>
