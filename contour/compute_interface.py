@@ -8,6 +8,7 @@ from viroconcom.params import *
 from viroconcom.fitting import *
 import warnings
 
+
 class ComputeInterface:
     @staticmethod
     def fit_curves(mfm_item: MeasureFileModel, fit_settings, var_number):
