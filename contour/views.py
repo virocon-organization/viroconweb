@@ -550,7 +550,7 @@ class ProbabilisticModelHandler(Handler):
                             'contour/error.html',
                             {'error_message': err,
                              'text': 'Try it again with other settings please',
-                             'header': 'calculate Contour',
+                             'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'})
 
                     path = plot.create_latex_report(
@@ -677,9 +677,9 @@ class ProbabilisticModelHandler(Handler):
                     # catch and allocate errors caused by calculating hdc.
                     except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
                         return render(request, 'contour/error.html', {'error_message': err,
-                                                                      'text': 'Try it again with other settings please',
-                                                                      'header': 'calculate Contour',
-                                                                      'return_url': 'contour:probabilistic_model_select'})
+                                                                     'text': 'Try it again with other settings please',
+                                                                     'header': 'Calculate contour',
+                                                                     'return_url': 'contour:probabilistic_model_select'})
 
                     # generate path to the user specific pdf.
                     path = plot.create_latex_report(contour_coordinates,
