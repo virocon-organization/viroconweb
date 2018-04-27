@@ -314,13 +314,14 @@ class MeasureFileHandler(Handler):
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = plot.plot_fits(
-                        fit,
-                        var_names,
-                        var_symbols,
-                        fit_form.cleaned_data['title'],
-                        request.user, mfm_item, directory
-                    )
+                    probabilistic_model = store_fit(fit,
+                                                    fit_form.cleaned_data['title'],
+                                                    var_names,
+                                                    var_symbols,
+                                                    request.user,
+                                                    mfm_item
+                                                    )
+                    plot.plot_fit(fit, var_names, var_symbols, directory, probabilistic_model)
                     multivariate_distribution = plot.setup_mul_dist(
                         probabilistic_model
                     )
