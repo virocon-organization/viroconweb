@@ -292,10 +292,6 @@ h2 {
     font-size: 80px !important;
 }
 
-#id_measure_file {
-    display: none;
-}
-
 .btn-primary {
     background-color: #5cb85c;
     border-color: #4cae4c;
@@ -334,8 +330,15 @@ h2 {
     font-size: 16px;
 }
 
-.form-group > .col-sm-4 > select, .form-group > .col-sm-4 > input {
+.form-group > .col-sm-4 > select,
+.form-group > .col-sm-4 > input,
+.form-group > .col-md-4 > input {
     display: block;
+    width: 100%;
+    max-width: 300px;
+}
+
+.form-group > .col-md-4 > .input-group {
     width: 100%;
     max-width: 300px;
 }
