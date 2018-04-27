@@ -13,6 +13,7 @@ urlpatterns : list of url's
 from django.conf.urls import url
 from . import views
 
+
 app_name = 'user'
 
 urlpatterns = [
@@ -28,10 +29,13 @@ urlpatterns = [
 
     url(r'^change-password/$', views.change_password, name='change-password'),
 
-    # reset password url's
-    url(r'^password_reset/$', views.ResetView.as_view(), name='password_reset'),
+    # Thanks to: https://stackoverflow.com/questions/27734185/inform-user-
+    # that-email-is-invalid-using-djangos-password-reset
+    url(r'^password-reset/$', views.ResetView.as_view(), name='password_reset'),
 
-    url(r'^password_reset/done/$', views.ResetDoneView.as_view(), name='password_reset_done'),
+    url(r'^password-reset/done/$',
+        views.ResetDoneView.as_view(),
+        name='password_reset_done'),
 
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.ResetConfirmView.as_view(), name='password_reset_confirm'),
