@@ -122,6 +122,12 @@ h2 {
     }
 }
 
+@media (max-width: 767px) {
+    .virocon-main-nav {
+        width: 100%;
+    }
+}
+
 /*----- Django messages -----*/
 .debug {
 
