@@ -117,6 +117,9 @@ h2 {
         margin-right: 0px;
         padding-left: 15px;
     }
+    .dropdown-menu .divider {
+        display: none;
+    }
     .links {
         margin-left: 15px;
     }
