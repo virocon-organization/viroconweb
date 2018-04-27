@@ -681,10 +681,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
     if USE_S3:
         request.urlretrieve(url_contour_image, local_path_contour_image)
 
-
-
     directory_prefix = settings.PATH_MEDIA + settings.PATH_USER_GENERATED
-    directory_fit_images = directory_prefix + user + '/' + settings.PATH_PROB_MODEL
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
