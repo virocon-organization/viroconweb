@@ -36,7 +36,6 @@ def media_directory_path(instance, filename):
             settings.PATH_MEASUREMENT,
             instance.pk,
             time_stamp + '_' + random_hash_string() + '_' + filename)
-            #time_stamp + '_' + filename + '_' + random_hash_string())
     elif instance.__class__.__name__ == 'PlottedFigure':
         if instance.probabilistic_model:
             probabilistic_model = instance.probabilistic_model
@@ -53,14 +52,12 @@ def media_directory_path(instance, filename):
             model_path,
             primary_key,
             time_stamp + '_' + random_hash_string() + '_' + filename)
-            #time_stamp + '_' + filename + '_' + random_hash_string())
     elif instance.__class__.__name__ == 'EnvironmentalContour':
         path = '{0}/{1}/{2}/{3}'.format(
             instance.probabilistic_model.primary_user.username,
             settings.PATH_CONTOUR,
             instance.pk,
             time_stamp + '_' + random_hash_string() + '_' + filename)
-            #time_stamp + '_' + filename + '_' + random_hash_string())
     else:
         path = None
     return path
