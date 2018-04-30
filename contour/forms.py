@@ -40,9 +40,12 @@ class MeasureFileFitForm(forms.Form):
             max_length=50)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(
             choices=self.DISTRIBUTIONS,
-            widget=forms.Select,
             initial='Weibull',
-            label='Distribution')
+            label='Distribution',
+            widget = forms.Select(attrs={
+                'class': 'form-control'
+            })
+        )
         self.fields['width_of_intervals_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
@@ -66,9 +69,12 @@ class MeasureFileFitForm(forms.Form):
                 widget=forms.TextInput(attrs={'value': 'name'}))
             self.fields['distribution_%s' % i] = forms.ChoiceField(
                 choices=self.DISTRIBUTIONS, initial='Weibull',
-                widget=forms.Select(attrs={'id': 'dist_%s' % i,
-                                          'onclick': func_call}),
-                label='Distribution')
+                label='Distribution',
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'dist_%s' % i,
+                    'onclick': func_call})
+                )
             if i < (variable_count-1):
                 self.fields['width_of_intervals_%s' % i] = forms.DecimalField(
                     decimal_places=4,
@@ -79,17 +85,29 @@ class MeasureFileFitForm(forms.Form):
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Scale (λ) dependency')
+                label='Scale (λ) dependency',
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'scale_%s' % i
+                })
+            )
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
                 label='Shape (k) dependency',
-                widget=forms.Select(attrs={'id': 'shape_%s' % i}))
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'shape_%s' % i
+                })
+            )
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
                 label='Location (θ) dependency',
-                widget=forms.Select(attrs={'id': 'loc_%s' % i}))
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'loc_%s' % i})
+            )
 
 
 class VariablesForm(forms.Form):
