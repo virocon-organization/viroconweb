@@ -935,15 +935,27 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
     probabilistic_model.save()
 
     for i, dist in enumerate(fit.mul_var_dist.distributions):
-        dist_name = dist.name if dist.name != 'Lognormal' else 'Lognormal_2'
-        distribution_model = DistributionModel(name=var_names[i],
-                                               symbol=var_symbols[i],
-                                               probabilistic_model=probabilistic_model,
-                                               distribution=dist_name)
-        distribution_model.save()
-        store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
-        store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
-        store_parameter(dist.scale, distribution_model, fit.mul_var_dist.dependencies[i][2])
+        #dist_name = dist.name if dist.name != 'Lognormal' else 'Lognormal_2'
+        if dist.name == 'Lognormal':
+            dist_name = "Lognormal_2"
+
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                   probabilistic_model=probabilistic_model,
+                                                   distribution=dist_name)
+            distribution_model.save()
+            store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
+            store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
+            store_parameter(dist.mu, distribution_model, fit.mul_var_dist.dependencies[i][2])
+        else:
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                   probabilistic_model=probabilistic_model,
+                                                   distribution=dist.name)
+            distribution_model.save()
+            store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
+            store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
+            store_parameter(dist.scale, distribution_model, fit.mul_var_dist.dependencies[i][2])
 
     return probabilistic_model
 

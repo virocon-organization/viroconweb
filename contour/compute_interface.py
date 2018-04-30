@@ -27,6 +27,7 @@ class ComputeInterface:
         dates = []
         for i in range(0, var_number):
             dates.append(data[:, i].tolist())
+            print("dist name {} ------".format(fit_settings['distribution_%s' % i]))
             if i == 0:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
@@ -143,7 +144,6 @@ def setup_mul_dist(probabilistic_model: ProbabilisticModel):
         elif dist.distribution == 'Weibull':
             distributions.append(WeibullDistribution(*parameters))
         elif dist.distribution == 'Lognormal_2':
-            print('als mu wert wird {} uebergeben ---------'.format(parameters[2]))
             distributions.append(LognormalDistribution(sigma=parameters[0], mu=parameters[2]))
         elif dist.distribution == 'KernelDensity':
             distributions.append(KernelDensityDistribution(*parameters))

@@ -117,14 +117,12 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
         # However in the django data base we save mu as the scale parameter. Maybe we save the
         # mu parameter in the db.
         # scale = np.exp(scale)
-        print('scale plot value: {}----------------------'.format(scale))
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
 
         # The plot function works with the scale parameter but the user interface
         # works with the mu value. However the scale value must be adjusted.
-        print('scale adjusted to mu: {} --------------'.format(np.log(scale)))
         text = distribution_type + ', ' + 'sigma: ' + \
                str(format(shape, '.3f')) + ' mu: ' + \
                str(format(np.log(scale), '.3f'))
@@ -257,6 +255,7 @@ def plot_var_dependent(param_name,
                        param_index,
                        main_index,
                        var_name,
+                       var_names,
                        var_symbols,
                        param,
                        directory,
@@ -279,6 +278,8 @@ def plot_var_dependent(param_name,
         The dimension of the distribution.
     var_name: str
         Name of the distribution.
+    var_names : list of str
+        The name of the distribution.
     var_symbols : list of str
         The symbols of the distribution.
     param : FunctionParam
@@ -309,13 +310,14 @@ def plot_var_dependent(param_name,
                                basic_fit.loc, basic_fit.scale,
                                fit.mul_var_dist.distributions[main_index].name,
                                basic_fit.samples, interval_limits,
-                               var_symbols[main_index], symbol_parent_var,
+                               var_names[main_index], symbol_parent_var,
                                directory, probabilistic_model)
 
 
 def plot_var_independent(param_name,
                          param_index,
                          main_index,
+                         var_names,
                          var_symbols,
                          directory,
                          fit_inspection_data,
@@ -333,6 +335,8 @@ def plot_var_independent(param_name,
         (0 = shape, 1 = loc, 2 = scale)
     main_index : int
         The dimension of the distribution.
+    var_names : list of str
+        The name of the distribution.
     var_symbols : list of str
         The symbols of the distribution.
     directory : str
@@ -359,7 +363,7 @@ def plot_var_independent(param_name,
                            fit.mul_var_dist.distributions[main_index].name,
                            basic_fit.samples,
                            interval_limits,
-                           var_symbols[main_index],
+                           var_names[main_index],
                            symbol_parent_var,
                            directory,
                            probabilistic_model)
@@ -388,41 +392,49 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         os.makedirs(directory)
 
     for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
+        independent_plot = False
+        dependent_plot = False
+
         # Shape
         if fit_inspection_data.shape_at is not None:
             plot_var_dependent(
-                'shape', 0, i, var_names[i], var_symbols,
+                'shape', 0, i, var_names[i], var_names, var_symbols,
                 fit.mul_var_dist.distributions[i].shape, directory,
                 fit.mul_var_dist.distributions[i].name,
                 fit_inspection_data, fit, probabilistic_model
             )
+            dependent_plot = True
         else:
             plot_var_independent(
-                'shape', 0, i, var_symbols, directory, fit_inspection_data,
+                'shape', 0, i, var_names, var_symbols, directory, fit_inspection_data,
                 fit, probabilistic_model
             )
+            independent_plot = True
         # Loccation
-        if fit_inspection_data.loc_at is not None:
+        if fit_inspection_data.loc_at is not None and not dependent_plot:
             plot_var_dependent(
-                'loc', 1, i, var_names[i], var_symbols,
+                'loc', 1, i, var_names[i], var_names, var_symbols,
                 fit.mul_var_dist.distributions[i].loc, directory,
                 fit.mul_var_dist.distributions[i].name,
                 fit_inspection_data, fit, probabilistic_model
             )
-        else:
-            plot_var_independent('loc', 1, i, var_symbols, directory,
+            dependent_plot = True
+        elif not independent_plot:
+            plot_var_independent('loc', 1, i, var_names,var_symbols, directory,
                                  fit_inspection_data, fit, probabilistic_model
                                  )
+            independent_plot = True
         # Scale
-        if fit_inspection_data.scale_at is not None:
-            plot_var_dependent('scale', 2, i, var_names[i], var_symbols,
+        if fit_inspection_data.scale_at is not None and not dependent_plot:
+            plot_var_dependent('scale', 2, i, var_names[i], var_names, var_symbols,
                                fit.mul_var_dist.distributions[i].scale,
                                directory,
                                fit.mul_var_dist.distributions[i].name,
                                fit_inspection_data, fit, probabilistic_model
                                )
-        else:
-            plot_var_independent('scale', 2, i, var_symbols, directory,
+            break
+        elif not independent_plot:
+            plot_var_independent('scale', 2, i, var_names, var_symbols, directory,
                                  fit_inspection_data, fit, probabilistic_model
                                  )
 
