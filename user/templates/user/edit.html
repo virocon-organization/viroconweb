@@ -35,6 +35,26 @@
                     </div>
                     <br>
                 {% endfor %}
+                <div class="row">
+                    <div class="form-check terms-form-check">
+                      <input class="form-check-input terms-checkbox"
+                             type="checkbox" value=""
+                             id="defaultCheck1">
+                      <label class="form-check-label terms-label"
+                             for="defaultCheck1">
+                        I have read the
+                          <a href="{% url 'info:imprint' %}#data-protection" class="textlink">
+                          notice on data protection
+                          </a>
+                          and the content of the
+                          <a href="{% url 'info:imprint' %}#AGB" class="textlink">
+                              Standard Terms of Business
+                          </a>
+                          and agree to the storage of my personal data.
+                      </label>
+                    </div>
+                </div>
+                <br>
                 <button class="btn btn-success">Submit</button>
             </div>
         </div>
