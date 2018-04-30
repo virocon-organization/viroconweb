@@ -377,6 +377,43 @@ input {
     }
 }
 
+.terms-form-check {
+    position: relative;
+    min-height: 72px;
+}
+
+.terms-checkbox, .terms-label {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.terms-checkbox {
+    left: 0%;
+    width: 10%;
+    padding-left: 12px;
+    padding-right: 12px;
+    box-shadow: none !important;
+    height: 24px;
+}
+
+.terms-label {
+    left: 10%;
+    text-align: left;
+}
+
+@media (max-width: 767px) {
+    .terms-form-check {
+        min-height: 100px;
+    }
+}
+@media (max-width: 414px) {
+    .terms-form-check {
+        min-height: 120px;
+    }
+}
+
+
 .contour-pdf, .user-guide {
     width: 100%;
     min-height: 800px;
