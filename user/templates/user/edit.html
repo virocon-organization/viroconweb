@@ -39,15 +39,18 @@
                     <div class="form-check terms-form-check">
                       <input class="form-check-input terms-checkbox"
                              type="checkbox" value=""
-                             id="defaultCheck1">
+                             id="defaultCheck1",
+                             onchange="document.getElementById('register-user-button').disabled = !this.checked;">
                       <label class="form-check-label terms-label"
                              for="defaultCheck1">
                         I have read the
-                          <a href="{% url 'info:imprint' %}#data-protection" class="textlink">
+                          <a href="{% url 'info:imprint' %}#data-protection"
+                             class="textlink">
                           notice on data protection
                           </a>
                           and the content of the
-                          <a href="{% url 'info:imprint' %}#AGB" class="textlink">
+                          <a href="{% url 'info:imprint' %}#AGB"
+                             class="textlink">
                               Standard Terms of Business
                           </a>
                           and agree to the storage of my personal data.
@@ -55,7 +58,11 @@
                     </div>
                 </div>
                 <br>
-                <button class="btn btn-success">Submit</button>
+                <button id="register-user-button"
+                        class="btn btn-success"
+                        disabled>
+                    Submit
+                </button>
             </div>
         </div>
     </form>
