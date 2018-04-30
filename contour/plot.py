@@ -60,7 +60,7 @@ from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
 from .compute_interface import setup_mul_dist
 
 
-def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
+def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
                            scale, distribution_type, dist_points, interval,
                            var_name, symbol_parent_var, directory,
                            probabilistic_model):
@@ -68,10 +68,12 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     The function creates an image which shows a certain fit of a distribution.
     Parameters
     ----------
-    main_index : int
-          The index of the current dimension (distribution). The index is used to recognise the image later.
+    dim_index : int
+          The index of the current dimension (distribution). The index is used
+          to recognise the image later.
     parent_index : int
-        The index of the variable on which the conditional is based (when no condition: None).
+        The index of the variable on which the conditional is based
+        (when no condition: None).
     low_index : int
          The index of the interval. (needed to recognize the images later)
     shape : float
@@ -81,7 +83,8 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     scale : float
         The value of the scale parameter.
     distribution_type: str
-        Type / name of the distribution, must be "Normal", "Weibull" or "Lognormal"
+        Type / name of the distribution, must be "Normal", "Weibull" or
+        "Lognormal"
     dist_points: list of floats
        The dates for the histogram.
     interval : list of floats
@@ -112,17 +115,14 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
                str(format(shape, '.3f')) + ' loc: ' + str(
             format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
-        # This makes no sense
-        # The scale parameter for python's lognorm  funciton is e^\mu.
-        # However in the django data base we save mu as the scale parameter. Maybe we save the
-        # mu parameter in the db.
-        # scale = np.exp(scale)
+
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
 
-        # The plot function works with the scale parameter but the user interface
-        # works with the mu value. However the scale value must be adjusted.
+        # The plot function works with the scale parameter but the user
+        # interface works with the mu value. However the scale value must be
+        # adjusted.
         text = distribution_type + ', ' + 'sigma: ' + \
                str(format(shape, '.3f')) + ' mu: ' + \
                str(format(np.log(scale), '.3f'))
@@ -150,7 +150,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     plt.title(text)
     plt.xlabel(var_name)
     plt.ylabel('probability density [-]')
-    main_index_2_digits = str(main_index).zfill(2)
+    dim_index_2_digits = str(dim_index).zfill(2)
     parent_index_2_digits = str(parent_index).zfill(2)
     low_index_2_digits = str(low_index).zfill(2)
 
@@ -164,7 +164,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
     plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
-    file_name = 'fit_' + main_index_2_digits + '_' + parent_index_2_digits + \
+    file_name = 'fit_' + dim_index_2_digits + '_' + parent_index_2_digits + \
                 '_' + low_index_2_digits + '.png'
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
@@ -172,7 +172,7 @@ def plot_pdf_with_raw_data(main_index, parent_index, low_index, shape, loc,
     return
 
 
-def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
+def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
                                 param_at, param_values, fit_func,
                                 directory, dist_name,
                                 probabilistic_model):
@@ -181,7 +181,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
 
     Parameters
     ----------
-    main_index : int
+    dim_index : int
         Index of the related distribution.
     var_name : str
         Name of a multivariate distribution.
@@ -190,9 +190,11 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     para_name : str
         Parameter name like shape, location, scale.
     param_at : list of floats
-         The list contains the x-values of a fitted function for a parameter e.g. shape, loc or scale.
+         The list contains the x-values of a fitted function for a parameter
+         e.g. shape, loc or scale.
     param_values : list of floats
-        The list contains the y-values of a fitted function for a parameter e.g. shape, loc or scale.
+        The list contains the y-values of a fitted function for a parameter
+        e.g. shape, loc or scale.
     fit_func : FunctionParam
         The fit function e.g. power function, exponential
     directory : str
@@ -245,7 +247,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
     plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
-    file_name = 'fit_' + str(main_index) + para_name + '.png'
+    file_name = 'fit_' + str(dim_index) + para_name + '.png'
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
 
@@ -253,7 +255,7 @@ def plot_parameter_fit_overview(main_index, var_name, var_symbol, para_name,
 
 def plot_var_dependent(param_name,
                        param_index,
-                       main_index,
+                       dim_index,
                        var_name,
                        var_names,
                        var_symbols,
@@ -264,17 +266,17 @@ def plot_var_dependent(param_name,
                        fit,
                        probabilistic_model):
     """
-    Plots the fitted distribution for each interval and the resulting fit function for a parameter like shape, loc or
-    scale.
+    Plots the fitted distribution for each interval and the resulting fit
+    function for a parameter like shape, loc or scale.
 
     Parameters
     ----------
     param_name : str
         The name of the parameter (e.g. shape, loc or scale).
     param_index : int
-        The index represents a parameter of the three possible parameter shape, loc, scale.
-        (0 = shape, 1 = loc, 2 = scale)
-    main_index : int
+        The index represents a parameter of the three possible parameter shape,
+        loc, scale. (0 = shape, 1 = loc, 2 = scale)
+    dim_index : int
         The dimension of the distribution.
     var_name: str
         Name of the distribution.
@@ -295,28 +297,28 @@ def plot_var_dependent(param_name,
     probabilistic_model : ProbabilisticModel
         Probabilistic model that was created based on that fit.
     """
-    param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
-    plot_parameter_fit_overview(main_index, var_name, var_symbols[main_index],
+    param_at, param_value = fit_inspection_data.get_dependent_param_points(
+        param_name)
+    plot_parameter_fit_overview(dim_index, var_name, var_symbols[dim_index],
                                 param_name, param_at, param_value,
-                                param, directory, dist_name, probabilistic_model)
+                                param, directory, dist_name, probabilistic_model
+                                )
     for j in range(len(param_at)):
         basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
-        interval_limits = calculate_intervals(param_at, main_index, j)
-        parent_index = fit.mul_var_dist.dependencies[main_index][param_index]
-        symbol_parent_var = None
-        if parent_index is not None:
-            symbol_parent_var = var_symbols[parent_index]
-        plot_pdf_with_raw_data(main_index, parent_index, j, basic_fit.shape,
+        interval_limits = calculate_intervals(param_at, dim_index, j)
+        parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
+        symbol_parent_var = var_symbols[parent_index]
+        plot_pdf_with_raw_data(dim_index, parent_index, j, basic_fit.shape,
                                basic_fit.loc, basic_fit.scale,
-                               fit.mul_var_dist.distributions[main_index].name,
+                               fit.mul_var_dist.distributions[dim_index].name,
                                basic_fit.samples, interval_limits,
-                               var_names[main_index], symbol_parent_var,
+                               var_names[dim_index], symbol_parent_var,
                                directory, probabilistic_model)
 
 
 def plot_var_independent(param_name,
                          param_index,
-                         main_index,
+                         dim_index,
                          var_names,
                          var_symbols,
                          directory,
@@ -324,16 +326,17 @@ def plot_var_independent(param_name,
                          fit,
                          probabilistic_model):
     """
-    Plots the fitted distribution of a independent parameter (e.g. shape, loc or scale).
+    Plots the fitted distribution of a independent parameter
+    (e.g. shape, loc or scale).
 
     Parameters
     ----------
     param_name : str
         The name of the parameter (e.g. shape, loc or scale).
     param_index : int
-        The index represents a parameter of the three possible parameter shape, loc, scale.
-        (0 = shape, 1 = loc, 2 = scale)
-    main_index : int
+        The index represents a parameter of the three possible parameter shape,
+        loc, scale. (0 = shape, 1 = loc, 2 = scale)
+    dim_index : int
         The dimension of the distribution.
     var_names : list of str
         The name of the distribution.
@@ -350,20 +353,18 @@ def plot_var_independent(param_name,
     """
     basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
     interval_limits = []
-    parent_index = fit.mul_var_dist.dependencies[main_index][param_index]
+    parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
     symbol_parent_var = None
-    if parent_index is not None:
-        symbol_parent_var = var_symbols[parent_index]
-    plot_pdf_with_raw_data(main_index,
+    plot_pdf_with_raw_data(dim_index,
                            parent_index,
                            0,
                            basic_fit.shape,
                            basic_fit.loc,
                            basic_fit.scale,
-                           fit.mul_var_dist.distributions[main_index].name,
+                           fit.mul_var_dist.distributions[dim_index].name,
                            basic_fit.samples,
                            interval_limits,
-                           var_names[main_index],
+                           var_names[dim_index],
                            symbol_parent_var,
                            directory,
                            probabilistic_model)
@@ -392,8 +393,8 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         os.makedirs(directory)
 
     for i, fit_inspection_data in enumerate(fit.multiple_fit_inspection_data):
-        independent_plot = False
-        dependent_plot = False
+        do_independent_plot = True
+        do_dependent_plot = True
 
         # Shape
         if fit_inspection_data.shape_at is not None:
@@ -403,54 +404,56 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                 fit.mul_var_dist.distributions[i].name,
                 fit_inspection_data, fit, probabilistic_model
             )
-            dependent_plot = True
+            do_dependent_plot = False
         else:
             plot_var_independent(
-                'shape', 0, i, var_names, var_symbols, directory, fit_inspection_data,
+                'shape', 0, i, var_names, var_symbols, directory,
+                fit_inspection_data,
                 fit, probabilistic_model
             )
-            independent_plot = True
-        # Loccation
-        if fit_inspection_data.loc_at is not None and not dependent_plot:
+            do_independent_plot = False
+        # Location
+        if fit_inspection_data.loc_at is not None and do_dependent_plot:
             plot_var_dependent(
                 'loc', 1, i, var_names[i], var_names, var_symbols,
                 fit.mul_var_dist.distributions[i].loc, directory,
                 fit.mul_var_dist.distributions[i].name,
                 fit_inspection_data, fit, probabilistic_model
             )
-            dependent_plot = True
-        elif not independent_plot:
+            do_dependent_plot = False
+        elif do_independent_plot:
             plot_var_independent('loc', 1, i, var_names,var_symbols, directory,
                                  fit_inspection_data, fit, probabilistic_model
                                  )
-            independent_plot = True
+            do_independent_plot = False
         # Scale
-        if fit_inspection_data.scale_at is not None and not dependent_plot:
-            plot_var_dependent('scale', 2, i, var_names[i], var_names, var_symbols,
+        if fit_inspection_data.scale_at is not None and do_dependent_plot:
+            plot_var_dependent('scale', 2, i, var_names[i], var_names,
+                               var_symbols,
                                fit.mul_var_dist.distributions[i].scale,
                                directory,
                                fit.mul_var_dist.distributions[i].name,
                                fit_inspection_data, fit, probabilistic_model
                                )
-            break
-        elif not independent_plot:
-            plot_var_independent('scale', 2, i, var_names, var_symbols, directory,
-                                 fit_inspection_data, fit, probabilistic_model
-                                 )
+        elif do_independent_plot:
+            plot_var_independent('scale', 2, i, var_names, var_symbols,
+                                 directory, fit_inspection_data, fit,
+                                 probabilistic_model)
 
 
-def calculate_intervals(interval_centers, dimension_index, interval_index):
+def calculate_intervals(interval_centers, dimension_index,
+                        interval_center_index):
     """
     Calculates the width of a certain interval.
 
     Parameters
     ----------
     interval_centers : list of floats
-        The intervals of the fit.
+        The interval centers of the fit.
     dimension_index : int
         The index of the dimension.
-    interval_index : int
-        The index of the interval in the current dimension.
+    interval_center_index : int
+        The index of the interval centers in the current dimension.
 
     """
     if dimension_index == 0 or len(interval_centers) < 2:
@@ -460,8 +463,10 @@ def calculate_intervals(interval_centers, dimension_index, interval_index):
         # Calculate  the interval width assuming constant
         # interval width.
         interval_width = interval_centers[1] - interval_centers[0]
-        interval_limits = [interval_centers[interval_index] - 0.5 * interval_width,
-                           interval_centers[interval_index] + 0.5 * interval_width]
+        interval_limits = [interval_centers[interval_center_index] - 0.5 *
+                           interval_width,
+                           interval_centers[interval_center_index] + 0.5 *\
+                           interval_width]
     return interval_limits
 
 
@@ -475,8 +480,8 @@ def is_legit_distribution_parameter_index(distribution_name, index):
     distribution_name : str
         The name of a Distribution must be 'Normal', 'Lognormal' or 'Weibull'.
     index : int
-        The index represents a parameter of the three possible parameter shape, loc, scale.
-        (0 = shape, 1 = loc, 2 = scale)
+        The index represents a parameter of the three possible parameter shape,
+        loc, scale. (0 = shape, 1 = loc, 2 = scale)
     """
     if distribution_name == 'Normal':
         if index == 0:
@@ -536,10 +541,12 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
         # Plot contour
         alpha = .1
         for i in range(len(contour_coordinates)):
-            ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1], s=15, c='b',
+            ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1],
+                       s=15, c='b',
                        label='extreme env. design condition')
             concave_hull, edge_points = alpha_shape(
-                convert_ndarray_list_to_multipoint(contour_coordinates[i]), alpha=alpha)
+                convert_ndarray_list_to_multipoint(contour_coordinates[i]),
+                alpha=alpha)
 
             patch_design_region = PolygonPatch(
                 concave_hull, fc='#999999', linestyle='None', fill=True,

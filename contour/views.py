@@ -314,7 +314,7 @@ class MeasureFileHandler(Handler):
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = store_fit(fit,
+                    probabilistic_model = save_fitted_probabilistic(fit,
                                                     fit_form.cleaned_data['title'],
                                                     var_names,
                                                     var_symbols,
@@ -905,20 +905,20 @@ class EnvironmentalContourHandler(Handler):
         return Handler.delete(request, pk, collection)
 
 
-def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
+def save_fitted_probabilistic(fit, model_title, var_names, var_symbols, user, measure_file):
     """
-    Stores the calculated fit parameters into the probabilistic model structure.
+    Saves probabilistic model which was fitted to measurement data.
 
     Parameters
     ----------
     fit : Fit
         Calculated fit results of a measurement file.
-    fit_title : str
-        Title of the fit.
+    model_title : str
+        Title of the probabilistic model.
     var_names : list of str
-        Names of the Distributions.
+        Names of the distributions.
     var_symbols : list of str
-        Names of the Symbols of a certain Distribution.
+        Names of the symbols of a certain distribution.
     user : str
         Name of a user.
     measure_file : MeasureFileModel
@@ -926,16 +926,16 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
 
     Return
     ------
-
+    ProbabilisticModel
+        Which was fitted to measurement data
 
     """
     probabilistic_model = ProbabilisticModel(primary_user=user,
-                                             collection_name=fit_title,
+                                             collection_name=model_title,
                                              measure_file_model=measure_file)
     probabilistic_model.save()
 
     for i, dist in enumerate(fit.mul_var_dist.distributions):
-        #dist_name = dist.name if dist.name != 'Lognormal' else 'Lognormal_2'
         if dist.name == 'Lognormal':
             dist_name = "Lognormal_2"
 
@@ -944,27 +944,34 @@ def store_fit(fit, fit_title, var_names, var_symbols, user, measure_file):
                                                    probabilistic_model=probabilistic_model,
                                                    distribution=dist_name)
             distribution_model.save()
-            store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
-            store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
-            store_parameter(dist.mu, distribution_model, fit.mul_var_dist.dependencies[i][2])
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.mu, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
         else:
             distribution_model = DistributionModel(name=var_names[i],
                                                    symbol=var_symbols[i],
-                                                   probabilistic_model=probabilistic_model,
+                                                    probabilistic_model=probabilistic_model,
                                                    distribution=dist.name)
             distribution_model.save()
-            store_parameter(dist.shape, distribution_model, fit.mul_var_dist.dependencies[i][0])
-            store_parameter(dist.loc, distribution_model, fit.mul_var_dist.dependencies[i][1])
-            store_parameter(dist.scale, distribution_model, fit.mul_var_dist.dependencies[i][2])
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.scale, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
 
     return probabilistic_model
 
 
-def store_parameter(parameter, distribution_model, dependency):
+def save_parameter(parameter, distribution_model, dependency):
     """
     Stores a fitted parameter and links it to a DistributionModel.
     parameter : ConstantParam or FunctionParam
-        ConstantParam is a float value. FunctionParam contains a whole function like power function or exponential.
+        ConstantParam is a float value. FunctionParam contains a whole function
+        like power function or exponential.
     distribution_model : DistributionModel
         The parameter will be linked to this DistributionModel.
     dependency : int
