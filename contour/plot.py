@@ -252,7 +252,6 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
     plotted_figure.save()
 
 
-
 def plot_var_dependent(param_name,
                        param_index,
                        dim_index,
@@ -397,44 +396,49 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         do_dependent_plot = True
 
         # Shape
-        if fit_inspection_data.shape_at is not None:
-            plot_var_dependent(
-                'shape', 0, i, var_names[i], var_names, var_symbols,
-                fit.mul_var_dist.distributions[i].shape, directory,
-                fit.mul_var_dist.distributions[i].name,
-                fit_inspection_data, fit, probabilistic_model
-            )
-            do_dependent_plot = False
-        else:
-            plot_var_independent(
-                'shape', 0, i, var_names, var_symbols, directory,
-                fit_inspection_data,
-                fit, probabilistic_model
-            )
-            do_independent_plot = False
+        if fit.mul_var_dist.distributions[i].name != 'Normal':
+            if fit_inspection_data.shape_at is not None:
+                plot_var_dependent(
+                    'shape', 0, i, var_names[i], var_names, var_symbols,
+                    fit.mul_var_dist.distributions[i].shape, directory,
+                    fit.mul_var_dist.distributions[i].name,
+                    fit_inspection_data, fit, probabilistic_model
+                )
+                do_dependent_plot = False
+            else:
+                plot_var_independent(
+                    'shape', 0, i, var_names, var_symbols, directory,
+                    fit_inspection_data,
+                    fit, probabilistic_model
+                )
+                do_independent_plot = False
+
         # Location
-        if fit_inspection_data.loc_at is not None and do_dependent_plot:
-            plot_var_dependent(
-                'loc', 1, i, var_names[i], var_names, var_symbols,
-                fit.mul_var_dist.distributions[i].loc, directory,
-                fit.mul_var_dist.distributions[i].name,
-                fit_inspection_data, fit, probabilistic_model
-            )
-            do_dependent_plot = False
-        elif do_independent_plot:
-            plot_var_independent('loc', 1, i, var_names,var_symbols, directory,
-                                 fit_inspection_data, fit, probabilistic_model
-                                 )
-            do_independent_plot = False
+        if fit.mul_var_dist.distributions[i].name != 'Lognormal':
+            if fit_inspection_data.loc_at is not None:
+                if do_dependent_plot:
+                    plot_var_dependent(
+                        'loc', 1, i, var_names[i], var_names, var_symbols,
+                        fit.mul_var_dist.distributions[i].loc, directory,
+                        fit.mul_var_dist.distributions[i].name,
+                        fit_inspection_data, fit, probabilistic_model
+                    )
+                    do_dependent_plot = False
+            elif do_independent_plot:
+                plot_var_independent('loc', 1, i, var_names,var_symbols,
+                                     directory, fit_inspection_data, fit,
+                                     probabilistic_model)
+                do_independent_plot = False
         # Scale
-        if fit_inspection_data.scale_at is not None and do_dependent_plot:
-            plot_var_dependent('scale', 2, i, var_names[i], var_names,
-                               var_symbols,
-                               fit.mul_var_dist.distributions[i].scale,
-                               directory,
-                               fit.mul_var_dist.distributions[i].name,
-                               fit_inspection_data, fit, probabilistic_model
-                               )
+        if fit_inspection_data.scale_at is not None:
+            if do_dependent_plot:
+                plot_var_dependent('scale', 2, i, var_names[i], var_names,
+                                   var_symbols,
+                                   fit.mul_var_dist.distributions[i].scale,
+                                   directory,
+                                   fit.mul_var_dist.distributions[i].name,
+                                   fit_inspection_data, fit, probabilistic_model
+                                   )
         elif do_independent_plot:
             plot_var_independent('scale', 2, i, var_names, var_symbols,
                                  directory, fit_inspection_data, fit,
