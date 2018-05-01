@@ -686,10 +686,13 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
 
     """
     probabilistic_model = environmental_contour.probabilistic_model
-    short_directory = settings.PATH_USER_GENERATED + user + \
-                             '/contour/' + str(environmental_contour.pk) + '/'
-    short_file_path_report = short_directory + settings.LATEX_REPORT_NAME
-    full_directory = settings.PATH_MEDIA + short_directory
+    short_directory_contour = settings.PATH_USER_GENERATED + user + \
+                              '/contour/' + str(environmental_contour.pk) + '/'
+    short_directory_prob_model = settings.PATH_USER_GENERATED + user + \
+                                 '/prob_model/' + str(probabilistic_model.pk) + '/'
+    short_file_path_report = short_directory_contour + settings.LATEX_REPORT_NAME
+    full_directory_contour = settings.PATH_MEDIA + short_directory_contour
+    full_directory_prob_model = settings.PATH_MEDIA + short_directory_prob_model
     full_file_path_report = settings.PATH_MEDIA + short_file_path_report
 
 
@@ -699,12 +702,10 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         environmental_contour=environmental_contour).first()
     # Download the image from Amazon S3 since latex needs a local version
     url_contour_image = pf_contour.image.url
-    local_path_contour_image = full_directory + \
+    local_path_contour_image = full_directory_contour + \
                                os.path.split(url_contour_image)[1]
     if USE_S3:
         request.urlretrieve(url_contour_image, local_path_contour_image)
-
-    directory_prefix = settings.PATH_MEDIA + settings.PATH_USER_GENERATED
 
     latex_content = r"\section{Results} " \
                     r"\subsection{Environmental contour}" \
@@ -726,9 +727,12 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             probabilistic_model=probabilistic_model)
         for plotted_figure in plotted_figures:
             url_plotted_figure = plotted_figure.image.url
-            local_path_plotted_figure = full_directory + \
+            local_path_plotted_figure = full_directory_prob_model + \
                                        os.path.split(url_plotted_figure)[1]
-            request.urlretrieve(url_plotted_figure, local_path_plotted_figure)
+            if USE_S3:
+                request.urlretrieve(url_plotted_figure,
+                                    local_path_plotted_figure
+                                    )
             latex_content += r"\begin{figure}[H]"
             latex_content += r"\includegraphics[width=\textwidth]{" + \
                              local_path_plotted_figure + r"}"
@@ -791,8 +795,8 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         with open(os.path.join(tempdir, 'texput.pdf'), 'rb') as f:
             pdf = f.read()
 
-    if not os.path.exists(full_directory):
-        os.makedirs(full_directory)
+    if not os.path.exists(full_directory_contour):
+        os.makedirs(full_directory_contour)
     with open(full_file_path_report, 'wb') as f:
         f.write(pdf)
         djangofile = ContentFile(pdf)

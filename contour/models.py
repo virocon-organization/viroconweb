@@ -15,7 +15,8 @@ def media_directory_path(instance, filename):
     Creates the path where to upload a media file.
 
     The path is:
-    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<time_stamp>_<filename>
+    MEDIA_ROOT/<username>/<model_abbvrevation>/<pk>/<time_stamp>_<random_hash>_
+    <filename>
 
     Parameters
     ----------
@@ -34,7 +35,7 @@ def media_directory_path(instance, filename):
             instance.primary_user.username,
             settings.PATH_MEASUREMENT,
             instance.pk,
-            time_stamp + '_' + filename)
+            time_stamp + '_' + random_hash_string() + '_' + filename)
     elif instance.__class__.__name__ == 'PlottedFigure':
         if instance.probabilistic_model:
             probabilistic_model = instance.probabilistic_model
@@ -50,19 +51,35 @@ def media_directory_path(instance, filename):
             user_name,
             model_path,
             primary_key,
-            time_stamp + '_' + filename)
+            time_stamp + '_' + random_hash_string() + '_' + filename)
     elif instance.__class__.__name__ == 'EnvironmentalContour':
         path = '{0}/{1}/{2}/{3}'.format(
             instance.probabilistic_model.primary_user.username,
             settings.PATH_CONTOUR,
             instance.pk,
-            time_stamp + '_' + filename)
+            time_stamp + '_' + random_hash_string() + '_' + filename)
     else:
         path = None
     return path
 
+
 def file_time_stamp():
+    """
+    Returns the current time as a string as year-month-day-hour-minute.
+    """
     return strftime('%Y-%m-%d-%H-%m')
+
+
+def random_hash_string():
+    """
+    Returns a 8-character random hash string.
+    """
+    # Thanks to: https://stackoverflow.com/questions/2511222/efficiently-
+    # generate-a-16-character-alphanumeric-string
+    hash_string = ''.join(random.choice(
+        string.ascii_uppercase + string.ascii_lowercase + string.digits) for _
+                in range(8))
+    return hash_string
 
 
 class MeasureFileModel(models.Model):
