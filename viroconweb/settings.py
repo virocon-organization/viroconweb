@@ -138,7 +138,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'virocon.urls'
+ROOT_URLCONF = 'viroconweb.urls'
 
 TEMPLATES = [
     {
@@ -156,7 +156,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'virocon.wsgi.application'
+WSGI_APPLICATION = 'viroconweb.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
