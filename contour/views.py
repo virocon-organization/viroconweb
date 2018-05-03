@@ -349,6 +349,7 @@ class MeasureFileHandler(Handler):
                           {'form': fit_form}
                           )
 
+
     @staticmethod
     def new_fit(request, pk):
         """
@@ -872,13 +873,16 @@ class ProbabilisticModelHandler(Handler):
             plotted_figures = PlottedFigure.objects.filter(
                 probabilistic_model=probabilistic_model)
 
+            srt_figures = sort_plotted_figures(plotted_figures)
+
             return render(
                 request,
                 'contour/probabilistic_model_show.html',
                 {'user': request.user,
                  'probabilistic_model': probabilistic_model,
                  'latex_string_list': latex_string_list,
-                 'plotted_figures': plotted_figures})
+                 'plotted_figures': plotted_figures,
+                 'srt_figures': srt_figures})
 
 
 class EnvironmentalContourHandler(Handler):
@@ -1038,6 +1042,7 @@ def get_info_from_file(url):
 
     return var_names, var_symbols
 
+
 def get_info_from_reader(reader):
     """
     Reads the variable names and symbols form a reader
@@ -1067,3 +1072,30 @@ def get_info_from_reader(reader):
         var_symbols.append(reader[i])
         i += 1
     return var_names, var_symbols
+
+
+def sort_plotted_figures(plotted_figures):
+    sorted_figures = []
+    do_search_images = True
+    i = 0
+    while (do_search_images):
+        var_images = []
+        var_indicator_str = 'fit_{}'.format(i)
+        # TODO implement method for i>9
+        pdf_indicator_str = 'fit_0{}'.format(i)
+        print(pdf_indicator_str)
+        print(var_indicator_str)
+        for plotted_figure in plotted_figures:
+            if var_indicator_str in plotted_figure.image.url and i > 0:
+                var_images.append(plotted_figure)
+
+            if pdf_indicator_str in plotted_figure.image.url:
+                var_images.append(plotted_figure)
+        if len(var_images) == 0:
+            do_search_images = False
+
+        i = i+1
+
+        sorted_figures.append(var_images)
+
+    return sorted_figures

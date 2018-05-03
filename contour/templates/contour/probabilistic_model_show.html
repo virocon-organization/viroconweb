@@ -30,6 +30,17 @@
                          class="img-responsive center-block">
                 </div>
             </p>
+            Hier srt figures
+            {% for plotted_figures in srt_figures %}
+                 <hr>
+                {% for plotted_figure in plotted_figures %}
+
+                    {{ plotted_figure.image.url }}
+                    <br>
+                {%  endfor %}
+
+            {% endfor %}
+
             {% if plotted_figures %}
                 <h3>Evaluation of the fit</h3>
                 <button class="btn btn-default"
@@ -41,6 +52,7 @@
                     {% for plotted_figure in plotted_figures %}
                         <img src="{{ plotted_figure.image.url }}"
                              class="img-responsive center-block">
+                        {{ plotted_figure.image.url }}
                     {% endfor %}
                 </div>
             {% endif %}
