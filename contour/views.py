@@ -314,26 +314,27 @@ class MeasureFileHandler(Handler):
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = save_fitted_probabilistic(fit,
-                                                    fit_form.cleaned_data['title'],
-                                                    var_names,
-                                                    var_symbols,
-                                                    request.user,
-                                                    mfm_item
-                                                    )
-                    plot.plot_fit(fit, var_names, var_symbols, directory, probabilistic_model)
+                    prob_model = save_fitted_prob_model(fit,
+                                                        fit_form.cleaned_data[
+                                                            'title'],
+                                                        var_names,
+                                                        var_symbols,
+                                                        request.user,
+                                                        mfm_item)
+                    plot.plot_fit(fit, var_names, var_symbols, directory,
+                                  prob_model)
                     multivariate_distribution = plot.setup_mul_dist(
-                        probabilistic_model
+                        prob_model
                     )
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
                     plotted_figures = PlottedFigure.objects.filter(
-                        probabilistic_model=probabilistic_model
+                        probabilistic_model=prob_model
                     )
                     return render(request,
                                   'contour/fit_results.html',
-                                  {'pk': probabilistic_model.pk,
+                                  {'pk': prob_model.pk,
                                    'plotted_figures': plotted_figures,
                                    'latex_string_list': latex_string_list
                                    }
@@ -351,7 +352,8 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def new_fit(request, pk):
         """
-        The method deletes the previous fit and returns the form to enter a new fit.
+        The method deletes the previous fit and returns the form to enter a new
+        fit.
         :param request: to make a new fit.
         :param pk:      primary key of the previous fit. 
         :return:        HttpResponse to enter a new fit.     
@@ -905,9 +907,10 @@ class EnvironmentalContourHandler(Handler):
         return Handler.delete(request, pk, collection)
 
 
-def save_fitted_probabilistic(fit, model_title, var_names, var_symbols, user, measure_file):
+def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
+                           measure_file):
     """
-    Saves probabilistic model which was fitted to measurement data.
+    Saves a probabilistic model which was fitted to measurement data.
 
     Parameters
     ----------
@@ -916,9 +919,9 @@ def save_fitted_probabilistic(fit, model_title, var_names, var_symbols, user, me
     model_title : str
         Title of the probabilistic model.
     var_names : list of str
-        Names of the distributions.
+        Names of the variables.
     var_symbols : list of str
-        Names of the symbols of a certain distribution.
+        Names of the symbols of the probabilistic model's variables.
     user : str
         Name of a user.
     measure_file : MeasureFileModel
@@ -968,7 +971,7 @@ def save_fitted_probabilistic(fit, model_title, var_names, var_symbols, user, me
 
 def save_parameter(parameter, distribution_model, dependency):
     """
-    Stores a fitted parameter and links it to a DistributionModel.
+    Saves a fitted parameter and links it to a DistributionModel.
     parameter : ConstantParam or FunctionParam
         ConstantParam is a float value. FunctionParam contains a whole function
         like power function or exponential.

@@ -27,13 +27,10 @@ class ComputeInterface:
         dates = []
         for i in range(0, var_number):
             dates.append(data[:, i].tolist())
-            print("dist name {} ------".format(
-                fit_settings['distribution_%s' % i]))
             if i == 0:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None,
-                     # int(fit_settings['number_of_intervals_%s' % i]),
                      'width_of_intervals': float(
                          fit_settings['width_of_intervals_%s' % i]),
                      'dependency': [None, None, None]
@@ -56,10 +53,8 @@ class ComputeInterface:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None,
-                     # int(fit_settings['number_of_intervals_%s' % i]),
                      'width_of_intervals': float(
                          fit_settings['width_of_intervals_%s' % i]),
-                     # None,
                      'dependency': [
                          adjust(fit_settings['shape_dependency_%s' % i][0]),
                          adjust(fit_settings['location_dependency_%s' % i][0]),
