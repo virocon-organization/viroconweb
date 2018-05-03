@@ -19,12 +19,16 @@ from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
     ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
-    PlottedFigure
+    ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
+
 from .compute_interface import ComputeInterface
+from viroconcom import distributions, params
+from decimal import Decimal
 
 
 def index(request):
     return render(request, 'contour/home.html')
+
 
 class Handler:
     @staticmethod
@@ -170,7 +174,7 @@ class Handler:
         else:
             html = 'contour/' + model.url_str() + '_show.html'
             object = model.objects.get(pk=pk)
-            return render(request, html, {'object' : object})
+            return render(request, html, {'object': object})
 
 
 class MeasureFileHandler(Handler):
@@ -310,25 +314,27 @@ class MeasureFileHandler(Handler):
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = plot.plot_fits(
-                        fit,
-                        var_names,
-                        var_symbols,
-                        fit_form.cleaned_data['title'],
-                        request.user, mfm_item, directory
-                    )
+                    prob_model = save_fitted_prob_model(fit,
+                                                        fit_form.cleaned_data[
+                                                            'title'],
+                                                        var_names,
+                                                        var_symbols,
+                                                        request.user,
+                                                        mfm_item)
+                    plot.plot_fit(fit, var_names, var_symbols, directory,
+                                  prob_model)
                     multivariate_distribution = plot.setup_mul_dist(
-                        probabilistic_model
+                        prob_model
                     )
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
                     plotted_figures = PlottedFigure.objects.filter(
-                        probabilistic_model=probabilistic_model
+                        probabilistic_model=prob_model
                     )
                     return render(request,
                                   'contour/fit_results.html',
-                                  {'pk': probabilistic_model.pk,
+                                  {'pk': prob_model.pk,
                                    'plotted_figures': plotted_figures,
                                    'latex_string_list': latex_string_list
                                    }
@@ -346,7 +352,8 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def new_fit(request, pk):
         """
-        The method deletes the previous fit and returns the form to enter a new fit.
+        The method deletes the previous fit and returns the form to enter a new
+        fit.
         :param request: to make a new fit.
         :param pk:      primary key of the previous fit. 
         :return:        HttpResponse to enter a new fit.     
@@ -878,6 +885,7 @@ class EnvironmentalContourHandler(Handler):
     """
     Handler for EnvironmentalContour objects
     """
+
     @staticmethod
     def overview(request, collection=models.EnvironmentalContour):
         return Handler.overview(request, collection)
@@ -897,6 +905,104 @@ class EnvironmentalContourHandler(Handler):
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
         return Handler.delete(request, pk, collection)
+
+
+def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
+                           measure_file):
+    """
+    Saves a probabilistic model which was fitted to measurement data.
+
+    Parameters
+    ----------
+    fit : Fit
+        Calculated fit results of a measurement file.
+    model_title : str
+        Title of the probabilistic model.
+    var_names : list of str
+        Names of the variables.
+    var_symbols : list of str
+        Names of the symbols of the probabilistic model's variables.
+    user : str
+        Name of a user.
+    measure_file : MeasureFileModel
+        MeasureFileModel object linked to the probabilistic model.
+
+    Return
+    ------
+    ProbabilisticModel
+        Which was fitted to measurement data
+
+    """
+    probabilistic_model = ProbabilisticModel(primary_user=user,
+                                             collection_name=model_title,
+                                             measure_file_model=measure_file)
+    probabilistic_model.save()
+
+    for i, dist in enumerate(fit.mul_var_dist.distributions):
+        if dist.name == 'Lognormal':
+            dist_name = "Lognormal_2"
+
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                   probabilistic_model=probabilistic_model,
+                                                   distribution=dist_name)
+            distribution_model.save()
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.mu, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
+        else:
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                    probabilistic_model=probabilistic_model,
+                                                   distribution=dist.name)
+            distribution_model.save()
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.scale, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
+
+    return probabilistic_model
+
+
+def save_parameter(parameter, distribution_model, dependency):
+    """
+    Saves a fitted parameter and links it to a DistributionModel.
+
+    Parameters
+    ----------
+    parameter : ConstantParam or FunctionParam
+        ConstantParam is a float value. FunctionParam contains a whole function
+        like power function or exponential.
+    distribution_model : DistributionModel
+        The parameter will be linked to this DistributionModel.
+    dependency : int
+        The dimension the dependency is based on.
+    """
+    if type(parameter) == params.ConstantParam:
+        parameter_model = ParameterModel(function='None',
+                                         x0=parameter(0),
+                                         dependency='!',
+                                         distribution=distribution_model)
+        parameter_model.save()
+    elif type(parameter) == params.FunctionParam:
+        parameter_model = ParameterModel(function=parameter.func_name,
+                                         x0=parameter.a,
+                                         x1=parameter.b,
+                                         x2=parameter.c,
+                                         dependency=dependency,
+                                         distribution=distribution_model)
+        parameter_model.save()
+    else:
+        parameter_model = ParameterModel(function='None',
+                                         x0=0,
+                                         dependency='!',
+                                         distribution=distribution_model)
+        parameter_model.save()
 
 
 def get_info_from_file(url):
