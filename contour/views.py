@@ -972,6 +972,9 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
 def save_parameter(parameter, distribution_model, dependency):
     """
     Saves a fitted parameter and links it to a DistributionModel.
+
+    Parameters
+    ----------
     parameter : ConstantParam or FunctionParam
         ConstantParam is a float value. FunctionParam contains a whole function
         like power function or exponential.

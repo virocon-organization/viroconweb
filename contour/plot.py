@@ -296,6 +296,10 @@ def plot_var_dependent(param_name,
         Holds data and information about the fit.
     probabilistic_model : ProbabilisticModel
         Probabilistic model that was created based on that fit.
+    do_dependent_plot : Boolean
+        True: probabilistic density functions will be plotted.
+        False: probabilistic density functions were plotted by earlier run
+        through.
     """
     param_at, param_value = fit_inspection_data.get_dependent_param_points(
         param_name)
@@ -478,7 +482,6 @@ def calculate_intervals(interval_centers, dimension_index,
                            interval_centers[interval_center_index] + 0.5 *\
                            interval_width]
     return interval_limits
-
 
 
 def is_legit_distribution_parameter_index(distribution_name, index):
