@@ -14,7 +14,7 @@ from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, 
 import os
 import math
 from contour.settings import PATH_MEDIA, PATH_USER_GENERATED
-from virocon.settings import USE_S3
+from viroconweb.settings import USE_S3
 from contour.models import MeasureFileModel, EnvironmentalContour
 
 

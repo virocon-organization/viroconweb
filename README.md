@@ -1,7 +1,7 @@
 # ViroCon
 
-[![Build Status](https://travis-ci.org/ahaselsteiner/virocon.svg?branch=master)](https://travis-ci.org/ahaselsteiner/virocon)
-[![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/virocon/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/virocon?branch=master)
+[![Build Status](https://travis-ci.org/ahaselsteiner/viroconweb.svg?branch=master)](https://travis-ci.org/ahaselsteiner/virocon)
+[![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/virocon?branch=master)
 
 ViroCon is an easy-to-use web-based software to compute environmental contours.
 
@@ -49,7 +49,7 @@ viroconcom and then computes a environmental contour.
 
 ## Documentation
 **Code** The code's documentation can be found 
-[here](https://ahaselsteiner.github.io/virocon/). Currently, this is the 
+[here](https://ahaselsteiner.github.io/viroconweb/). Currently, this is the
 documentation of the 'viroconcom' package, we will update it to become ViroCon's
 documentation.
 
@@ -74,7 +74,7 @@ file a pull request to merge it into our repository.
 **Run app** To run a copy of ViroCon locally use the following 
 commands:
 ```
-git clone https://github.com/ahaselsteiner/virocon
+git clone https://github.com/ahaselsteiner/viroconweb
 pip install -r requirements.txt
 python manage.py collectstatic
 python manage.py makemigrations
@@ -88,4 +88,4 @@ https://www.python.org/dev/peps/pep-0008
 
 ## License
 This software is licensed under the MIT license. For more information, read the 
-file [LICENSE](https://github.com/ahaselsteiner/virocon/blob/master/LICENSE).
+file [LICENSE](https://github.com/ahaselsteiner/viroconweb/blob/master/LICENSE).

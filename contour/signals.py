@@ -5,7 +5,7 @@ import os
 import shutil
 import warnings
 
-from virocon.settings import USE_S3
+from viroconweb.settings import USE_S3
 
 
 # Thanks to: https://stackoverflow.com/questions/33080360/how-to-delete-files-
