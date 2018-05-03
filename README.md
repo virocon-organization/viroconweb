@@ -1,6 +1,6 @@
 # ViroCon
 
-[![Build Status](https://travis-ci.org/ahaselsteiner/viroconweb.svg?branch=master)](https://travis-ci.org/ahaselsteiner/virocon)
+[![Build Status](https://travis-ci.org/ahaselsteiner/viroconweb.svg?branch=master)](https://travis-ci.org/ahaselsteiner/viroconweb)
 [![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/virocon?branch=master)
 
 ViroCon is an easy-to-use web-based software to compute environmental contours.
