@@ -1,7 +1,7 @@
 # ViroCon
 
 [![Build Status](https://travis-ci.org/ahaselsteiner/viroconweb.svg?branch=master)](https://travis-ci.org/ahaselsteiner/viroconweb)
-[![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/virocon?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/viroconweb?branch=master)
 
 ViroCon is an easy-to-use web-based software to compute environmental contours.
 
@@ -29,7 +29,7 @@ estimation
 
 ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
  The software is seperated in two main packages, viroconweb and viroconcom.
- This is the repository of viroconcom, which is the web application.
+ This is the repository of viroconweb, which is the web application.
  The second package, viroconcom, handles the statistical computations and
  has its own [repository](https://github.com/ahaselsteiner/viroconcom).
 
@@ -52,7 +52,7 @@ viroconcom and then computes a environmental contour.
 ## Documentation
 **Code** The code's documentation can be found
 [here](https://ahaselsteiner.github.io/viroconweb/). Currently, this is the
-documentation of the 'viroconcom' package, we will update it to become ViroCon's
+documentation of the package viroconcom, we will update it to become ViroCon's
 documentation.
 
 **Methods** The app has a help page, which describes the implemented methods in
