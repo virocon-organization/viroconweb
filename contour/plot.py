@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 from io import BytesIO, StringIO
 from django.core.files.base import ContentFile
 from urllib import request
-from virocon.settings import USE_S3
+from viroconweb.settings import USE_S3
 
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).

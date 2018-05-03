@@ -9,7 +9,7 @@ script:
 - mkdir _build
 - python manage.py collectstatic --noinput
 - python manage.py test
-- coverage run --source=virocon,contour,user,info  manage.py test
+- coverage run --source=viroconweb,contour,user,info  manage.py test
 
 after_success: coveralls
 
