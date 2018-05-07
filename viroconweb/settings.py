@@ -102,7 +102,7 @@ if RUN_MODE == 'production':
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 else:
-    DEBUG = True
+    DEBUG = False
 
 # Select own user model
 AUTH_USER_MODEL = 'user.User'
