@@ -5,6 +5,8 @@ from user.models import User
 from django.core.exceptions import ValidationError
 from . import settings
 from time import gmtime, strftime
+import random
+import string
 
 # Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
