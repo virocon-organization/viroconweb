@@ -329,6 +329,10 @@ class MeasureFileHandler(Handler):
                                                         var_symbols,
                                                         request.user,
                                                         mfm_item)
+                    print('Calling plot_fit with fit: ')
+                    print(fit)
+                    print('The fits multiple_fit_inspection data is :')
+                    print(fit.multiple_fit_inspection_data)
                     plot.plot_fit(fit, var_names, var_symbols, directory,
                                   prob_model)
                     multivariate_distribution = plot.setup_mul_dist(
