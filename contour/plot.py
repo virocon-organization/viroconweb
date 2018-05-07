@@ -228,7 +228,7 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    x = np.linspace(min(param_at) - 2, max(param_at) + 2, 100)
+    x = np.linspace(np.log(min(param_at)) - 2, np.log(max(param_at)) + 2, 100)
     y = []
     for x1 in x:
         y.append(fit_func(x1))
