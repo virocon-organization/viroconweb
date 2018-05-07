@@ -338,8 +338,11 @@ class MeasureFileHandler(Handler):
                             'contour/error.html',
                             {'error_message': err,
                              'text': 'An AttributeError occured while plotting '
-                                     'the fit. This error is probably related to'
-                                     'issue#161. ',
+                                     'the fit occured. '
+                                     'This error is probably related to '
+                                     'issue#161. A model has been fitted and '
+                                     'should be available to you. However, no '
+                                     'plots cannot be presented.',
                              'header': 'Fit measurement file to probabilistic '
                                         'model',
                              'return_url': 'contour:index'
