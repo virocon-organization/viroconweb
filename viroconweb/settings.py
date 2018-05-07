@@ -236,6 +236,10 @@ if not key_exists:
 else:
     EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 
+# Thanks to: https://stackoverflow.com/questions/1414130/django-not-
+# sending-emails-to-admins
+ADMINS = [('Andreas', 'virocon@uni-bremen.de'), ]
+SERVER_EMAIL = 'django@virocon.com'
 
 # See https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.

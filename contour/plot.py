@@ -561,24 +561,27 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
-        # Plot contour
+        # Plot the contour as a scatter plot and a line connecting the dots
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1],
                        s=15, c='b',
                        label='extreme env. design condition')
-            concave_hull, edge_points = alpha_shape(
-                convert_ndarray_list_to_multipoint(contour_coordinates[i]),
-                alpha=alpha)
-
-            patch_design_region = PolygonPatch(
-                concave_hull, fc='#999999', linestyle='None', fill=True,
-                zorder=-2, label='design region')
-            patch_environmental_contour = PolygonPatch(
-                concave_hull, ec='b', fill=False, zorder=-1,
-                label='environmental contour')
-            ax.add_patch(patch_design_region)
-            ax.add_patch(patch_environmental_contour)
+            try:
+                concave_hull, edge_points = alpha_shape(
+                    convert_ndarray_list_to_multipoint(contour_coordinates[i]),
+                    alpha=alpha)
+                patch_design_region = PolygonPatch(
+                    concave_hull, fc='#999999', linestyle='None', fill=True,
+                    zorder=-2, label='design region')
+                patch_environmental_contour = PolygonPatch(
+                    concave_hull, ec='b', fill=False, zorder=-1,
+                    label='environmental contour')
+                ax.add_patch(patch_design_region)
+                ax.add_patch(patch_environmental_contour)
+            except(ZeroDivisionError): # alpha_shape() can throw these
+                print('Encountered a ZeroDivisionError when using alpha_shape.'
+                      'Consequently no contour is plotted.')
 
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))
