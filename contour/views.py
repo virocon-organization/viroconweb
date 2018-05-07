@@ -22,8 +22,16 @@ from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
     ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
 
 from .compute_interface import ComputeInterface
+from .validators import validate_contour_coordinates
 from viroconcom import distributions, params
 from decimal import Decimal
+
+
+CONTOUR_CALCULATION_ERROR_MESSAGE = 'Please consider different settings for the ' \
+                                    'contour or think about your probabilistic ' \
+                                    'model. Feel free to contact us if you ' \
+                                    'think this error message is a bug: ' \
+                                    'virocon@uni-bremen.de'
 
 
 def index(request):
@@ -568,12 +576,24 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def iform_calc(request, var_names, var_symbols, probabilistic_model):
         """
-        The method gives the ifrom calculation order.
-        :param request:             user request to use the iform calculation method. 
-        :param var_names:           names of the variables.
-        :param var_symbols:         symbols of the variables of the probabilistic model.
-        :param probabilistic_model: which is used to create a contour. 
-        :return:                    HttpResponse with the generated graphic (pdf) or error message.
+        Calls the IFORM contour calculation and handles errors if they occur.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to show the object.
+        var_names : list of str
+            Names of the variables.
+        var_symbols : list of str
+            Names of the symbols of the probabilistic model's variables.
+        probabilistic_model : models.ProbabilisticModel
+            Probabilistic model, which should be used for the environmental
+            contour calculation.
+
+        Returns
+        -------
+        response : HttpResponse,
+            Renders an html response showing contour or the error message.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -589,6 +609,7 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['return_period']),
                             float(iform_form.cleaned_data['sea_state']),
                             iform_form.cleaned_data['n_steps'])
+                        validate_contour_coordinates(contour_coordinates)
                         environmental_contour = EnvironmentalContour(
                             primary_user=request.user,
                             fitting_method="",
@@ -618,7 +639,7 @@ class ProbabilisticModelHandler(Handler):
                             contour_path = ContourPath(
                                 environmental_contour=environmental_contour)
                             contour_path.save()
-                            for j in range(len(contour_coordinates)):
+                            for j in range(len(contour_coordinates[i])):
                                 EEDC = ExtremeEnvDesignCondition(
                                     contour_path=contour_path)
                                 EEDC.save()
@@ -627,15 +648,14 @@ class ProbabilisticModelHandler(Handler):
                                         x=float(contour_coordinates[i][j][k]),
                                         EEDC=EEDC)
                                     eedc_scalar.save()
-
-                    # catch and allocate errors caused by calculating iform.
-                    except (ValueError, RuntimeError, IndexError, TypeError,
+                    # Catch and allocate errors caused by calculating iform.
+                    except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': 'Try it again with other settings please',
+                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'})
 
@@ -702,12 +722,24 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def hdc_calc(request, var_names, var_symbols, probabilistic_model):
         """
-        The method gives the hdc calculation order. If the calculation does not work the user gets an error messages.
-        :param request:             user request to use the hdc calculation method. 
-        :param var_names:           names of the variables.
-        :param var_symbols:         symbols of the variables of the probabilistic model
-        :param probabilistic_model: which is used to create a contour. 
-        :return:                    HttpResponse with the generated graphic (pdf) or error message.
+        Calls the HDC calculation and handles errors if they occur.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to show the object.
+        var_names : list of str
+            Names of the variables.
+        var_symbols : list of str
+            Names of the symbols of the probabilistic model's variables.
+        probabilistic_model : models.ProbabilisticModel
+            Probabilistic model, which should be used for the environmental
+            contour calculation.
+
+        Returns
+        -------
+        response : HttpResponse,
+            Renders an html response showing contour or the error message.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -733,6 +765,7 @@ class ProbabilisticModelHandler(Handler):
                                 float(hdc_form.cleaned_data['n_years']),
                                 float(hdc_form.cleaned_data['sea_state']),
                                 limits, deltas)
+                            validate_contour_coordinates(contour_coordinates)
                             environmental_contour = EnvironmentalContour(
                                 primary_user=request.user,
                                 fitting_method="",
@@ -768,7 +801,7 @@ class ProbabilisticModelHandler(Handler):
                                 contour_path = ContourPath(
                                     environmental_contour=environmental_contour)
                                 contour_path.save()
-                                for j in range(len(contour_coordinates)):
+                                for j in range(len(contour_coordinates[i])):
                                     EEDC = ExtremeEnvDesignCondition(
                                         contour_path=contour_path)
                                     EEDC.save()
@@ -777,25 +810,27 @@ class ProbabilisticModelHandler(Handler):
                                             x=float(contour_coordinates[i][j][k]),
                                             EEDC=EEDC)
                                         eedc_scalar.save()
-                    # catch and allocate errors caused by calculating hdc.
-                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    # Catch and allocate errors caused by calculating a HDC.
+                    except (ValidationError, RuntimeError, IndexError,
+                            TypeError, NameError, KeyError, Exception) as err:
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': 'Try it again with other settings please',
+                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'}
                         )
 
-                    # generate path to the user specific pdf.
+                    # Generate path to the user specific pdf.
                     path = plot.create_latex_report(contour_coordinates,
                                                     str(request.user),
                                                     environmental_contour,
                                                     var_names,
                                                     var_symbols)
 
-                    # if matrix 3dim - send data for 3dim interactive plot.
+                    # If the contour is 3-dimensional, send data for an
+                    # interactive plot.
                     if len(contour_coordinates[0]) > 2:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -927,8 +962,8 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
     measure_file : MeasureFileModel
         MeasureFileModel object linked to the probabilistic model.
 
-    Return
-    ------
+    Returns
+    -------
     ProbabilisticModel
         Which was fitted to measurement data
 
