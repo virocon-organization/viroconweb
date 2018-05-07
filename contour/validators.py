@@ -25,7 +25,8 @@ def validate_contour_coordinates(contour_coordinates):
     ----------
     contour_coordinates : n-dimensional matrix
         The coordinates of the environmental contour.
-        The format is defined by compute_interface.iform()
+        The format is defined by compute_interface.iform() and
+        compute_interface.hdc().
 
     Raises
     -------

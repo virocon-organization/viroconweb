@@ -581,7 +581,8 @@ class ProbabilisticModelHandler(Handler):
         Parameters
         ----------
         request : HttpRequest,
-            The HttpRequest to show the object.
+            The HttpRequest to either show the calculation settings page or to
+            calculate the contour (differentiated by POST or GET request).
         var_names : list of str
             Names of the variables.
         var_symbols : list of str
@@ -727,7 +728,8 @@ class ProbabilisticModelHandler(Handler):
         Parameters
         ----------
         request : HttpRequest,
-            The HttpRequest to show the object.
+            The HttpRequest to either show the calculation settings page or to
+            calculate the contour (differentiated by POST or GET request).
         var_names : list of str
             Names of the variables.
         var_symbols : list of str
