@@ -98,11 +98,11 @@ else:
 if RUN_MODE == 'production':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
-    DEBUG = False
+    DEBUG = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 else:
-    DEBUG = False
+    DEBUG = True
 
 # Select own user model
 AUTH_USER_MODEL = 'user.User'
@@ -236,6 +236,10 @@ if not key_exists:
 else:
     EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 
+# Thanks to: https://stackoverflow.com/questions/1414130/django-not-
+# sending-emails-to-admins
+ADMINS = [('Andreas', 'a.haselsteiner@uni-bremen.de'), ]
+SERVER_EMAIL = 'django@virocon.com'
 
 # See https://devcenter.heroku.com/articles/django-app-configuration
 # Change 'default' database configuration with $DATABASE_URL.
