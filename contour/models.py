@@ -1,12 +1,12 @@
 from django.utils import timezone
-from .validators import validate_file_extension
+from .validators import validate_csv_upload
 from django.db import models
 from user.models import User
 from django.core.exceptions import ValidationError
-import random
-import string
 from . import settings
 from time import gmtime, strftime
+import random
+import string
 
 # Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
@@ -97,7 +97,7 @@ class MeasureFileModel(models.Model):
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(
         upload_to=media_directory_path,
-        validators=[validate_file_extension])
+        validators=[validate_csv_upload])
     scatter_plot = models.ImageField(
         upload_to=media_directory_path,
         null=True,
