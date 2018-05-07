@@ -228,10 +228,20 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    x = np.linspace(min(param_at) - 2, max(param_at) + 2, 100)
+
+    x = np.linspace(min(param_at) - 2, max(param_at) + 2,
+                    100)
     y = []
-    for x1 in x:
-        y.append(fit_func(x1))
+    if dist_name == 'Lognormal' and para_name == 'scale':
+        for i in range(len(param_values)):
+            param_values[i] = np.log(param_values[i])
+
+        for x1 in x:
+            y.append(np.log(fit_func(x1)))
+    else:
+        for x1 in x:
+            y.append(fit_func(x1))
+
     ax.plot(x, y, color='#54889c')
 
     ax.scatter(param_at, param_values, color='#9C373A')
