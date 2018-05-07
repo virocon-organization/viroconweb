@@ -73,3 +73,4 @@ def validate_csv_upload(value):
     else:
         if not body_is_ok:
             raise ValidationError("Error in body.", code="invalid")
+    value.seek(0)
