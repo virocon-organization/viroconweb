@@ -239,7 +239,6 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
         for x1 in x:
             y.append(np.log(fit_func(x1)))
     else:
-        y = []
         for x1 in x:
             y.append(fit_func(x1))
 
