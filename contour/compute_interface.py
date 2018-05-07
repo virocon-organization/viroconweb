@@ -8,6 +8,7 @@ from viroconcom.params import *
 from viroconcom.fitting import *
 import warnings
 
+
 class ComputeInterface:
     @staticmethod
     def fit_curves(mfm_item: MeasureFileModel, fit_settings, var_number):
@@ -29,64 +30,87 @@ class ComputeInterface:
             if i == 0:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
-                     'number_of_intervals': None,#int(fit_settings['number_of_intervals_%s' % i]),
-                     'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]),
-                     'dependency': (None, None, None)
+                     'number_of_intervals': None,
+                     'width_of_intervals': float(
+                         fit_settings['width_of_intervals_%s' % i]),
+                     'dependency': [None, None, None]
                      })
-            elif i == (var_number-1): #last variable
+            elif i == (var_number - 1):  # last variable
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
                      'number_of_intervals': None,
                      'width_of_intervals': None,
-                     'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
-                                    adjust(fit_settings['location_dependency_%s' % i][0]),
-                                    adjust(fit_settings['scale_dependency_%s' % i][0])),
-                     'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
+                     'dependency': [
+                         adjust(fit_settings['shape_dependency_%s' % i][0]),
+                         adjust(fit_settings['location_dependency_%s' % i][0]),
+                         adjust(fit_settings['scale_dependency_%s' % i][0])],
+                     'functions': [
+                         adjust(fit_settings['shape_dependency_%s' % i][1:]),
+                         adjust(fit_settings['location_dependency_%s' % i][1:]),
+                         adjust(fit_settings['scale_dependency_%s' % i][1:])]
                      })
             else:
                 dists.append(
                     {'name': fit_settings['distribution_%s' % i],
-                     'number_of_intervals': None, #int(fit_settings['number_of_intervals_%s' % i]),
-                     'width_of_intervals': float(fit_settings['width_of_intervals_%s' % i]), #None,
-                     'dependency': (adjust(fit_settings['shape_dependency_%s' % i][0]),
-                                    adjust(fit_settings['location_dependency_%s' % i][0]),
-                                    adjust(fit_settings['scale_dependency_%s' % i][0])),
-                     'functions': (adjust(fit_settings['shape_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['location_dependency_%s' % i][1:]),
-                                   adjust(fit_settings['scale_dependency_%s' % i][1:]))
+                     'number_of_intervals': None,
+                     'width_of_intervals': float(
+                         fit_settings['width_of_intervals_%s' % i]),
+                     'dependency': [
+                         adjust(fit_settings['shape_dependency_%s' % i][0]),
+                         adjust(fit_settings['location_dependency_%s' % i][0]),
+                         adjust(fit_settings['scale_dependency_%s' % i][0])],
+                     'functions': [
+                         adjust(fit_settings['shape_dependency_%s' % i][1:]),
+                         adjust(fit_settings['location_dependency_%s' % i][1:]),
+                         adjust(fit_settings['scale_dependency_%s' % i][1:])]
                      })
+            # Delete unused parameters
+            if dists[i].get('name') == 'Lognormal_2' and i > 0:
+                dists[i].get('dependency')[1] = None
+                dists[i].get('functions')[1] = None
+            elif dists[i].get('name') == 'Normal' and i > 0:
+                dists[i].get('dependency')[0] = None
+                dists[i].get('functions')[0] = None
+
         fit = Fit(dates, dists)
         return fit
 
     @staticmethod
-    def iform(probabilistic_model: ProbabilisticModel, return_period, sea_state, n_steps):
+    def iform(probabilistic_model: ProbabilisticModel, return_period, sea_state,
+              n_steps):
         """
-        The method represents the interface to compute to calculate IFORM contours.
-        :param probabilistic_model: the item which stores the info for a MultivariateDistribution.
+        The method represents the interface to compute to calculate IFORM
+        contours.
+        :param probabilistic_model: the item which stores the info for a
+        MultivariateDistribution.
         :param return_period:       considered years. 
         :param n_steps:             number of points on the contour.
         :param sea_state:           
-        :return:                    a matrix with x and y coordinates which represents the contour.
+        :return:                    a matrix with x and y coordinates which
+                                    represents the contour.
         """
         mul_dist = setup_mul_dist(probabilistic_model)
         contour = IFormContour(mul_dist, return_period, sea_state, n_steps)
         return contour.coordinates
 
     @staticmethod
-    def hdc(probabilistic_model: ProbabilisticModel, return_period, state_duration, limits, deltas):
+    def hdc(probabilistic_model: ProbabilisticModel, return_period,
+            state_duration, limits, deltas):
         """
-        The method represents the interface to compute to calculate HDC contours.
-        :param probabilistic_model: the item which stores the info for a MultivariateDistribution.
+        The method represents the interface to compute to calculate HDC
+        contours.
+        :param probabilistic_model: the item which stores the info for a
+                                    MultivariateDistribution.
         :param limits:              limits 
         :param deltas:              deltas 
         :param return_period:       considered years 
         :param state_duration:      
-        :return:                    a matrix with x and y coordinates which represents the contour.
+        :return:                    a matrix with x and y coordinates which
+                                    represents the contour.
         """
         mul_dist = setup_mul_dist(probabilistic_model)
-        contour = HighestDensityContour(mul_dist, return_period=return_period, state_duration=state_duration,
+        contour = HighestDensityContour(mul_dist, return_period=return_period,
+                                        state_duration=state_duration,
                                         limits=limits, deltas=deltas)
         return contour.coordinates
 
@@ -107,11 +131,14 @@ def adjust(var):
 
 def setup_mul_dist(probabilistic_model: ProbabilisticModel):
     """
-    The function generates a MultivariateDistribution form a ProbabilisticModel item (database).
-    :param probabilistic_model: the item which stores the info for a MultivariateDistribution.
+    The function generates a MultivariateDistribution form a ProbabilisticModel
+    item (database).
+    :param probabilistic_model: the item which stores the info for a
+                                MultivariateDistribution.
     :return:                    MultivariateDistribution 
     """
-    distributions_model = DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
+    distributions_model = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
     distributions = []
     dependencies = []
 
@@ -123,7 +150,9 @@ def setup_mul_dist(probabilistic_model: ProbabilisticModel):
             dependency.append(adjust(param.dependency))
 
             if adjust(param.function) is not None:
-                parameters.append(FunctionParam(float(param.x0), float(param.x1), float(param.x2), param.function))
+                parameters.append(
+                    FunctionParam(float(param.x0), float(param.x1),
+                                  float(param.x2), param.function))
             else:
                 parameters.append(ConstantParam(float(param.x0)))
 
@@ -134,10 +163,12 @@ def setup_mul_dist(probabilistic_model: ProbabilisticModel):
         elif dist.distribution == 'Weibull':
             distributions.append(WeibullDistribution(*parameters))
         elif dist.distribution == 'Lognormal_2':
-            distributions.append(LognormalDistribution(sigma=parameters[0], mu=parameters[2]))
+            distributions.append(
+                LognormalDistribution(sigma=parameters[0], mu=parameters[2]))
         elif dist.distribution == 'KernelDensity':
             distributions.append(KernelDensityDistribution(*parameters))
         else:
-            raise KeyError('{} is not a matching distribution'.format(dist.distribution))
+            raise KeyError(
+                '{} is not a matching distribution'.format(dist.distribution))
 
     return MultivariateDistribution(distributions, dependencies)

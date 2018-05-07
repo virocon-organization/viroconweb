@@ -42,9 +42,12 @@ class MeasureFileFitForm(forms.Form):
             max_length=50)
         self.fields['distribution_%s' % 0] = forms.ChoiceField(
             choices=self.DISTRIBUTIONS,
-            widget=forms.Select,
             initial='Weibull',
-            label='Distribution')
+            label='Distribution',
+            widget = forms.Select(attrs={
+                'class': 'form-control'
+            })
+        )
         self.fields['width_of_intervals_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
@@ -68,9 +71,12 @@ class MeasureFileFitForm(forms.Form):
                 widget=forms.TextInput(attrs={'value': 'name'}))
             self.fields['distribution_%s' % i] = forms.ChoiceField(
                 choices=self.DISTRIBUTIONS, initial='Weibull',
-                widget=forms.Select(attrs={'id': 'dist_%s' % i,
-                                          'onclick': func_call}),
-                label='Distribution')
+                label='Distribution',
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'dist_%s' % i,
+                    'onclick': func_call})
+                )
             if i < (variable_count-1):
                 self.fields['width_of_intervals_%s' % i] = forms.DecimalField(
                     decimal_places=4,
@@ -81,17 +87,29 @@ class MeasureFileFitForm(forms.Form):
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Scale (λ) dependency')
+                label='Scale (λ) dependency',
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'scale_%s' % i
+                })
+            )
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
                 label='Shape (k) dependency',
-                widget=forms.Select(attrs={'id': 'shape_%s' % i}))
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'shape_%s' % i
+                })
+            )
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
                 label='Location (θ) dependency',
-                widget=forms.Select(attrs={'id': 'loc_%s' % i}))
+                widget=forms.Select(attrs={
+                    'class': 'form-control',
+                    'id': 'loc_%s' % i})
+            )
 
 
 class VariablesForm(forms.Form):
@@ -116,7 +134,7 @@ class VariablesForm(forms.Form):
         self.fields['distribution_%s' % 0] = forms.ChoiceField(
             choices=self.DISTRIBUTIONS,
             initial='Weibull', label='Distribution',
-            widget=forms.Select(attrs={'class': 'distribution',
+            widget=forms.Select(attrs={'class': 'distribution form-control',
                                        'id': 'dist_0',
                                        'onclick': func_call}))
         self.fields['scale_%s' % 0 + '_%s' % 0] = forms.DecimalField(
@@ -156,7 +174,8 @@ class VariablesForm(forms.Form):
             self.fields['distribution_%s' % i] = forms.ChoiceField(
                 choices=self.DISTRIBUTIONS,
                 initial='Weibull', label='Distribution',
-                widget=forms.Select(attrs={'id': 'dist_{}'.format(i),
+                widget=forms.Select(attrs={'class': 'form-control',
+                                           'id': 'dist_{}'.format(i),
                                            'onclick': func_call}))
             # Scale
             dependency_id = 'scale_{}'.format(i)
@@ -167,7 +186,8 @@ class VariablesForm(forms.Form):
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition, required=False,
                 label='Scale (λ) dependency',
-                widget=forms.Select(attrs={'id': dependency_id,
+                widget=forms.Select(attrs={'class': 'form-control',
+                                           'id': dependency_id,
                                            'onclick': func_call}))
             for j in range(0, 3):
                 if j == 0:
@@ -201,7 +221,8 @@ class VariablesForm(forms.Form):
                 choices=condition, required=False,
                 label='Shape (k) dependency',
                 widget=forms.Select(
-                    attrs={'id': dependency_id,
+                    attrs={'class': 'form-control',
+                           'id': dependency_id,
                            'onclick': func_call}))
             for j in range(0, 3):
                 if j == 0:
@@ -225,7 +246,7 @@ class VariablesForm(forms.Form):
                                                    'style': 'display:none',
                                                    'value': '1.489'}))
 
-            # location
+            # Location
             dependency_id = 'location_{}'.format(i)
             param_class = 'location_param%s' % i
             dist_id = 'dist_{}'.format(i)
@@ -236,7 +257,8 @@ class VariablesForm(forms.Form):
                 required=False,
                 label='Location (θ) dependency',
                 widget=forms.Select(
-                    attrs={'id': dependency_id,
+                    attrs={'class': 'form-control',
+                           'id': dependency_id,
                            'onclick': func_call}))
             for j in range(0, 3):
                 if j == 0:

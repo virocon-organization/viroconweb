@@ -19,12 +19,24 @@ from . import settings
 
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
     ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
-    PlottedFigure
+    ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
+
 from .compute_interface import ComputeInterface
+from .validators import validate_contour_coordinates
+from viroconcom import distributions, params
+from decimal import Decimal
+
+
+CONTOUR_CALCULATION_ERROR_MESSAGE = 'Please consider different settings for the ' \
+                                    'contour or think about your probabilistic ' \
+                                    'model. Feel free to contact us if you ' \
+                                    'think this error message is a bug: ' \
+                                    'virocon@uni-bremen.de'
 
 
 def index(request):
     return render(request, 'contour/home.html')
+
 
 class Handler:
     @staticmethod
@@ -170,7 +182,7 @@ class Handler:
         else:
             html = 'contour/' + model.url_str() + '_show.html'
             object = model.objects.get(pk=pk)
-            return render(request, html, {'object' : object})
+            return render(request, html, {'object': object})
 
 
 class MeasureFileHandler(Handler):
@@ -310,25 +322,27 @@ class MeasureFileHandler(Handler):
                     directory_after_static = settings.PATH_USER_GENERATED + \
                                              str(request.user) + '/prob_model/'
                     directory = directory_prefix + directory_after_static
-                    probabilistic_model = plot.plot_fits(
-                        fit,
-                        var_names,
-                        var_symbols,
-                        fit_form.cleaned_data['title'],
-                        request.user, mfm_item, directory
-                    )
+                    prob_model = save_fitted_prob_model(fit,
+                                                        fit_form.cleaned_data[
+                                                            'title'],
+                                                        var_names,
+                                                        var_symbols,
+                                                        request.user,
+                                                        mfm_item)
+                    plot.plot_fit(fit, var_names, var_symbols, directory,
+                                  prob_model)
                     multivariate_distribution = plot.setup_mul_dist(
-                        probabilistic_model
+                        prob_model
                     )
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
                     plotted_figures = PlottedFigure.objects.filter(
-                        probabilistic_model=probabilistic_model
+                        probabilistic_model=prob_model
                     )
                     return render(request,
                                   'contour/fit_results.html',
-                                  {'pk': probabilistic_model.pk,
+                                  {'pk': prob_model.pk,
                                    'plotted_figures': plotted_figures,
                                    'latex_string_list': latex_string_list
                                    }
@@ -346,7 +360,8 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def new_fit(request, pk):
         """
-        The method deletes the previous fit and returns the form to enter a new fit.
+        The method deletes the previous fit and returns the form to enter a new
+        fit.
         :param request: to make a new fit.
         :param pk:      primary key of the previous fit. 
         :return:        HttpResponse to enter a new fit.     
@@ -561,12 +576,25 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def iform_calc(request, var_names, var_symbols, probabilistic_model):
         """
-        The method gives the ifrom calculation order.
-        :param request:             user request to use the iform calculation method. 
-        :param var_names:           names of the variables.
-        :param var_symbols:         symbols of the variables of the probabilistic model.
-        :param probabilistic_model: which is used to create a contour. 
-        :return:                    HttpResponse with the generated graphic (pdf) or error message.
+        Calls the IFORM contour calculation and handles errors if they occur.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to either show the calculation settings page or to
+            calculate the contour (differentiated by POST or GET request).
+        var_names : list of str
+            Names of the variables.
+        var_symbols : list of str
+            Names of the symbols of the probabilistic model's variables.
+        probabilistic_model : models.ProbabilisticModel
+            Probabilistic model, which should be used for the environmental
+            contour calculation.
+
+        Returns
+        -------
+        response : HttpResponse,
+            Renders an html response showing contour or the error message.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -582,6 +610,7 @@ class ProbabilisticModelHandler(Handler):
                             float(iform_form.cleaned_data['return_period']),
                             float(iform_form.cleaned_data['sea_state']),
                             iform_form.cleaned_data['n_steps'])
+                        validate_contour_coordinates(contour_coordinates)
                         environmental_contour = EnvironmentalContour(
                             primary_user=request.user,
                             fitting_method="",
@@ -611,7 +640,7 @@ class ProbabilisticModelHandler(Handler):
                             contour_path = ContourPath(
                                 environmental_contour=environmental_contour)
                             contour_path.save()
-                            for j in range(len(contour_coordinates)):
+                            for j in range(len(contour_coordinates[i])):
                                 EEDC = ExtremeEnvDesignCondition(
                                     contour_path=contour_path)
                                 EEDC.save()
@@ -620,15 +649,14 @@ class ProbabilisticModelHandler(Handler):
                                         x=float(contour_coordinates[i][j][k]),
                                         EEDC=EEDC)
                                     eedc_scalar.save()
-
-                    # catch and allocate errors caused by calculating iform.
-                    except (ValueError, RuntimeError, IndexError, TypeError,
+                    # Catch and allocate errors caused by calculating iform.
+                    except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': 'Try it again with other settings please',
+                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'})
 
@@ -695,12 +723,25 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def hdc_calc(request, var_names, var_symbols, probabilistic_model):
         """
-        The method gives the hdc calculation order. If the calculation does not work the user gets an error messages.
-        :param request:             user request to use the hdc calculation method. 
-        :param var_names:           names of the variables.
-        :param var_symbols:         symbols of the variables of the probabilistic model
-        :param probabilistic_model: which is used to create a contour. 
-        :return:                    HttpResponse with the generated graphic (pdf) or error message.
+        Calls the HDC calculation and handles errors if they occur.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to either show the calculation settings page or to
+            calculate the contour (differentiated by POST or GET request).
+        var_names : list of str
+            Names of the variables.
+        var_symbols : list of str
+            Names of the symbols of the probabilistic model's variables.
+        probabilistic_model : models.ProbabilisticModel
+            Probabilistic model, which should be used for the environmental
+            contour calculation.
+
+        Returns
+        -------
+        response : HttpResponse,
+            Renders an html response showing contour or the error message.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -726,6 +767,7 @@ class ProbabilisticModelHandler(Handler):
                                 float(hdc_form.cleaned_data['n_years']),
                                 float(hdc_form.cleaned_data['sea_state']),
                                 limits, deltas)
+                            validate_contour_coordinates(contour_coordinates)
                             environmental_contour = EnvironmentalContour(
                                 primary_user=request.user,
                                 fitting_method="",
@@ -761,7 +803,7 @@ class ProbabilisticModelHandler(Handler):
                                 contour_path = ContourPath(
                                     environmental_contour=environmental_contour)
                                 contour_path.save()
-                                for j in range(len(contour_coordinates)):
+                                for j in range(len(contour_coordinates[i])):
                                     EEDC = ExtremeEnvDesignCondition(
                                         contour_path=contour_path)
                                     EEDC.save()
@@ -770,25 +812,27 @@ class ProbabilisticModelHandler(Handler):
                                             x=float(contour_coordinates[i][j][k]),
                                             EEDC=EEDC)
                                         eedc_scalar.save()
-                    # catch and allocate errors caused by calculating hdc.
-                    except (ValueError, RuntimeError, IndexError, TypeError, NameError, KeyError, Exception) as err:
+                    # Catch and allocate errors caused by calculating a HDC.
+                    except (ValidationError, RuntimeError, IndexError,
+                            TypeError, NameError, KeyError, Exception) as err:
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': 'Try it again with other settings please',
+                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'}
                         )
 
-                    # generate path to the user specific pdf.
+                    # Generate path to the user specific pdf.
                     path = plot.create_latex_report(contour_coordinates,
                                                     str(request.user),
                                                     environmental_contour,
                                                     var_names,
                                                     var_symbols)
 
-                    # if matrix 3dim - send data for 3dim interactive plot.
+                    # If the contour is 3-dimensional, send data for an
+                    # interactive plot.
                     if len(contour_coordinates[0]) > 2:
                         dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
                         labels = []
@@ -878,6 +922,7 @@ class EnvironmentalContourHandler(Handler):
     """
     Handler for EnvironmentalContour objects
     """
+
     @staticmethod
     def overview(request, collection=models.EnvironmentalContour):
         return Handler.overview(request, collection)
@@ -897,6 +942,104 @@ class EnvironmentalContourHandler(Handler):
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
         return Handler.delete(request, pk, collection)
+
+
+def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
+                           measure_file):
+    """
+    Saves a probabilistic model which was fitted to measurement data.
+
+    Parameters
+    ----------
+    fit : Fit
+        Calculated fit results of a measurement file.
+    model_title : str
+        Title of the probabilistic model.
+    var_names : list of str
+        Names of the variables.
+    var_symbols : list of str
+        Names of the symbols of the probabilistic model's variables.
+    user : str
+        Name of a user.
+    measure_file : MeasureFileModel
+        MeasureFileModel object linked to the probabilistic model.
+
+    Returns
+    -------
+    ProbabilisticModel
+        Which was fitted to measurement data
+
+    """
+    probabilistic_model = ProbabilisticModel(primary_user=user,
+                                             collection_name=model_title,
+                                             measure_file_model=measure_file)
+    probabilistic_model.save()
+
+    for i, dist in enumerate(fit.mul_var_dist.distributions):
+        if dist.name == 'Lognormal':
+            dist_name = "Lognormal_2"
+
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                   probabilistic_model=probabilistic_model,
+                                                   distribution=dist_name)
+            distribution_model.save()
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.mu, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
+        else:
+            distribution_model = DistributionModel(name=var_names[i],
+                                                   symbol=var_symbols[i],
+                                                    probabilistic_model=probabilistic_model,
+                                                   distribution=dist.name)
+            distribution_model.save()
+            save_parameter(dist.shape, distribution_model,
+                           fit.mul_var_dist.dependencies[i][0])
+            save_parameter(dist.loc, distribution_model,
+                           fit.mul_var_dist.dependencies[i][1])
+            save_parameter(dist.scale, distribution_model,
+                           fit.mul_var_dist.dependencies[i][2])
+
+    return probabilistic_model
+
+
+def save_parameter(parameter, distribution_model, dependency):
+    """
+    Saves a fitted parameter and links it to a DistributionModel.
+
+    Parameters
+    ----------
+    parameter : ConstantParam or FunctionParam
+        ConstantParam is a float value. FunctionParam contains a whole function
+        like power function or exponential.
+    distribution_model : DistributionModel
+        The parameter will be linked to this DistributionModel.
+    dependency : int
+        The dimension the dependency is based on.
+    """
+    if type(parameter) == params.ConstantParam:
+        parameter_model = ParameterModel(function='None',
+                                         x0=parameter(0),
+                                         dependency='!',
+                                         distribution=distribution_model)
+        parameter_model.save()
+    elif type(parameter) == params.FunctionParam:
+        parameter_model = ParameterModel(function=parameter.func_name,
+                                         x0=parameter.a,
+                                         x1=parameter.b,
+                                         x2=parameter.c,
+                                         dependency=dependency,
+                                         distribution=distribution_model)
+        parameter_model.save()
+    else:
+        parameter_model = ParameterModel(function='None',
+                                         x0=0,
+                                         dependency='!',
+                                         distribution=distribution_model)
+        parameter_model.save()
 
 
 def get_info_from_file(url):

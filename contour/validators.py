@@ -1,7 +1,38 @@
 import re
+import numpy as np
 from django.core.exceptions import ValidationError
 
+def validate_contour_coordinates(contour_coordinates):
+    """
+    Validates contour coordinates.
 
+    They are not allowed to contain NaN or inf.
+
+    Parameters
+    ----------
+    contour_coordinates : n-dimensional matrix
+        The coordinates of the environmental contour.
+        The format is defined by compute_interface.iform() and
+        compute_interface.hdc().
+
+    Raises
+    -------
+    ValidationError,
+        If the contour coordinates contain unsupported values like
+        NaN or inf.
+    """
+    for i in range(len(contour_coordinates)): # Loop over  multiple contour paths
+        for j in range(len(contour_coordinates[i])): # Loop over the EEDC vectors
+            for k in range(len(contour_coordinates[i][j])): # Loop over scalars
+                scalar = contour_coordinates[i][j][k]
+                if np.isnan(scalar):
+                    raise ValidationError('The contour coordinates contain '
+                                          'values, which are set to NaN.')
+                if np.isinf(scalar):
+                    print('Raising ValidationError because of inf.')
+                    raise ValidationError('The contour coordinates contain '
+                                          'values, which are set to inf '
+                                          '(Infinity).')
 
 def validate_csv_upload(value):
 

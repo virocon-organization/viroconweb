@@ -14,18 +14,34 @@
             <div class="panel-body">
                 {% for x in form %}
                     <div class="form-group CreateDataText">
-                        <div class="row">
-                            <div class="col-md-2"></div>
-                            <div class="col-md-2"> {{ x.label_tag }}</div>
-                            {% if x.label == 'Measurement file' %}
-                                <div class="col-md-4">
-                                    <label class="btn btn-default btn-file"> Browse... {{ x }}</label>
+                        <div class="col-md-2"></div>
+                        <div class="col-md-2"> {{ x.label_tag }}</div>
+                        {% if x.label == 'Measurement file' %}
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <label class="input-group-btn">
+                                        <span class="btn btn-primary" for="id_measure_file">
+                                            <input id="id_measure_file"
+                                                   type="file"
+                                                   name="measure_file"
+                                                   required
+                                                   style="display:none"
+                                                   onchange="$('#upload-file-info2').val(this.files[0].name)"
+                                            >
+                                                    Browse...
+                                        </span>
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="upload-file-info2"
+                                    >
                                 </div>
-                            {% else %}
-                                <div class="col-md-4"> {{ x }} </div>
-                            {% endif %}
-                            <div class="col-md-3"><span class="text-danger small">{{ x.errors }}</span></div>
-                        </div>
+                                <span class='label label-info' id="upload-file-info"></span>
+                            </div>
+                        {% else %}
+                            <div class="col-md-4"> {{ x }} </div>
+                        {% endif %}
+                        <div class="col-md-3"><span class="text-danger small">{{ x.errors }}</span></div>
                     </div>
                 {% endfor %}
                 <div class="form-group">
