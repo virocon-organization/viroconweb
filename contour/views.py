@@ -313,7 +313,7 @@ class MeasureFileHandler(Handler):
                                      'probabliistic model to the file.'
                                      'Try it again with different settings '
                                      'please',
-                               'header': 'fit measurement file to probabilistic '
+                               'header': 'Fit measurement file to probabilistic '
                                          'model',
                                'return_url': 'contour:measure_file_model_select'
                              }
@@ -329,8 +329,22 @@ class MeasureFileHandler(Handler):
                                                         var_symbols,
                                                         request.user,
                                                         mfm_item)
-                    plot.plot_fit(fit, var_names, var_symbols, directory,
-                                  prob_model)
+                    try:
+                        plot.plot_fit(fit, var_names, var_symbols, directory,
+                                    prob_model)
+                    except(AttributeError) as err:
+                        return render(
+                            request,
+                            'contour/error.html',
+                            {'error_message': err,
+                             'text': 'An AttributeError occured while plotting '
+                                     'the fit. This error is probably related to'
+                                     'issue#161. ',
+                             'header': 'Fit measurement file to probabilistic '
+                                        'model',
+                             'return_url': 'contour:index'
+                             }
+                        )
                     multivariate_distribution = plot.setup_mul_dist(
                         prob_model
                     )
