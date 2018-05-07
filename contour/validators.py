@@ -17,7 +17,7 @@ def validate_file_extension(value):
 
 def validate_contour_coordinates(contour_coordinates):
     """
-    Valides contour coordinates.
+    Validates contour coordinates.
 
     They are not allowed to contain NaN or inf.
 
