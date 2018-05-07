@@ -98,7 +98,7 @@ else:
 if RUN_MODE == 'production':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
-    DEBUG = True
+    DEBUG = False
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 else:
@@ -238,7 +238,7 @@ else:
 
 # Thanks to: https://stackoverflow.com/questions/1414130/django-not-
 # sending-emails-to-admins
-ADMINS = [('Andreas', 'a.haselsteiner@uni-bremen.de'), ]
+ADMINS = [('Andreas', 'virocon@uni-bremen.de'), ]
 SERVER_EMAIL = 'django@virocon.com'
 
 # See https://devcenter.heroku.com/articles/django-app-configuration

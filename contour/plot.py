@@ -551,8 +551,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
-        # Plot the contour
-
+        # Plot the contour as a scatter plot and a line connecting the dots
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1],
@@ -570,7 +569,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
                     label='environmental contour')
                 ax.add_patch(patch_design_region)
                 ax.add_patch(patch_environmental_contour)
-            except(ZeroDivisionError):
+            except(ZeroDivisionError): # alpha_shape() can throw these
                 print('Encountered a ZeroDivisionError when using alpha_shape.'
                       'Consequently no contour is plotted.')
 
