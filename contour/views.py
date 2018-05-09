@@ -329,13 +329,11 @@ class MeasureFileHandler(Handler):
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
-                    plotted_figures = PlottedFigure.objects.filter(
-                        probabilistic_model=prob_model
-                    )
+                    srt_figures = sort_plotted_figures(prob_model)
                     return render(request,
                                   'contour/fit_results.html',
                                   {'pk': prob_model.pk,
-                                   'plotted_figures': plotted_figures,
+                                   'srt_figures': srt_figures,
                                    'latex_string_list': latex_string_list
                                    }
                                   )
@@ -870,10 +868,8 @@ class ProbabilisticModelHandler(Handler):
                 var_symbols.append(dist.symbol)
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-            plotted_figures = PlottedFigure.objects.filter(
-                probabilistic_model=probabilistic_model)
 
-            srt_figures = sort_plotted_figures(plotted_figures)
+            srt_figures = sort_plotted_figures(probabilistic_model)
 
             return render(
                 request,
@@ -881,7 +877,6 @@ class ProbabilisticModelHandler(Handler):
                 {'user': request.user,
                  'probabilistic_model': probabilistic_model,
                  'latex_string_list': latex_string_list,
-                 'plotted_figures': plotted_figures,
                  'srt_figures': srt_figures})
 
 
@@ -952,11 +947,11 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
                                                    distribution=dist_name)
             distribution_model.save()
             save_parameter(dist.shape, distribution_model,
-                           fit.mul_var_dist.dependencies[i][0])
+                           fit.mul_var_dist.dependencies[i][0], 'shape')
             save_parameter(dist.loc, distribution_model,
-                           fit.mul_var_dist.dependencies[i][1])
+                           fit.mul_var_dist.dependencies[i][1], 'loc')
             save_parameter(dist.mu, distribution_model,
-                           fit.mul_var_dist.dependencies[i][2])
+                           fit.mul_var_dist.dependencies[i][2], 'scale')
         else:
             distribution_model = DistributionModel(name=var_names[i],
                                                    symbol=var_symbols[i],
@@ -964,16 +959,16 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
                                                    distribution=dist.name)
             distribution_model.save()
             save_parameter(dist.shape, distribution_model,
-                           fit.mul_var_dist.dependencies[i][0])
+                           fit.mul_var_dist.dependencies[i][0], 'shape')
             save_parameter(dist.loc, distribution_model,
-                           fit.mul_var_dist.dependencies[i][1])
+                           fit.mul_var_dist.dependencies[i][1], 'loc')
             save_parameter(dist.scale, distribution_model,
-                           fit.mul_var_dist.dependencies[i][2])
+                           fit.mul_var_dist.dependencies[i][2], 'scale')
 
     return probabilistic_model
 
 
-def save_parameter(parameter, distribution_model, dependency):
+def save_parameter(parameter, distribution_model, dependency, name):
     """
     Saves a fitted parameter and links it to a DistributionModel.
 
@@ -986,12 +981,15 @@ def save_parameter(parameter, distribution_model, dependency):
         The parameter will be linked to this DistributionModel.
     dependency : int
         The dimension the dependency is based on.
+    name : str
+        Name of the parameter (shape, location or scale)
     """
     if type(parameter) == params.ConstantParam:
         parameter_model = ParameterModel(function='None',
                                          x0=parameter(0),
                                          dependency='!',
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
     elif type(parameter) == params.FunctionParam:
         parameter_model = ParameterModel(function=parameter.func_name,
@@ -999,13 +997,15 @@ def save_parameter(parameter, distribution_model, dependency):
                                          x1=parameter.b,
                                          x2=parameter.c,
                                          dependency=dependency,
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
     else:
         parameter_model = ParameterModel(function='None',
                                          x0=0,
                                          dependency='!',
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
 
 
@@ -1074,28 +1074,93 @@ def get_info_from_reader(reader):
     return var_names, var_symbols
 
 
-def sort_plotted_figures(plotted_figures):
-    sorted_figures = []
-    do_search_images = True
-    i = 0
-    while (do_search_images):
-        var_images = []
-        var_indicator_str = 'fit_{}'.format(i)
-        # TODO implement method for i>9
-        pdf_indicator_str = 'fit_0{}'.format(i)
-        print(pdf_indicator_str)
-        print(var_indicator_str)
-        for plotted_figure in plotted_figures:
-            if var_indicator_str in plotted_figure.image.url and i > 0:
-                var_images.append(plotted_figure)
+def sort_plotted_figures(probabilistic_model):
+    """
+    Sorts the fit images of a probabilistic model to generate clear overview
+    in the template.
 
-            if pdf_indicator_str in plotted_figure.image.url:
-                var_images.append(plotted_figure)
-        if len(var_images) == 0:
-            do_search_images = False
+    Parameters
+    ----------
+    probabilistic_model : ProbabilisticModel
+        A probabilistic model generated by a fit.
 
-        i = i+1
+    Return
+    -----
+    srt_figures : list of TemplateImages
+        The TemplateImages represents all images that linked to a parameter of
+        a distribution.
+    """
+    srt_figures = []
 
-        sorted_figures.append(var_images)
+    dist_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
 
-    return sorted_figures
+    for i, dist in enumerate(dist_models):
+        plotted_figures = PlottedFigure.objects.filter(
+            distribution_model=dist)
+
+        if len(plotted_figures) == 1:
+            temp_image = TemplateImage()
+            temp_image.var_number = i + 1
+            temp_image.param_image = plotted_figures[0]
+            temp_image.param_name = 'independent'
+            srt_figures.append(temp_image)
+        else:
+            param_images = []
+            pdf_images = []
+            for j, plotted_figure in enumerate(plotted_figures):
+                if plotted_figure.parameter_model is not None or 'None' in plotted_figure.image.url:
+                    param_images.append(plotted_figure)
+                else:
+                    pdf_images.append(plotted_figure)
+
+            for param in param_images:
+                temp_image = TemplateImage()
+                temp_image.var_number = i + 1
+                temp_image.param_image = param
+                if 'None' not in param.image.url:
+                    temp_image.pdf_images = pdf_images
+                    if dist.distribution == 'Weibull':
+                        temp_image.param_name = param.parameter_model.name
+                    elif dist.distribution == 'Lognormal_2':
+
+                        if param.parameter_model.name == 'scale':
+                            temp_image.param_name = 'mu'
+                        elif param.parameter_model.name == 'shape':
+                            temp_image.param_name = 'sigam'
+                    elif dist.distribution == 'Normal':
+                        if param.parameter_model.name == 'scale':
+                            temp_image.param_name = 'sigma'
+                        elif param.parameter_model.name == 'loc':
+                            temp_image.param_name = 'mu'
+                else:
+                    temp_image.param_name = 'independent'
+
+                srt_figures.append(temp_image)
+
+    return srt_figures
+
+
+class TemplateImage:
+    """
+    Holds information and images of a fitted distribution parameter to view the
+    fit results of a parameter.
+
+    Attributes
+    ----------
+    var_number : int
+        The dimension number of a distribution.
+    pdf_images : list of PlottedFigures
+        PlottedFigures which show a fitted distribution.
+    param_image : PlottedFigure
+        The PlottedFigure which shows a fit function of a parameter.
+    param_name : str
+        The name of the parameter (shape, loc, scale).
+
+    """
+    def __init__(self):
+        self.var_number = 0
+        self.pdf_images = []
+        self.param_image = None
+        self.param_name = 'None'
+

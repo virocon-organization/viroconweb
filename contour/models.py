@@ -344,6 +344,21 @@ class PlottedFigure(models.Model):
         null=True,
         on_delete=models.CASCADE
     )
+
+    distribution_model = models.ForeignKey(
+        DistributionModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
+    parameter_model = models.ForeignKey(
+        ParameterModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
     environmental_contour = models.ForeignKey(
         EnvironmentalContour,
         blank=True,

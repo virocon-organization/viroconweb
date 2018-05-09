@@ -25,23 +25,14 @@
                         data-target="#measure-file-plot">
                     Show plot
                 </button>
-                <div id="measure-file-plot" class="collapse">
-                    <img src="{{ probabilistic_model.measure_file_model.scatter_plot.url }}"
-                         class="img-responsive center-block">
-                </div>
+            <div id="measure-file-plot" class="collapse">
+                <img src="{{ probabilistic_model.measure_file_model.scatter_plot.url }}"
+                     class="img-responsive center-block">
+            </div>
             </p>
-            Hier srt figures
-            {% for plotted_figures in srt_figures %}
-                 <hr>
-                {% for plotted_figure in plotted_figures %}
 
-                    {{ plotted_figure.image.url }}
-                    <br>
-                {%  endfor %}
 
-            {% endfor %}
-
-            {% if plotted_figures %}
+            {% if srt_figures %}
                 <h3>Evaluation of the fit</h3>
                 <button class="btn btn-default"
                         data-toggle="collapse"
@@ -49,10 +40,19 @@
                     Show fits
                 </button>
                 <div id="fit-images" class="collapse">
-                    {% for plotted_figure in plotted_figures %}
-                        <img src="{{ plotted_figure.image.url }}"
+                    {% for template_image in srt_figures %}
+                        <hr>
+                        <h3>{{ template_image.var_number }}. Variable
+                            <small>{{ template_image.param_name }} - parameter
+                            </small>
+                        </h3>
+                        <img src="{{ template_image.param_image.image.url }}"
                              class="img-responsive center-block">
-                        {{ plotted_figure.image.url }}
+                        {% for plotted_figure in template_image.pdf_images %}
+                            <img src="{{ plotted_figure.image.url }}"
+                                 class="img-responsive center-block">
+                            <br>
+                        {% endfor %}
                     {% endfor %}
                 </div>
             {% endif %}

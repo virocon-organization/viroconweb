@@ -163,7 +163,11 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
     plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
-    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+
+    dists_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model,
+                                   distribution_model=dists_models[dim_index])
     file_name = 'fit_' + dim_index_2_digits + '_' + parent_index_2_digits + \
                 '_' + low_index_2_digits + '.png'
     plotted_figure.image.save(file_name, content_file)
@@ -246,8 +250,17 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
     plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
-    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+
+    dists_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+    param_models = ParameterModel.objects.filter(
+        distribution=dists_models[dim_index])
+    param_model = param_models.get(name=para_name)
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model,
+                                   distribution_model=dists_models[dim_index],
+                                   parameter_model=param_model)
     file_name = 'fit_' + str(dim_index) + para_name + '.png'
+
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
 

@@ -6,8 +6,19 @@
         <h1>Fit results: visual inspection</h1>
     </div>
     <br>
-    {% for plotted_figure in plotted_figures %}
-        <img src="{{ plotted_figure.image.url }}" class="img-responsive center-block">
+    {% for template_image in srt_figures %}
+        <hr>
+        <h3>{{ template_image.var_number }}. Variable
+            <small>{{ template_image.param_name }} - parameter
+            </small>
+        </h3>
+        <img src="{{ template_image.param_image.image.url }}"
+             class="img-responsive center-block">
+        {% for plotted_figure in template_image.pdf_images %}
+            <img src="{{ plotted_figure.image.url }}"
+                 class="img-responsive center-block">
+            <br>
+        {% endfor %}
     {% endfor %}
     <hr>
     <h2>Probability density function</h2>
