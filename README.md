@@ -8,7 +8,7 @@ ViroCon is an easy-to-use web-based software to compute environmental contours.
 ## About
 
 This is the code of the web application
-[ViroCon](https://serene-sierra-98066.herokuapp.com).
+[ViroCon](https://virocon.herokuapp.com).
 
 **ViroCon is currently under development. There is no stable version yet. At
 this moment the version hosted at Heroku might be different from the repo's
@@ -37,7 +37,7 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 
 If you want to compute environmental contours with a simple web-based user
 interface, go to our hosted application at
-https://serene-sierra-98066.herokuapp.com
+https://virocon.herokuapp.com
 
 Here we will input a GIF that shows how a users interacts with the app.
 
@@ -57,7 +57,7 @@ documentation.
 
 **Methods** The app has a help page, which describes the implemented methods in
 detail. It can be found
-[here](https://serene-sierra-98066.herokuapp.com/info/help).
+[here](https://virocon.herokuapp.com/info/help).
 
 **Paper** We are currently writing an academic paper describing ViroCon. We will
 provide the a linkt to it here.
