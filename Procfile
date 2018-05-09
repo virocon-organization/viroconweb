@@ -1,1 +1,1 @@
-web: gunicorn virocon.wsgi --log-file=-
+web: gunicorn viroconweb.wsgi --log-file=-

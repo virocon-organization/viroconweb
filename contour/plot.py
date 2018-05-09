@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 from io import BytesIO, StringIO
 from django.core.files.base import ContentFile
 from urllib import request
-from virocon.settings import USE_S3
+from viroconweb.settings import USE_S3
 
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
@@ -232,10 +232,20 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    x = np.linspace(min(param_at) - 2, max(param_at) + 2, 100)
+
+    x = np.linspace(min(param_at) - 2, max(param_at) + 2,
+                    100)
     y = []
-    for x1 in x:
-        y.append(fit_func(x1))
+    if dist_name == 'Lognormal' and para_name == 'scale':
+        for i in range(len(param_values)):
+            param_values[i] = np.log(param_values[i])
+
+        for x1 in x:
+            y.append(np.log(fit_func(x1)))
+    else:
+        for x1 in x:
+            y.append(fit_func(x1))
+
     ax.plot(x, y, color='#54889c')
 
     ax.scatter(param_at, param_values, color='#9C373A')
@@ -564,24 +574,27 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
-        # Plot contour
+        # Plot the contour as a scatter plot and a line connecting the dots
         alpha = .1
         for i in range(len(contour_coordinates)):
             ax.scatter(contour_coordinates[i][0], contour_coordinates[i][1],
                        s=15, c='b',
                        label='extreme env. design condition')
-            concave_hull, edge_points = alpha_shape(
-                convert_ndarray_list_to_multipoint(contour_coordinates[i]),
-                alpha=alpha)
-
-            patch_design_region = PolygonPatch(
-                concave_hull, fc='#999999', linestyle='None', fill=True,
-                zorder=-2, label='design region')
-            patch_environmental_contour = PolygonPatch(
-                concave_hull, ec='b', fill=False, zorder=-1,
-                label='environmental contour')
-            ax.add_patch(patch_design_region)
-            ax.add_patch(patch_environmental_contour)
+            try:
+                concave_hull, edge_points = alpha_shape(
+                    convert_ndarray_list_to_multipoint(contour_coordinates[i]),
+                    alpha=alpha)
+                patch_design_region = PolygonPatch(
+                    concave_hull, fc='#999999', linestyle='None', fill=True,
+                    zorder=-2, label='design region')
+                patch_environmental_contour = PolygonPatch(
+                    concave_hull, ec='b', fill=False, zorder=-1,
+                    label='environmental contour')
+                ax.add_patch(patch_design_region)
+                ax.add_patch(patch_environmental_contour)
+            except(ZeroDivisionError): # alpha_shape() can throw these
+                print('Encountered a ZeroDivisionError when using alpha_shape.'
+                      'Consequently no contour is plotted.')
 
         plt.legend(loc='lower right')
         plt.xlabel('{}'.format(var_names[0]))

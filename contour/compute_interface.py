@@ -1,12 +1,15 @@
 import pandas as pd
 from contour.models import MeasureFileModel
 from .models import ParameterModel, DistributionModel, ProbabilisticModel
-import viroconcom
-from viroconcom.distributions import *
-from viroconcom.contours import *
-from viroconcom.params import *
-from viroconcom.fitting import *
-import warnings
+from viroconcom.fitting import Fit
+from viroconcom.contours import IFormContour, HighestDensityContour
+from viroconcom.params import ConstantParam, FunctionParam
+from viroconcom.distributions import (NormalDistribution,
+                                      LognormalDistribution,
+                                      WeibullDistribution,
+                                      KernelDensityDistribution,
+                                      MultivariateDistribution)
+
 
 
 class ComputeInterface:
@@ -14,10 +17,10 @@ class ComputeInterface:
     def fit_curves(mfm_item: MeasureFileModel, fit_settings, var_number):
         """
         The method represents the interface to compute to fit measure files.
-        :param mfm_item:        measure file item form the MeasureFileModel. 
-        :param fit_settings:    the selected fit settings form the user. 
-        :param var_number:      number of variables. 
-        :return:                the results of the fits ( a lot of arrays). 
+        :param mfm_item:        measure file item form the MeasureFileModel.
+        :param fit_settings:    the selected fit settings form the user.
+        :param var_number:      number of variables.
+        :return:                the results of the fits ( a lot of arrays).
         """
         data_path = mfm_item.measure_file.url
         if data_path[0] == '/':
@@ -83,9 +86,9 @@ class ComputeInterface:
         contours.
         :param probabilistic_model: the item which stores the info for a
         MultivariateDistribution.
-        :param return_period:       considered years. 
+        :param return_period:       considered years.
         :param n_steps:             number of points on the contour.
-        :param sea_state:           
+        :param sea_state:
         :return:                    a matrix with x and y coordinates which
                                     represents the contour.
         """
@@ -101,10 +104,10 @@ class ComputeInterface:
         contours.
         :param probabilistic_model: the item which stores the info for a
                                     MultivariateDistribution.
-        :param limits:              limits 
-        :param deltas:              deltas 
-        :param return_period:       considered years 
-        :param state_duration:      
+        :param limits:              limits
+        :param deltas:              deltas
+        :param return_period:       considered years
+        :param state_duration:
         :return:                    a matrix with x and y coordinates which
                                     represents the contour.
         """
@@ -135,7 +138,7 @@ def setup_mul_dist(probabilistic_model: ProbabilisticModel):
     item (database).
     :param probabilistic_model: the item which stores the info for a
                                 MultivariateDistribution.
-    :return:                    MultivariateDistribution 
+    :return:                    MultivariateDistribution
     """
     distributions_model = DistributionModel.objects.filter(
         probabilistic_model=probabilistic_model)
