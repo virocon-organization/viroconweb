@@ -1076,8 +1076,8 @@ def get_info_from_reader(reader):
 
 def sort_plotted_figures(probabilistic_model):
     """
-    Sorts the fit images of a probabilistic model to generate clear overview
-    in the template.
+    Sorts the images showing the fits to generate a structured overview in the
+    template.
 
     Parameters
     ----------
@@ -1087,8 +1087,8 @@ def sort_plotted_figures(probabilistic_model):
     Return
     -----
     sorted_figures : list of FittingFiguresCollections
-        The FittingFiguresCollections represents all images that linked to a parameter of
-        a distribution.
+        The FittingFiguresCollections represents all images that are linked to a
+        parameter of a distribution.
     """
     sorted_figures = []
 
@@ -1109,7 +1109,13 @@ def sort_plotted_figures(probabilistic_model):
             param_images = []
             pdf_images = []
             for j, plotted_figure in enumerate(plotted_figures):
-                if plotted_figure.parameter_model is not None or 'None' in plotted_figure.image.url:
+                # If a PlottedFigure is assigned to a ParameterModel instance
+                # the PlottedFigure holds an image which shows a fit of a
+                # parameter's dependency or if the PlottedFigure object's
+                # image url includes the String 'None' then the image shows
+                # fitted distribution of all independent parameters. Both types
+                # of images will be appended to the param_images list.
+                if plotted_figure.parameter_model or 'None' in plotted_figure.image.url:
                     param_images.append(plotted_figure)
                 else:
                     pdf_images.append(plotted_figure)
