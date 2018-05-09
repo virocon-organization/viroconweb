@@ -105,15 +105,15 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
         x = np.linspace(norm.ppf(0.0001, loc, scale),
                         norm.ppf(0.9999, loc, scale), 100)
         y = norm.pdf(x, loc, scale)
-        text = distribution_type + ', ' + 'mu: ' + str(format(loc, '.3f')) + \
-               ' sigma: ' + str(format(scale, '.3f'))
+        text = distribution_type + ', ' + 'μ=' + str(format(loc, '.3f')) + \
+               ' σ=' + str(format(scale, '.3f'))
     elif distribution_type == 'Weibull':
         x = np.linspace(weibull_min.ppf(0.0001, shape, loc, scale),
                         weibull_min.ppf(0.9999, shape, loc, scale), 100)
         y = weibull_min.pdf(x, shape, loc, scale)
-        text = distribution_type + ', ' + 'shape: ' + \
-               str(format(shape, '.3f')) + ' loc: ' + str(
-            format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
+        text = distribution_type + ', ' + 'k=' + \
+               str(format(shape, '.3f')) + ' θ=' + str(
+            format(loc, '.3f')) + ' λ=' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
 
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
@@ -123,8 +123,8 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
         # The plot function works with the scale parameter but the user
         # interface works with the mu value. However the scale value must be
         # adjusted.
-        text = distribution_type + ', ' + 'sigma: ' + \
-               str(format(shape, '.3f')) + ' mu: ' + \
+        text = distribution_type + ', ' + 'σ=' + \
+               str(format(shape, '.3f')) + ' μ=' + \
                str(format(np.log(scale), '.3f'))
     else:
         raise KeyError('No function match - {}'.format(distribution_type))
@@ -208,27 +208,8 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
     probabilistic_model : ProbabilisticModel
         Probabilistic model that was created based on this fit.
     """
-    if dist_name == 'Weibull':
-        if para_name == 'shape':
-            y_text = 'k (shape)'
-        elif para_name == 'loc':
-            y_text = 'θ (location)'
-        elif para_name == 'scale':
-            y_text = 'λ (scale)'
-    elif dist_name == 'Lognormal':
-        if para_name == 'shape':
-            y_text = 'σ (sigma)'
-        elif para_name == 'scale':
-            y_text = 'μ (mu)'
-    elif dist_name == 'Normal':
-        if para_name == 'shape':
-            return
-        elif para_name == 'loc':
-            y_text = 'μ (mean)'
-        elif para_name == 'scale':
-            y_text = 'σ (standard deviation)'
-    else:
-        y_text = para_name
+
+    y_text = assign_parameter_name(dist_name, para_name)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -240,7 +221,6 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
 
     ax.scatter(param_at, param_values, color='#9C373A')
     ax.grid(True)
-    plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
 
@@ -964,3 +944,45 @@ def create_design_conditions_csv(contour_coordinates, environmental_contour):
     environmental_contour.design_conditions_csv.save(
         settings.EEDC_FILE_NAME, content_file)
     environmental_contour.save()
+
+
+def assign_parameter_name(dist_name, param_name):
+    """
+    Assigns the correct parameter name matching for the distribution
+
+    Parameters
+    ---------
+    dist_name : str
+        The name of a distribution.
+    param_name : str
+        The name of a parameter as it is saved in the database.
+
+    Returns
+    -------
+    assigned_name : str
+        The parameter name matching to the distribution.
+    """
+    assigned_name = param_name
+    if dist_name == 'Weibull':
+        if param_name == 'shape':
+            assigned_name = 'k'
+        elif param_name == 'loc':
+            assigned_name = 'θ'
+        elif param_name == 'scale':
+            assigned_name = 'λ'
+    elif dist_name == 'Lognormal' or dist_name == 'Lognormal_2':
+        if param_name == 'shape':
+            assigned_name = 'σ'
+        elif param_name == 'scale':
+            assigned_name = 'μ'
+    elif dist_name == 'Normal':
+        if param_name == 'shape':
+            return
+        elif param_name == 'loc':
+            assigned_name = 'μ (mean)'
+        elif param_name == 'scale':
+            assigned_name = 'σ (standard deviation)'
+
+    return assigned_name
+
+

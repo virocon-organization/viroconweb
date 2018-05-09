@@ -5,12 +5,13 @@
     <div class="page-header">
         <h1>Fit results: visual inspection</h1>
     </div>
-    <br>
-    {% for template_image in srt_figures %}
-        <hr>
-        <h3>{{ template_image.var_number }}. Variable
-            <small>{{ template_image.param_name }} - parameter
-            </small>
+    <div>
+    {% for template_image in sorted_figures %}
+        {% if template_image.var_number > 1 %}
+             <hr>
+        {% endif %}
+        <h3 align="left">{{ template_image.var_number }}. Variable:
+            {{ template_image.param_name }}
         </h3>
         <img src="{{ template_image.param_image.image.url }}"
              class="img-responsive center-block">
@@ -20,6 +21,7 @@
             <br>
         {% endfor %}
     {% endfor %}
+    </div>
     <hr>
     <h2>Probability density function</h2>
     {% for latex_string in latex_string_list %}
