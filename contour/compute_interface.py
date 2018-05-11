@@ -1,7 +1,8 @@
 import time
 import pandas as pd
-from contour.models import MeasureFileModel
-from .models import ParameterModel, DistributionModel, ProbabilisticModel
+
+from .models import MeasureFileModel, ParameterModel, DistributionModel, \
+    ProbabilisticModel
 from .settings import MAX_COMPUTING_TIME_PRODUCTION
 from viroconcom.fitting import Fit
 from viroconcom.contours import IFormContour, HighestDensityContour
@@ -116,14 +117,14 @@ class ComputeInterface:
         mul_dist = setup_mul_dist(probabilistic_model)
         print('Calculting a HDC with MAX_COMPUTING_TIME_PRODUCTION = ' +
               str(MAX_COMPUTING_TIME_PRODUCTION))
-        print('The starting time is: ' + str(time.time()))
+        print('The starting time for the HDC compuatation is: ' + str(time.time()))
         contour = HighestDensityContour(mul_var_distribution=mul_dist,
                                         return_period=return_period,
                                         state_duration=state_duration,
                                         limits=limits,
                                         deltas=deltas,
                                         timeout=MAX_COMPUTING_TIME_PRODUCTION)
-        print('The time after the computationis: ' + str(time.time()))
+        print('The time after the HDC computationis: ' + str(time.time()))
         return contour.coordinates
 
 

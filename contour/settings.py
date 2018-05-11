@@ -12,6 +12,7 @@ PATH_CONTOUR = 'contour/'
 LATEX_REPORT_NAME = 'latex_report.pdf'
 EEDC_FILE_NAME = 'design_conditions.csv'
 
-# Maximum computing time in seconds for performing a fit or calculating a
-# a contour. The time limit is only used in production.
-MAX_COMPUTING_TIME_PRODUCTION = 2.0
+# Maximum computing time in seconds for performing a fit, calculating a
+# a contour or saving the contour to the data bsase. The time limit is only
+# used in production. Heroku would throw a its own timeout error after 30 s.
+MAX_COMPUTING_TIME_PRODUCTION = 15.0

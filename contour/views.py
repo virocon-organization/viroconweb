@@ -2,15 +2,22 @@ import os
 import csv
 import warnings
 import codecs
+import time
+# These imports and the setup() call is recuired for multiprocessing, see
+# https://stackoverflow.com/questions/46908035/apps-arent-loaded-yet-
+# exception-occurs-when-using-multi-processing-in-django
+import django
+django.setup()
 
-from urllib import request
-from abc import abstractmethod
 from django.shortcuts import redirect
 from django.shortcuts import render, get_object_or_404, HttpResponse, \
     HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.urls import reverse
+from multiprocessing import Pool, TimeoutError
+from urllib import request
+from abc import abstractmethod
 
 from . import forms
 from . import models
@@ -25,13 +32,20 @@ from .compute_interface import ComputeInterface
 from .validators import validate_contour_coordinates
 from viroconcom import distributions, params
 from decimal import Decimal
+from .settings import MAX_COMPUTING_TIME_PRODUCTION
 
 
 CONTOUR_CALCULATION_ERROR_MESSAGE = 'Please consider different settings for the ' \
                                     'contour or think about your probabilistic ' \
                                     'model. Feel free to contact us if you ' \
-                                    'think this error message is a bug: ' \
+                                    'think this error is caused by a bug: ' \
                                     'virocon@uni-bremen.de'
+CONTOUR_REPORT_ERROR_MESSAGE = 'An error occured when trying to generate ' \
+                                    'the report for the contour. ' \
+                                    'Feel free to contact us if you ' \
+                                    'think this error is caused by a bug: ' \
+                                    'virocon@uni-bremen.de'
+
 
 
 def index(request):
@@ -779,42 +793,52 @@ class ProbabilisticModelHandler(Handler):
                                     hdc_form.cleaned_data['sea_state']),
                                 probabilistic_model=probabilistic_model
                             )
+                            # We need to save it here too since in case
+                            # save_environmental_contour() times out we can
+                            # delete it
                             environmental_contour.save()
-                            path = settings.PATH_MEDIA + \
-                                   settings.PATH_USER_GENERATED + \
-                                   str(request.user) + \
-                                   '/contour/' + str(environmental_contour.pk)
-                            environmental_contour.path_of_statics = path
-                            environmental_contour.save(
-                                update_fields=['path_of_statics'])
+                            additional_contour_options = []
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Limits of the grid",
                                 option_value=" ".join(map(str, limits)),
                                 environmental_contour=environmental_contour
                             )
-                            additional_contour_option.save()
+                            additional_contour_options.append(
+                                additional_contour_option)
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Grid cell size ($\Delta x_i$)",
                                 option_value=" ".join(map(str, deltas)),
                                 environmental_contour=environmental_contour
                             )
-                            additional_contour_option.save()
-                            for i in range(len(contour_coordinates)):
-                                contour_path = ContourPath(
-                                    environmental_contour=environmental_contour)
-                                contour_path.save()
-                                for j in range(len(contour_coordinates[i])):
-                                    EEDC = ExtremeEnvDesignCondition(
-                                        contour_path=contour_path)
-                                    EEDC.save()
-                                    for k in range(len(contour_coordinates[i][j])):
-                                        eedc_scalar = EEDCScalar(
-                                            x=float(contour_coordinates[i][j][k]),
-                                            EEDC=EEDC)
-                                        eedc_scalar.save()
+                            additional_contour_options.append(
+                                additional_contour_option)
+                            print(
+                                'The starting time to save the HDC in the data '
+                                'base is: ' + str(time.time()))
+                            # Use multiprocessing to define a timeout
+                            pool = Pool(processes=1)
+                            res = pool.apply_async(
+                                save_environmental_contour,
+                                (environmental_contour,
+                                 additional_contour_options,
+                                 contour_coordinates,
+                                 str(request.user)))
+                            try:
+                                environmental_contour = res.get(
+                                    timeout=MAX_COMPUTING_TIME_PRODUCTION)
+                            except TimeoutError:
+                                environmental_contour.delete()
+                                err_msg = "Writing to the data base takes too long. " \
+                                          "Precisely longer than the given " \
+                                          "value for timeout '{} seconds'.".format(
+                                    MAX_COMPUTING_TIME_PRODUCTION)
+                                raise TimeoutError(err_msg)
+                        print(
+                            'The end time to save the HDC in the data '
+                            'base is: ' + str(time.time()))
                     # Catch and allocate errors caused by calculating a HDC.
-                    except (ValidationError, RuntimeError, IndexError,
-                            TypeError, NameError, KeyError, Exception) as err:
+                    except (TimeoutError, ValidationError, RuntimeError,
+                            IndexError, TypeError, NameError, KeyError) as err:
                         return render(
                             request,
                             'contour/error.html',
@@ -824,12 +848,21 @@ class ProbabilisticModelHandler(Handler):
                              'return_url': 'contour:probabilistic_model_select'}
                         )
 
-                    # Generate path to the user specific pdf.
-                    path = plot.create_latex_report(contour_coordinates,
-                                                    str(request.user),
-                                                    environmental_contour,
-                                                    var_names,
-                                                    var_symbols)
+                    try:
+                        path = plot.create_latex_report(contour_coordinates,
+                                                        str(request.user),
+                                                        environmental_contour,
+                                                        var_names,
+                                                        var_symbols)
+                    except (ValueError) as err:
+                        return render(
+                            request,
+                            'contour/error.html',
+                            {'error_message': err,
+                             'text': CONTOUR_REPORT_ERROR_MESSAGE,
+                             'header': 'Report of the contour',
+                             'return_url': 'contour:probabilistic_model_select'}
+                        )
 
                     # If the contour is 3-dimensional, send data for an
                     # interactive plot.
@@ -1004,6 +1037,46 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
                            fit.mul_var_dist.dependencies[i][2])
 
     return probabilistic_model
+
+
+def save_environmental_contour(environmental_contour,
+                           additional_contour_options,
+                           contour_coordinates,
+                           user):
+    print('Save_environmental_contour called')
+    environmental_contour.save()
+    path = settings.PATH_MEDIA + \
+           settings.PATH_USER_GENERATED + \
+           user + \
+           '/contour/' + str(environmental_contour.pk)
+    environmental_contour.path_of_statics = path
+    environmental_contour.save(
+        update_fields=['path_of_statics'])
+    for additional_contour_option in additional_contour_options:
+        # It is necessary to create a new AdditionalContourObject because the
+        # original object was created with an environmental contour, which has
+        # been saved yet and consequently does not have a primary key.
+        additional_contour_option_w_pk = AdditionalContourOption(
+            option_key=additional_contour_option.option_key,
+            option_value=additional_contour_option.option_value,
+            environmental_contour=environmental_contour)
+        additional_contour_option_w_pk.save()
+        print('Saved an additoanl contour option')
+    for i in range(len(contour_coordinates)):
+        contour_path = ContourPath(
+            environmental_contour=environmental_contour)
+        contour_path.save()
+        for j in range(len(contour_coordinates[i])):
+            EEDC = ExtremeEnvDesignCondition(
+                contour_path=contour_path)
+            EEDC.save()
+            print('Saved an EEDC')
+            for k in range(len(contour_coordinates[i][j])):
+                eedc_scalar = EEDCScalar(
+                    x=float(contour_coordinates[i][j][k]),
+                    EEDC=EEDC)
+                eedc_scalar.save()
+    return environmental_contour
 
 
 def save_parameter(parameter, distribution_model, dependency):
