@@ -3,6 +3,7 @@ Settings for the contour app.
 
 These constants are used in different modules of contour package.
 """
+from viroconweb.settings import RUN_MODE
 
 PATH_MEDIA = 'contour/media/'
 PATH_USER_GENERATED = 'user_generated/'
@@ -12,7 +13,10 @@ PATH_CONTOUR = 'contour/'
 LATEX_REPORT_NAME = 'latex_report.pdf'
 EEDC_FILE_NAME = 'design_conditions.csv'
 
-# Maximum computing time in seconds for performing a fit, calculating a
-# a contour or saving the contour to the data bsase. The time limit is only
-# used in production. Heroku would throw a its own timeout error after 30 s.
-MAX_COMPUTING_TIME_PRODUCTION = 15.0
+# Set a maximum computing time in seconds for performing a fit, calculating a
+# a contour or saving the contour to the data base. The time limit is important
+# for production. Heroku would throw its own timeout error after 30 s.
+if RUN_MODE == 'production':
+    MAX_COMPUTING_TIME = 15.0
+else:
+    MAX_COMPUTING_TIME = 20.0

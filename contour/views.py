@@ -32,19 +32,24 @@ from .compute_interface import ComputeInterface
 from .validators import validate_contour_coordinates
 from viroconcom import distributions, params
 from decimal import Decimal
-from .settings import MAX_COMPUTING_TIME_PRODUCTION
+from .settings import MAX_COMPUTING_TIME
 
 
-CONTOUR_CALCULATION_ERROR_MESSAGE = 'Please consider different settings for the ' \
+CONTOUR_CALCULATION_ERROR_MSG = 'Please consider different settings for the ' \
                                     'contour or think about your probabilistic ' \
                                     'model. Feel free to contact us if you ' \
                                     'think this error is caused by a bug: ' \
                                     'virocon@uni-bremen.de'
-CONTOUR_REPORT_ERROR_MESSAGE = 'An error occured when trying to generate ' \
+CONTOUR_REPORT_ERROR_MSG = 'An error occured when trying to generate ' \
                                     'the report for the contour. ' \
                                     'Feel free to contact us if you ' \
                                     'think this error is caused by a bug: ' \
                                     'virocon@uni-bremen.de'
+DATA_BASE_TIME_OUT_ERROR_MSG = "Writing to the data base takes too long. " \
+                               "It takes longer than the given value for a " \
+                               "timeout, which is " \
+                               "'{} seconds'.".format(
+                                MAX_COMPUTING_TIME)
 
 
 
@@ -619,54 +624,50 @@ class ProbabilisticModelHandler(Handler):
                 iform_form = forms.IFormForm(data=request.POST)
                 if iform_form.is_valid():
                     try:
-                        contour_coordinates = cs.iform(
-                            probabilistic_model,
-                            float(iform_form.cleaned_data['return_period']),
-                            float(iform_form.cleaned_data['sea_state']),
-                            iform_form.cleaned_data['n_steps'])
-                        validate_contour_coordinates(contour_coordinates)
-                        environmental_contour = EnvironmentalContour(
-                            primary_user=request.user,
-                            fitting_method="",
-                            contour_method="Inverse first order reliability "
-                                           "method (IFORM)",
-                            return_period=float(
-                                iform_form.cleaned_data['return_period']),
-                            state_duration=float(
-                                iform_form.cleaned_data['sea_state']),
-                            probabilistic_model=probabilistic_model
-                        )
-                        # We need to save it here too since in case
-                        # save_environmental_contour() times out we can
-                        # delete it
-                        environmental_contour.save()
-                        additional_contour_options = []
-                        additional_contour_option = AdditionalContourOption(
-                            option_key="Number of points on the contour",
-                            option_value=iform_form.cleaned_data['n_steps'],
-                            environmental_contour=environmental_contour
-                        )
-                        additional_contour_options.append(
-                            additional_contour_option)
-                        # Use multiprocessing to define a timeout
-                        pool = Pool(processes=1)
-                        res = pool.apply_async(
-                            save_environmental_contour,
-                            (environmental_contour,
-                             additional_contour_options,
-                             contour_coordinates,
-                             str(request.user)))
-                        try:
-                            environmental_contour = res.get(
-                                timeout=MAX_COMPUTING_TIME_PRODUCTION)
-                        except TimeoutError:
-                            environmental_contour.delete()
-                            err_msg = "Writing to the data base takes too long. " \
-                                      "Precisely longer than the given " \
-                                      "value for timeout '{} seconds'.".format(
-                                MAX_COMPUTING_TIME_PRODUCTION)
-                            raise TimeoutError(err_msg)
-
+                        with warnings.catch_warnings(record=True) as warn:
+                            contour_coordinates = cs.iform(
+                                probabilistic_model,
+                                float(iform_form.cleaned_data['return_period']),
+                                float(iform_form.cleaned_data['sea_state']),
+                                iform_form.cleaned_data['n_steps'])
+                            validate_contour_coordinates(contour_coordinates)
+                            environmental_contour = EnvironmentalContour(
+                                primary_user=request.user,
+                                fitting_method="",
+                                contour_method="Inverse first order reliability "
+                                               "method (IFORM)",
+                                return_period=float(
+                                    iform_form.cleaned_data['return_period']),
+                                state_duration=float(
+                                    iform_form.cleaned_data['sea_state']),
+                                probabilistic_model=probabilistic_model
+                            )
+                            # We need to save it here too since in case
+                            # save_environmental_contour() times out we can
+                            # delete it
+                            environmental_contour.save()
+                            additional_contour_options = []
+                            additional_contour_option = AdditionalContourOption(
+                                option_key="Number of points on the contour",
+                                option_value=iform_form.cleaned_data['n_steps'],
+                                environmental_contour=environmental_contour
+                            )
+                            additional_contour_options.append(
+                                additional_contour_option)
+                            # Use multiprocessing to define a timeout
+                            pool = Pool(processes=1)
+                            res = pool.apply_async(
+                                save_environmental_contour,
+                                (environmental_contour,
+                                 additional_contour_options,
+                                 contour_coordinates,
+                                 str(request.user)))
+                            try:
+                                environmental_contour = res.get(
+                                    timeout=MAX_COMPUTING_TIME)
+                            except TimeoutError:
+                                environmental_contour.delete()
+                                raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
                     # Catch and allocate errors caused by calculating iform.
                     except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
@@ -674,59 +675,28 @@ class ProbabilisticModelHandler(Handler):
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
+                             'text': CONTOUR_CALCULATION_ERROR_MSG,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'})
-
-                    path = plot.create_latex_report(
-                        contour_coordinates,
-                        str(request.user),
-                        environmental_contour,
-                        var_names,
-                        var_symbols)
-
-                    # If the model is 4-dimensional send data to create a 4D
-                    # interactive plot.
-                    if len(contour_coordinates[0]) == 4:
-                        dists = models.DistributionModel.objects.filter(
-                            probabilistic_model=probabilistic_model
+                    try:
+                        plot.create_latex_report(contour_coordinates,
+                                                 str(request.user),
+                                                 environmental_contour,
+                                                 var_names,
+                                                 var_symbols)
+                    except (ValueError) as err:
+                        return render(
+                            request,
+                            'contour/error.html',
+                            {'error_message': err,
+                             'text': CONTOUR_REPORT_ERROR_MSG,
+                             'header': 'Report of the contour',
+                             'return_url': 'contour:probabilistic_model_select'}
                         )
-                        labels = []
-                        for dist in dists:
-                            labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request,
-                                      'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour,
-                                       'x': contour_coordinates[0][0].tolist(),
-                                       'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(),
-                                       'u': contour_coordinates[0][3].tolist(),
-                                       'dim': 4,
-                                       'labels': labels}
-                                      )
-                    # If the model is 3-dimensional send data for a 3D
-                    # interactive plot
-                    elif len(contour_coordinates[0]) == 3:
-                        dists = models.DistributionModel.objects.filter(
-                            probabilistic_model=probabilistic_model
-                        )
-                        labels = []
-                        for dist in dists:
-                            labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request,
-                                      'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour,
-                                       'x': contour_coordinates[0][0].tolist(),
-                                       'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(),
-                                       'dim': 3,
-                                       'labels': labels})
-
-                    elif len(contour_coordinates) < 3:
-                        return render(request,
-                                      'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour, 'dim': 2}
-                                      )
+                    response = ProbabilisticModelHandler.render_calculated_contour(
+                        request, environmental_contour, contour_coordinates,
+                        probabilistic_model, warn)
+                    return response
                 else:
                     return render(request,
                                   'contour/contour_settings.html',
@@ -829,14 +799,10 @@ class ProbabilisticModelHandler(Handler):
                                  str(request.user)))
                             try:
                                 environmental_contour = res.get(
-                                    timeout=MAX_COMPUTING_TIME_PRODUCTION)
+                                    timeout=MAX_COMPUTING_TIME)
                             except TimeoutError:
                                 environmental_contour.delete()
-                                err_msg = "Writing to the data base takes too long. " \
-                                          "Precisely longer than the given " \
-                                          "value for timeout '{} seconds'.".format(
-                                    MAX_COMPUTING_TIME_PRODUCTION)
-                                raise TimeoutError(err_msg)
+                                raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
                         print(
                             'The end time to save the HDC in the data '
                             'base is: ' + str(time.time()))
@@ -847,49 +813,30 @@ class ProbabilisticModelHandler(Handler):
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': CONTOUR_CALCULATION_ERROR_MESSAGE,
+                             'text': CONTOUR_CALCULATION_ERROR_MSG,
                              'header': 'Calculate contour',
                              'return_url': 'contour:probabilistic_model_select'}
                         )
 
                     try:
-                        path = plot.create_latex_report(contour_coordinates,
-                                                        str(request.user),
-                                                        environmental_contour,
-                                                        var_names,
-                                                        var_symbols)
+                        plot.create_latex_report(contour_coordinates,
+                                                 str(request.user),
+                                                 environmental_contour,
+                                                 var_names,
+                                                 var_symbols)
                     except (ValueError) as err:
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': CONTOUR_REPORT_ERROR_MESSAGE,
+                             'text': CONTOUR_REPORT_ERROR_MSG,
                              'header': 'Report of the contour',
                              'return_url': 'contour:probabilistic_model_select'}
                         )
-
-                    # If the contour is 3-dimensional, send data for an
-                    # interactive plot.
-                    if len(contour_coordinates[0]) > 2:
-                        dists = models.DistributionModel.objects.filter(probabilistic_model=probabilistic_model)
-                        labels = []
-                        for dist in dists:
-                            labels.append('{} [{}]'.format(dist.name, dist.symbol))
-                        return render(request,
-                                      'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour,
-                                       'x': contour_coordinates[0][0].tolist(),
-                                       'y': contour_coordinates[0][1].tolist(),
-                                       'z': contour_coordinates[0][2].tolist(),
-                                       'dim': 3,
-                                       'warn': warn,
-                                       'labels': labels})
-                    else:
-                        return render(request,
-                                      'contour/environmental_contour_show.html',
-                                      {'object': environmental_contour,
-                                       'dim': 2,
-                                       'warn': warn})
+                    response = ProbabilisticModelHandler.render_calculated_contour(
+                        request, environmental_contour, contour_coordinates,
+                        probabilistic_model, warn)
+                    return response
                 else:
                     return render(request, 'contour/contour_settings.html',
                                   {'form': hdc_form}
@@ -898,6 +845,80 @@ class ProbabilisticModelHandler(Handler):
                 return render(request, 'contour/contour_settings.html',
                               {'form': hdc_form}
                               )
+
+    @staticmethod
+    def render_calculated_contour(request, environmental_contour,
+                                  contour_coordinates, probabilistic_model,
+                                  warn):
+        """
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The HttpRequest to calculate the contour. It is a POST request.
+        environmental_contour : EnvironmentalContour,
+            The EnvironmentalContour that just got computed.
+        contour_coordinates : list of list of np.ndarray,
+            The contour's coordinates.
+            The format is defined in viroconcom.contours.Contour.
+        probabilistic_model : ProbabilisticModel,
+            The ProbabilisticModel, which was used to calculate the
+            EnvironmentalContour
+        warn : list of warning,
+            Warnings can get raised during the calculation of the contour.
+            Then the user will be presented these warnings.
+
+        Returns
+        -------
+        response : HttpResponse,
+            The rendered template 'evnironmental_contour_show.html' with the
+            calculated EnvironmentalContour.
+        """
+        # If the probabilistic model is 4-dimensional send data to create a 4D
+        # interactive plot.
+        if len(contour_coordinates[0]) == 4:
+            dists = models.DistributionModel.objects.filter(
+                probabilistic_model=probabilistic_model
+            )
+            labels = []
+            for dist in dists:
+                labels.append('{} [{}]'.format(dist.name, dist.symbol))
+            response = render(request,
+                          'contour/environmental_contour_show.html',
+                          {'object': environmental_contour,
+                           'x': contour_coordinates[0][0].tolist(),
+                           'y': contour_coordinates[0][1].tolist(),
+                           'z': contour_coordinates[0][2].tolist(),
+                           'u': contour_coordinates[0][3].tolist(),
+                           'dim': 4,
+                           'labels': labels}
+                          )
+        # If the probabilistic model is 3-dimensional send data for a 3D
+        # interactive plot
+        elif len(contour_coordinates[0]) == 3:
+            dists = models.DistributionModel.objects.filter(
+                probabilistic_model=probabilistic_model
+            )
+            labels = []
+            for dist in dists:
+                labels.append('{} [{}]'.format(dist.name, dist.symbol))
+            response = render(request,
+                          'contour/environmental_contour_show.html',
+                          {'object': environmental_contour,
+                           'x': contour_coordinates[0][0].tolist(),
+                           'y': contour_coordinates[0][1].tolist(),
+                           'z': contour_coordinates[0][2].tolist(),
+                           'dim': 3,
+                           'labels': labels})
+
+        elif len(contour_coordinates) < 3:
+            response = render(request,
+                          'contour/environmental_contour_show.html',
+                          {'object': environmental_contour, 'dim': 2}
+                          )
+        return response
+
+
 
     @staticmethod
     def set_variables_number(request):
