@@ -56,7 +56,7 @@ class UploadFileTestCase(TestCase):
                                            kwargs={'pk': 1}),
                                     {'username': 'non_existing_user'},
                                     follow=True)
-        self.assertContains(response, "Apply methods",
+        self.assertContains(response, "Dashboard",
                             status_code = 200)
         # Use an existing user name, one should be redirected to the overview.
         response = self.client.post(reverse('contour:measure_file_model_update',
