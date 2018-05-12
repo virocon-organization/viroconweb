@@ -32,7 +32,7 @@ from .compute_interface import ComputeInterface
 from .validators import validate_contour_coordinates
 from viroconcom import distributions, params
 from decimal import Decimal
-from .settings import MAX_COMPUTING_TIME
+from .settings import MAX_COMPUTING_TIME, DO_SAVE_CONTOUR_COORDINATES_IN_DB
 
 
 CONTOUR_CALCULATION_ERROR_MSG = 'Please consider different settings for the ' \
@@ -786,9 +786,6 @@ class ProbabilisticModelHandler(Handler):
                             )
                             additional_contour_options.append(
                                 additional_contour_option)
-                            print(
-                                'The starting time to save the HDC in the data '
-                                'base is: ' + str(time.time()))
                             # Use multiprocessing to define a timeout
                             pool = Pool(processes=1)
                             res = pool.apply_async(
@@ -803,9 +800,6 @@ class ProbabilisticModelHandler(Handler):
                             except TimeoutError:
                                 environmental_contour.delete()
                                 raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
-                        print(
-                            'The end time to save the HDC in the data '
-                            'base is: ' + str(time.time()))
                     # Catch and allocate errors caused by calculating a HDC.
                     except (TimeoutError, ValidationError, RuntimeError,
                             IndexError, TypeError, NameError, KeyError) as err:
@@ -1068,7 +1062,32 @@ def save_environmental_contour(environmental_contour,
                            additional_contour_options,
                            contour_coordinates,
                            user):
-    print('Save_environmental_contour called')
+    """
+    Saves an EnvironmentalContour object and its depending models to the data
+    base.
+
+
+    Parameters
+    ----------
+    environmental_contour : EnvironmentalContour,
+        The environmental contour obect that should be saved.
+    additional_contour_options : list of AdditionalContourOption,
+        Options, whch are specific to the contour and are not general
+        environmental contour options.
+    contour_coordinates : list of list of numpy.ndarray,
+        Contains the coordinates of points on the contour.
+        The outer list contains can hold multiple contour paths if the
+        distribution is multimodal. The inner list contains multiple
+        numpy arrays of the same length, one per dimension.
+        The values of the arrays are the coordinates in the corresponding
+        dimension.
+    user : str,
+        The user who should own the environmental contour.
+
+    Returns
+    -------
+
+    """
     environmental_contour.save()
     path = settings.PATH_MEDIA + \
            settings.PATH_USER_GENERATED + \
@@ -1086,21 +1105,22 @@ def save_environmental_contour(environmental_contour,
             option_value=additional_contour_option.option_value,
             environmental_contour=environmental_contour)
         additional_contour_option_w_pk.save()
-        print('Saved an additoanl contour option')
-    for i in range(len(contour_coordinates)):
-        contour_path = ContourPath(
-            environmental_contour=environmental_contour)
-        contour_path.save()
-        for j in range(len(contour_coordinates[i])):
-            EEDC = ExtremeEnvDesignCondition(
-                contour_path=contour_path)
-            EEDC.save()
-            print('Saved an EEDC')
-            for k in range(len(contour_coordinates[i][j])):
-                eedc_scalar = EEDCScalar(
-                    x=float(contour_coordinates[i][j][k]),
-                    EEDC=EEDC)
-                eedc_scalar.save()
+    # Saving all coordinates to the database is slow since a lot of operations
+    # might be necessary. Consequenetly, this can be turned off.
+    if DO_SAVE_CONTOUR_COORDINATES_IN_DB:
+        for i in range(len(contour_coordinates)):
+            contour_path = ContourPath(
+                environmental_contour=environmental_contour)
+            contour_path.save()
+            for j in range(len(contour_coordinates[i])):
+                EEDC = ExtremeEnvDesignCondition(
+                    contour_path=contour_path)
+                EEDC.save()
+                for k in range(len(contour_coordinates[i][j])):
+                    eedc_scalar = EEDCScalar(
+                        x=float(contour_coordinates[i][j][k]),
+                        EEDC=EEDC)
+                    eedc_scalar.save()
     return environmental_contour
 
 

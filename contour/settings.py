@@ -20,3 +20,7 @@ if RUN_MODE == 'production':
     MAX_COMPUTING_TIME = 15.0
 else:
     MAX_COMPUTING_TIME = 20.0
+# Saving all coordinates to the database is slow since a lot of operations
+# might be necessary. Consequenetly, this can be turned off.
+DO_SAVE_CONTOUR_COORDINATES_IN_DB = False
+
