@@ -636,33 +636,37 @@ class ProbabilisticModelHandler(Handler):
                                 iform_form.cleaned_data['sea_state']),
                             probabilistic_model=probabilistic_model
                         )
+                        # We need to save it here too since in case
+                        # save_environmental_contour() times out we can
+                        # delete it
                         environmental_contour.save()
-                        path = settings.PATH_MEDIA + \
-                               settings.PATH_USER_GENERATED + \
-                               str(request.user) + \
-                               '/contour/' + str(environmental_contour.pk)
-                        environmental_contour.path_of_statics = path
-                        environmental_contour.save(
-                            update_fields=['path_of_statics'])
+                        additional_contour_options = []
                         additional_contour_option = AdditionalContourOption(
                             option_key="Number of points on the contour",
                             option_value=iform_form.cleaned_data['n_steps'],
                             environmental_contour=environmental_contour
                         )
-                        additional_contour_option.save()
-                        for i in range(len(contour_coordinates)):
-                            contour_path = ContourPath(
-                                environmental_contour=environmental_contour)
-                            contour_path.save()
-                            for j in range(len(contour_coordinates[i])):
-                                EEDC = ExtremeEnvDesignCondition(
-                                    contour_path=contour_path)
-                                EEDC.save()
-                                for k in range(len(contour_coordinates[i][j])):
-                                    eedc_scalar = EEDCScalar(
-                                        x=float(contour_coordinates[i][j][k]),
-                                        EEDC=EEDC)
-                                    eedc_scalar.save()
+                        additional_contour_options.append(
+                            additional_contour_option)
+                        # Use multiprocessing to define a timeout
+                        pool = Pool(processes=1)
+                        res = pool.apply_async(
+                            save_environmental_contour,
+                            (environmental_contour,
+                             additional_contour_options,
+                             contour_coordinates,
+                             str(request.user)))
+                        try:
+                            environmental_contour = res.get(
+                                timeout=MAX_COMPUTING_TIME_PRODUCTION)
+                        except TimeoutError:
+                            environmental_contour.delete()
+                            err_msg = "Writing to the data base takes too long. " \
+                                      "Precisely longer than the given " \
+                                      "value for timeout '{} seconds'.".format(
+                                MAX_COMPUTING_TIME_PRODUCTION)
+                            raise TimeoutError(err_msg)
+
                     # Catch and allocate errors caused by calculating iform.
                     except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
