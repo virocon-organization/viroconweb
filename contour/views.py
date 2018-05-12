@@ -35,15 +35,15 @@ from .settings import MAX_COMPUTING_TIME, DO_SAVE_CONTOUR_COORDINATES_IN_DB
 
 
 CONTOUR_CALCULATION_ERROR_MSG = 'Please consider different settings for the ' \
-                                    'contour or think about your probabilistic ' \
-                                    'model. Feel free to contact us if you ' \
-                                    'think this error is caused by a bug: ' \
-                                    'virocon@uni-bremen.de'
+                                'contour or think about your probabilistic ' \
+                                'model. Feel free to contact us if you ' \
+                                'think this error is caused by a bug: ' \
+                                'virocon@uni-bremen.de'
 CONTOUR_REPORT_ERROR_MSG = 'An error occured when trying to generate ' \
-                                    'the report for the contour. ' \
-                                    'Feel free to contact us if you ' \
-                                    'think this error is caused by a bug: ' \
-                                    'virocon@uni-bremen.de'
+                           'the report for the contour. ' \
+                           'Feel free to contact us if you ' \
+                           'think this error is caused by a bug: ' \
+                           'virocon@uni-bremen.de'
 DATA_BASE_TIME_OUT_ERROR_MSG = "Writing to the data base takes too long. " \
                                "It takes longer than the given value for a " \
                                "timeout, which is " \

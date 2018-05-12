@@ -1,7 +1,7 @@
 """
 Settings for the contour app.
 
-These constants are used in different modules of contour package.
+These constants are used in different modules of the contour package.
 """
 from viroconweb.settings import RUN_MODE
 

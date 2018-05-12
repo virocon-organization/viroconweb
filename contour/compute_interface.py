@@ -181,7 +181,7 @@ class ComputeInterface:
 def adjust(var):
     """
     Adjusts the variables types of values, which correspond to viroconweb's
-    models, which are associated to a database, to variable types comptaible
+    models, which are associated to a database, to variable types compatible
     with the viroconcom package.
     """
     if var == 'None' or var == '!':
