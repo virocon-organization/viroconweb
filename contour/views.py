@@ -31,7 +31,6 @@ from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
 from .compute_interface import ComputeInterface
 from .validators import validate_contour_coordinates
 from viroconcom import distributions, params
-from decimal import Decimal
 from .settings import MAX_COMPUTING_TIME, DO_SAVE_CONTOUR_COORDINATES_IN_DB
 
 
@@ -50,6 +49,10 @@ DATA_BASE_TIME_OUT_ERROR_MSG = "Writing to the data base takes too long. " \
                                "timeout, which is " \
                                "'{} seconds'.".format(
                                 MAX_COMPUTING_TIME)
+FITTING_ERROR_MSG = 'An error occured while fitting a probabliistic model ' \
+                    'to the file. Feel free to contact us if you ' \
+                    'think this error is caused by a bug: ' \
+                    'virocon@uni-bremen.de'
 
 
 
@@ -328,11 +331,8 @@ class MeasureFileHandler(Handler):
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': 'Error occured while fitting a '
-                                     'probabliistic model to the file.'
-                                     'Try it again with different settings '
-                                     'please',
-                               'header': 'fit measurement file to probabilistic '
+                             'text': FITTING_ERROR_MSG,
+                               'header': 'Fit measurement file to probabilistic '
                                          'model',
                                'return_url': 'contour:measure_file_model_select'
                              }

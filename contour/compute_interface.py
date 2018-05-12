@@ -90,7 +90,7 @@ class ComputeInterface:
                 dists[i].get('dependency')[0] = None
                 dists[i].get('functions')[0] = None
 
-        fit = Fit(dates, dists)
+        fit = Fit(dates, dists, timeout=MAX_COMPUTING_TIME)
         return fit
 
     @staticmethod
