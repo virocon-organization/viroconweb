@@ -613,6 +613,12 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     content_file = ContentFile(f.getvalue())
     plotted_figure = PlottedFigure(environmental_contour=environmental_contour)
     file_name = 'contour.png'
+    print('Saving a figure which is associated to this probabilistic model: ')
+    print(environmental_contour.probabilistic_model)
+    print('This probabilistic model has the primary user:')
+    print(environmental_contour.probabilistic_model.primary_user)
+    print('It has the user name:')
+    print(environmental_contour.probabilistic_model.primary_user.username)
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
 
