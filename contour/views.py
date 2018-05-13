@@ -646,8 +646,6 @@ class ProbabilisticModelHandler(Handler):
                             # save_environmental_contour() times out we can
                             # delete it
                             environmental_contour.save()
-                            print('In views.py: Printing the probabilistic models primary user:')
-                            print(environmental_contour.probabilistic_model.primary_user)
                             additional_contour_options = []
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Number of points on the contour",
