@@ -1092,7 +1092,9 @@ def save_environmental_contour(environmental_contour,
     -------
 
     """
-    environmental_contour.save()
+    # Only save the object if it has not been saved yet.
+    if environmental_contour.pk is None:
+        environmental_contour.save()
     path = settings.PATH_MEDIA + \
            settings.PATH_USER_GENERATED + \
            user + \
