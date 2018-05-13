@@ -1,3 +1,7 @@
+"""
+The interface between this package (viroconweb) and the package virocomcom,
+which handles the statistical computations
+"""
 import pandas as pd
 
 from .models import MeasureFileModel, ParameterModel, DistributionModel, \
