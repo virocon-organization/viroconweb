@@ -101,6 +101,9 @@ if RUN_MODE == 'production':
     DEBUG = False
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE needs https instead of http, with SECURE_SSL_REDIRECT
+    # we force Django to use https
+    SECURE_SSL_REDIRECT = True
 else:
     DEBUG = True
 
