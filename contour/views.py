@@ -672,6 +672,8 @@ class ProbabilisticModelHandler(Handler):
                             except TimeoutError:
                                 environmental_contour.delete()
                                 raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
+                            pool.close()
+                            pool.join()
                     # Catch and allocate errors caused by calculating iform.
                     except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
