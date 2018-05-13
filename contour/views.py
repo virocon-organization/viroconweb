@@ -656,24 +656,11 @@ class ProbabilisticModelHandler(Handler):
                             )
                             additional_contour_options.append(
                                 additional_contour_option)
-                            # Use multiprocessing to define a timeout
-                            pool = Pool(processes=1)
-                            res = pool.apply_async(
-                                save_environmental_contour,
-                                (environmental_contour,
-                                 additional_contour_options,
-                                 contour_coordinates,
-                                 str(request.user)))
-                            try:
-                                environmental_contour = res.get(
-                                    timeout=MAX_COMPUTING_TIME)
-                                print('In views.py after save_environmental_contour call: Printing the probabilistic models primary user:')
-                                print(environmental_contour.probabilistic_model.primary_user)
-                            except TimeoutError:
-                                environmental_contour.delete()
-                                raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
-                            pool.close()
-                            pool.join()
+                            save_environmental_contour(
+                                environmental_contour,
+                                additional_contour_options,
+                                contour_coordinates,
+                                str(request.user))
                     # Catch and allocate errors caused by calculating iform.
                     except (ValidationError, RuntimeError, IndexError, TypeError,
                             NameError, KeyError, Exception) as err:
