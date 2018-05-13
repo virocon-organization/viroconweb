@@ -646,6 +646,8 @@ class ProbabilisticModelHandler(Handler):
                             # save_environmental_contour() times out we can
                             # delete it
                             environmental_contour.save()
+                            print('In views.py: Printing the probabilistic models primary user:')
+                            print(environmental_contour.probabilistic_model.primary_user)
                             additional_contour_options = []
                             additional_contour_option = AdditionalContourOption(
                                 option_key="Number of points on the contour",
@@ -665,6 +667,8 @@ class ProbabilisticModelHandler(Handler):
                             try:
                                 environmental_contour = res.get(
                                     timeout=MAX_COMPUTING_TIME)
+                                print('In views.py after save_environmental_contour call: Printing the probabilistic models primary user:')
+                                print(environmental_contour.probabilistic_model.primary_user)
                             except TimeoutError:
                                 environmental_contour.delete()
                                 raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
