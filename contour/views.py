@@ -642,9 +642,8 @@ class ProbabilisticModelHandler(Handler):
                                     iform_form.cleaned_data['sea_state']),
                                 probabilistic_model=probabilistic_model
                             )
-                            # We need to save it here too since in case
-                            # save_environmental_contour() times out we can
-                            # delete it
+                            # Save the environmental contour here that it gets
+                            # a primary key.
                             environmental_contour.save()
                             additional_contour_options = []
                             additional_contour_option = AdditionalContourOption(
@@ -758,9 +757,8 @@ class ProbabilisticModelHandler(Handler):
                                     hdc_form.cleaned_data['sea_state']),
                                 probabilistic_model=probabilistic_model
                             )
-                            # We need to save it here too since in case
-                            # save_environmental_contour() times out we can
-                            # delete it
+                            # Save the environmental contour here that it gets
+                            # a primary key.
                             environmental_contour.save()
                             additional_contour_options = []
                             additional_contour_option = AdditionalContourOption(
@@ -777,20 +775,11 @@ class ProbabilisticModelHandler(Handler):
                             )
                             additional_contour_options.append(
                                 additional_contour_option)
-                            # Use multiprocessing to define a timeout
-                            pool = Pool(processes=1)
-                            res = pool.apply_async(
-                                save_environmental_contour,
-                                (environmental_contour,
-                                 additional_contour_options,
-                                 contour_coordinates,
-                                 str(request.user)))
-                            try:
-                                environmental_contour = res.get(
-                                    timeout=MAX_COMPUTING_TIME)
-                            except TimeoutError:
-                                environmental_contour.delete()
-                                raise TimeoutError(DATA_BASE_TIME_OUT_ERROR_MSG)
+                            save_environmental_contour(
+                                environmental_contour,
+                                additional_contour_options,
+                                contour_coordinates,
+                                str(request.user))
                     # Catch and allocate errors caused by calculating a HDC.
                     except (TimeoutError, ValidationError, RuntimeError,
                             IndexError, TypeError, NameError, KeyError) as err:
