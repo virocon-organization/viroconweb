@@ -115,7 +115,6 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
                str(format(shape, '.3f')) + ' γ=' + str(
             format(loc, '.3f')) + ' α=' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
-
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
@@ -313,6 +312,7 @@ def plot_var_dependent(param_name,
 
     if do_dependent_plot:
         for j in range(len(param_at)):
+
             basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
             interval_limits = calculate_intervals(param_at, dim_index, j)
             parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
