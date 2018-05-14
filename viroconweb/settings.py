@@ -95,12 +95,15 @@ if not key_exists:
 else:
     SECRET_KEY = os.environ["SECRET_KEY"]
 
-if RUN_MODE == 'production':
+if RUN_MODE == 'production-TURN-OFF':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
     DEBUG = False
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE needs https instead of http, with SECURE_SSL_REDIRECT
+    # we force Django to use https
+    SECURE_SSL_REDIRECT = True
 else:
     DEBUG = True
 

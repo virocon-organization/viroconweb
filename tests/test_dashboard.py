@@ -18,5 +18,5 @@ class DashboardTestCase(TestCase):
                            {'username' : 'max_mustermann',
                             'password' : 'Musterpasswort2018'})
         response = self.client.get(reverse('contour:index'), follow=True)
-        self.assertContains(response, "Apply methods",
+        self.assertContains(response, "Dashboard",
                             status_code = 200)
