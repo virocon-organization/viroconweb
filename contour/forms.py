@@ -3,9 +3,7 @@ from django import forms
 from .models import MeasureFileModel
 from .validators import validate_csv_upload
 
-"""
-shortens command for subscript text
-"""
+# For subscript text
 SUB = {ord(c): ord(t) for c, t in zip(u"0123456789", u"₀₁₂₃₄₅₆₇₈₉")}
 
 
@@ -87,7 +85,7 @@ class MeasureFileFitForm(forms.Form):
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Scale (λ) dependency',
+                label='α dependency',
                 widget=forms.Select(attrs={
                     'class': 'form-control',
                     'id': 'scale_%s' % i
@@ -96,7 +94,7 @@ class MeasureFileFitForm(forms.Form):
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Shape (k) dependency',
+                label='β dependency',
                 widget=forms.Select(attrs={
                     'class': 'form-control',
                     'id': 'shape_%s' % i
@@ -105,7 +103,7 @@ class MeasureFileFitForm(forms.Form):
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Location (θ) dependency',
+                label='γ dependency',
                 widget=forms.Select(attrs={
                     'class': 'form-control',
                     'id': 'loc_%s' % i})
@@ -140,18 +138,18 @@ class VariablesForm(forms.Form):
         self.fields['scale_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
-            label='Scale (λ):'.translate(SUB),
+            label='α:'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '2.776',
                                             'id': 'scale_0_0'}))
         self.fields['shape_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4,
             min_value=0.0001,
-            label='Shape (k):'.translate(SUB),
+            label='β:'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '1.471',
                                             'id': 'shape_0_0'}))
         self.fields['location_%s' % 0 + '_%s' % 0] = forms.DecimalField(
             decimal_places=4, min_value=0.0001,
-            label='Location (θ):'.translate(SUB),
+            label='γ:'.translate(SUB),
             widget=forms.NumberInput(attrs={'value': '0.8888',
                                             'id': 'loc_0_0'}))
 
@@ -185,7 +183,7 @@ class VariablesForm(forms.Form):
                         param_class + '", "' + dist_id + '")'.format(i)
             self.fields['scale_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition, required=False,
-                label='Scale (λ) dependency',
+                label='α dependency',
                 widget=forms.Select(attrs={'class': 'form-control',
                                            'id': dependency_id,
                                            'onclick': func_call}))
@@ -219,7 +217,7 @@ class VariablesForm(forms.Form):
                         param_class + '", "' + dist_id + '")'.format(i)
             self.fields['shape_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition, required=False,
-                label='Shape (k) dependency',
+                label='β dependency',
                 widget=forms.Select(
                     attrs={'class': 'form-control',
                            'id': dependency_id,
@@ -255,7 +253,7 @@ class VariablesForm(forms.Form):
             self.fields['location_dependency_%s' % i] = forms.ChoiceField(
                 choices=condition,
                 required=False,
-                label='Location (θ) dependency',
+                label='γ dependency',
                 widget=forms.Select(
                     attrs={'class': 'form-control',
                            'id': dependency_id,

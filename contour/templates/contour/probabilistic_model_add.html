@@ -59,7 +59,7 @@
                    data-title="Weibull distribution">
                     <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
                 </a>
-                {% latexify 'f(x) = \frac{k}{\lambda} ( \frac{x}{ \lambda})^{k-1} e^{-(\frac{x}{ \lambda })^k}' math_inline=True %}
+                {% latexify 'f(x) = \frac{\beta}{\alpha} ( \frac{x - \gamma}{ \alpha})^{\beta-1} e^{-(\frac{x - \gamma}{ \alpha })^\beta}' math_inline=True %}
             </div>
             <div class="col-sm-4">Log-normal distribution
                 <a href="{% static 'images/example_lognormal.svg' %}" class="thumbnail" data-lightbox="lightbox"
@@ -182,9 +182,9 @@
                     document.getElementById('loc_0_0')
                         .style.display = 'none';
                     document.getElementById('initial-id_scale_0_0')
-                        .innerHTML = '&mu; (mu):';
+                        .innerHTML = '&mu;:';
                     document.getElementById('initial-id_shape_0_0')
-                        .innerHTML = '&sigma; (sigma):';
+                        .innerHTML = '&sigma;:';
                     document.getElementById('initial-id_location_0_0')
                         .innerHTML = '';
                 }
@@ -207,10 +207,10 @@
                         'constant value:');
                     document.getElementById(
                         'initial-id_shape_dependency_'.concat(var_number))
-                        .innerHTML = '&sigma; (sigma) dependency';
+                        .innerHTML = '&sigma; dependency';
                     document.getElementById(
                         'initial-id_scale_dependency_'.concat(var_number))
-                        .innerHTML = '&mu; (mu) dependency';
+                        .innerHTML = '&mu; dependency';
                     document.getElementById(
                         'initial-id_location_dependency_'.concat(var_number))
                         .innerHTML = '';
@@ -226,11 +226,11 @@
                     document.getElementById('loc_0_0')
                         .style.display = 'block';
                     document.getElementById('initial-id_scale_0_0')
-                        .innerHTML = 'scale (&sigma;):';
+                        .innerHTML = '&sigma;:';
                     document.getElementById('initial-id_shape_0_0')
                         .innerHTML = '';
                     document.getElementById('initial-id_location_0_0')
-                        .innerHTML = 'location (&mu;):';
+                        .innerHTML = '&mu;:';
                 }
                 else {
                     document.getElementById('scale_'.concat(var_number))
@@ -251,13 +251,13 @@
                         'constant value:');
                     document.getElementById(
                         'initial-id_scale_dependency_'.concat(var_number))
-                        .innerHTML = 'scale (&sigma;) dependency';
+                        .innerHTML = '&sigma; dependency';
                     document.getElementById(
                         'initial-id_shape_dependency_'.concat(var_number))
                         .innerHTML = '';
                     document.getElementById(
                         'initial-id_location_dependency_'.concat(var_number))
-                        .innerHTML = 'location (&mu;) dependency';
+                        .innerHTML = '&mu; dependency';
                 }
             }
             else {
@@ -270,12 +270,12 @@
                         'loc_0_0').style.display = 'block';
                     document.getElementById(
                         'initial-id_scale_0_0')
-                        .innerHTML = 'scale (&lambda;):';
+                        .innerHTML = '&alpha;:';
                     document.getElementById(
-                        'initial-id_shape_0_0').innerHTML = 'shape (k):';
+                        'initial-id_shape_0_0').innerHTML = '&beta;:';
                     document.getElementById(
                         'initial-id_location_0_0')
-                        .innerHTML = 'location (&theta;):';
+                        .innerHTML = '&gamma;:';
                 }
                 else {
                     document.getElementById('scale_'.concat(var_number))
@@ -298,13 +298,13 @@
                         'constant value:');
                     document.getElementById(
                         'initial-id_scale_dependency_'.concat(var_number))
-                        .innerHTML = 'scale (&lambda;) dependency';
+                        .innerHTML = '&alpha; dependency';
                     document.getElementById(
                         'initial-id_shape_dependency_'.concat(var_number))
-                        .innerHTML = 'shape (k) dependency';
+                        .innerHTML = '&beta; dependency';
                     document.getElementById(
                         'initial-id_location_dependency_'.concat(var_number))
-                        .innerHTML = 'location (&theta;) dependency';
+                        .innerHTML = '&gamma; dependency';
                 }
             }
             if (var_number > 0) {
