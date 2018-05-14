@@ -23,7 +23,7 @@
                    data-title="Weibull distribution">
                     <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
                 </a>
-                {% latexify 'f(x) = \frac{k}{\lambda} ( \frac{x}{ \lambda})^{k-1} e^{-(\frac{x}{ \lambda })^k}' math_inline=True %}
+                {% latexify 'f(x) = \frac{\beta}{\alpha} ( \frac{x - \gamma}{ \alpha})^{\beta-1} e^{-(\frac{x - \gamma}{ \alpha })^\beta}' math_inline=True %}
             </div>
             <div class="col-sm-4">Log-Normal distribution
                 <a href="{% static 'images/example_lognormal.svg' %}" class="thumbnail" data-lightbox="lightbox"
@@ -85,8 +85,8 @@
                 locationSelect.style.display = 'none';
                 locationSelect.value = '!None';
                 document.getElementById('shape_'.concat(var_number)).style.display = 'block';
-                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '&sigma; (sigma) dependency';
-                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&mu; (mu) dependency';
+                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '&sigma; dependency';
+                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&mu; dependency';
                 document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '';
             }
             else if (document.getElementById(dist_id).value === 'Normal') {
@@ -94,16 +94,16 @@
                 shapeSelect.style.display = 'none';
                 shapeSelect.value = '!None';
                 document.getElementById('loc_'.concat(var_number)).style.display = 'block';
+                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&sigma; dependency';
                 document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '';
-                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = ' &mu; (location) dependency';
-                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&sigma; (scale) dependency';
+                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = ' &mu; dependency';
             }
             else {
                 document.getElementById('loc_'.concat(var_number)).style.display = 'block';
                 document.getElementById('shape_'.concat(var_number)).style.display = 'block';
-                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = 'k (shape) dependency';
-                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&lambda; (scale) dependency';
-                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '&theta; (location) dependency';
+                document.getElementById('initial-id_scale_dependency_'.concat(var_number)).innerHTML = '&alpha; (scale) dependency';
+                document.getElementById('initial-id_shape_dependency_'.concat(var_number)).innerHTML = '&beta; dependency';
+                document.getElementById('initial-id_location_dependency_'.concat(var_number)).innerHTML = '&gamma; (location) dependency';
             }
         }
 
