@@ -111,9 +111,9 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
         x = np.linspace(weibull_min.ppf(0.0001, shape, loc, scale),
                         weibull_min.ppf(0.9999, shape, loc, scale), 100)
         y = weibull_min.pdf(x, shape, loc, scale)
-        text = distribution_type + ', ' + 'k=' + \
-               str(format(shape, '.3f')) + ' θ=' + str(
-            format(loc, '.3f')) + ' λ=' + str(format(scale, '.3f'))
+        text = distribution_type + ', ' + 'β=' + \
+               str(format(shape, '.3f')) + ' γ=' + str(
+            format(loc, '.3f')) + ' α=' + str(format(scale, '.3f'))
     elif distribution_type == 'Lognormal':
 
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
@@ -738,12 +738,15 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        plotted_figures = PlottedFigure.objects.filter(
-            probabilistic_model=probabilistic_model)
-        for plotted_figure in plotted_figures:
-            url_plotted_figure = plotted_figure.image.url
+
+        sorted_figures = sort_plotted_figures(probabilistic_model)
+
+        for sorted_figure in sorted_figures:
+            latex_content += str(sorted_figure.var_number) + r". Variable "
+            latex_content += adjust_param_name_latex(sorted_figure.param_name)
+            url_plotted_figure = sorted_figure.param_image.image.url
             local_path_plotted_figure = full_directory_prob_model + \
-                                       os.path.split(url_plotted_figure)[1]
+                                        os.path.split(url_plotted_figure)[1]
             if USE_S3:
                 request.urlretrieve(url_plotted_figure,
                                     local_path_plotted_figure
@@ -752,6 +755,20 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             latex_content += r"\includegraphics[width=\textwidth]{" + \
                              local_path_plotted_figure + r"}"
             latex_content += r"\end{figure}"
+
+            for pdf_image in sorted_figure.pdf_images:
+                url_plotted_figure = pdf_image.image.url
+                local_path_plotted_figure = full_directory_prob_model + \
+                                            os.path.split(url_plotted_figure)[1]
+                if USE_S3:
+                    request.urlretrieve(url_plotted_figure,
+                                        local_path_plotted_figure
+                                        )
+                latex_content += r"\begin{figure}[H]"
+                latex_content += r"\includegraphics[width=\textwidth]{" + \
+                                 local_path_plotted_figure + r"}"
+                latex_content += r"\end{figure}"
+
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."
@@ -978,11 +995,11 @@ def assign_parameter_name(dist_name, param_name):
     assigned_name = param_name
     if dist_name == 'Weibull':
         if param_name == 'shape':
-            assigned_name = 'k'
+            assigned_name = 'β'
         elif param_name == 'loc':
-            assigned_name = 'θ'
+            assigned_name = 'γ'
         elif param_name == 'scale':
-            assigned_name = 'λ'
+            assigned_name = 'α'
     elif dist_name == 'Lognormal' or dist_name == 'Lognormal_2':
         if param_name == 'shape':
             assigned_name = 'σ'
@@ -992,10 +1009,130 @@ def assign_parameter_name(dist_name, param_name):
         if param_name == 'shape':
             return
         elif param_name == 'loc':
-            assigned_name = 'μ (mean)'
+            assigned_name = 'μ'
         elif param_name == 'scale':
-            assigned_name = 'σ (standard deviation)'
+            assigned_name = 'σ'
 
     return assigned_name
+
+
+def adjust_param_name_latex(param_name):
+    """
+    Adjusts the parameter name for the latex report.
+
+    Parameters
+    ----------
+    param_name : str
+        Name of a parameter.
+
+    Returns
+    -------
+    The adjusted parameter name for the latex report.
+    """
+    if param_name == 'α parameter':
+        return r"$\alpha$ parameter"
+    elif param_name == 'β parameter':
+        return r"$\beta$ parameter"
+    elif param_name == 'γ parameter':
+        return r"$\gamma$ parameter"
+    elif param_name == 'σ parameter':
+        return r"$\sigma$ parameter"
+    elif param_name == 'μ parameter':
+        return r"$\mu$ parameter"
+    elif param_name == 'independent parameters' \
+            or param_name == 'independent parameter':
+        return param_name
+    else:
+        return r"parameter"
+
+
+def sort_plotted_figures(probabilistic_model):
+    """
+    Sorts the images showing the fits to generate a structured overview in the
+    template.
+
+    Parameters
+    ----------
+    probabilistic_model : ProbabilisticModel
+        A probabilistic model generated by a fit.
+
+    Return
+    -----
+    sorted_figures : list of FittingFiguresCollections
+        The FittingFiguresCollections represents all images that are linked to a
+        parameter of a distribution.
+    """
+    sorted_figures = []
+
+    dist_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+
+    for i, dist in enumerate(dist_models):
+        plotted_figures = PlottedFigure.objects.filter(
+            distribution_model=dist)
+
+        if len(plotted_figures) == 1:
+            temp_image = FittingFiguresCollection()
+            temp_image.var_number = i + 1
+            temp_image.param_image = plotted_figures[0]
+            temp_image.param_name = 'independent parameters'
+            sorted_figures.append(temp_image)
+        else:
+            param_images = []
+            pdf_images = []
+            for j, plotted_figure in enumerate(plotted_figures):
+                # If a PlottedFigure is assigned to a ParameterModel instance
+                # the PlottedFigure holds an image which shows a fit of a
+                # parameter's dependency or if the PlottedFigure object's
+                # image url includes the String 'None' then the image shows
+                # fitted distribution of all independent parameters. Both types
+                # of images will be appended to the param_images list.
+                if plotted_figure.parameter_model or 'None' in plotted_figure.image.url:
+                    param_images.append(plotted_figure)
+                else:
+                    pdf_images.append(plotted_figure)
+
+            for param in param_images:
+                temp_image = FittingFiguresCollection()
+                temp_image.var_number = i + 1
+                temp_image.param_image = param
+                # filters the independent distribution plot of the fitted
+                # parameters.
+                if 'None' in param.image.url:
+                    temp_image.param_name = 'independent parameter'
+                else:
+                    temp_image.pdf_images = pdf_images
+                    temp_image.param_name = assign_parameter_name(
+                        dist.distribution, param.parameter_model.name)
+                    temp_image.param_name = temp_image.param_name + ' parameter'
+
+                sorted_figures.append(temp_image)
+
+    return sorted_figures
+
+
+class FittingFiguresCollection:
+    """
+    Holds information and images of a fitted distribution parameter to view the
+    fit results of a parameter.
+
+    Attributes
+    ----------
+    var_number : int
+        The dimension number of a distribution.
+    pdf_images : list of PlottedFigures
+        PlottedFigures which show a fitted distribution.
+    param_image : PlottedFigure
+        The PlottedFigure which shows a fit function of a parameter.
+    param_name : str
+        The name of the parameter (shape, loc, scale).
+
+    """
+    def __init__(self):
+        self.var_number = 0
+        self.pdf_images = []
+        self.param_image = None
+        self.param_name = None
+
 
 
