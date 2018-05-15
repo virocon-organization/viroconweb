@@ -397,6 +397,32 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         do_independent_plot = True
         do_dependent_plot = True
 
+        print('Printing the scale value of the distribution object at i = ' + str(i))
+        print(fit.mul_var_dist.distributions[i].scale)
+        print('Printing the mu value of the distribution object at i = ' + str(i))
+        if hasattr(fit.mul_var_dist.distributions[i], 'mu'):
+            print(fit.mul_var_dist.distributions[i].mu)
+        else:
+            print('does not have "mu" as attribute.')
+
+        # Scale
+        if fit_inspection_data.scale_at is not None:
+            plot_var_dependent('scale', i, var_names[i], var_names,
+                               var_symbols,
+                               fit.mul_var_dist.distributions[i].scale,
+                               directory,
+                               fit.mul_var_dist.distributions[i].name,
+                               fit_inspection_data, fit,
+                               probabilistic_model,
+                               do_dependent_plot
+                               )
+            do_dependent_plot = False
+        else:
+            plot_var_independent('scale', i, var_names,
+                                 directory, fit_inspection_data, fit,
+                                 probabilistic_model)
+            do_independent_plot = False
+
         # Shape
         if fit.mul_var_dist.distributions[i].name != 'Normal':
             if fit_inspection_data.shape_at is not None:
@@ -408,7 +434,7 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                     do_dependent_plot
                 )
                 do_dependent_plot = False
-            else:
+            elif do_independent_plot:
                 plot_var_independent(
                     'shape', i, var_names, directory,
                     fit_inspection_data,
@@ -426,27 +452,10 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                     fit_inspection_data, fit, probabilistic_model,
                     do_dependent_plot
                 )
-                do_dependent_plot = False
             elif do_independent_plot:
                 plot_var_independent('loc', i, var_names,
                                      directory, fit_inspection_data, fit,
                                      probabilistic_model)
-                do_independent_plot = False
-        # Scale
-        if fit_inspection_data.scale_at is not None:
-            plot_var_dependent('scale', i, var_names[i], var_names,
-                               var_symbols,
-                               fit.mul_var_dist.distributions[i].scale,
-                               directory,
-                               fit.mul_var_dist.distributions[i].name,
-                               fit_inspection_data, fit,
-                               probabilistic_model,
-                               do_dependent_plot
-                               )
-        elif do_independent_plot:
-            plot_var_independent('scale', i, var_names,
-                                 directory, fit_inspection_data, fit,
-                                 probabilistic_model)
 
 
 def calculate_intervals(interval_centers, dimension_index,
