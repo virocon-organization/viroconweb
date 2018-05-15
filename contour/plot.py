@@ -739,12 +739,12 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
 
-        sorted_figures = sort_plotted_figures(probabilistic_model)
+        figure_collections = sort_plotted_figures(probabilistic_model)
 
-        for sorted_figure in sorted_figures:
-            latex_content += str(sorted_figure.var_number) + r". Variable "
-            latex_content += adjust_param_name_latex(sorted_figure.param_name)
-            url_plotted_figure = sorted_figure.param_image.image.url
+        for figure_collection in figure_collections:
+            latex_content += str(figure_collection.var_number) + r". Variable "
+            latex_content += adjust_param_name_latex(figure_collection.param_name)
+            url_plotted_figure = figure_collection.param_image.image.url
             local_path_plotted_figure = full_directory_prob_model + \
                                         os.path.split(url_plotted_figure)[1]
             if USE_S3:
@@ -756,7 +756,7 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
                              local_path_plotted_figure + r"}"
             latex_content += r"\end{figure}"
 
-            for pdf_image in sorted_figure.pdf_images:
+            for pdf_image in figure_collection.pdf_images:
                 url_plotted_figure = pdf_image.image.url
                 local_path_plotted_figure = full_directory_prob_model + \
                                             os.path.split(url_plotted_figure)[1]
