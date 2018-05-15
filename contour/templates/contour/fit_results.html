@@ -5,11 +5,23 @@
     <div class="page-header">
         <h1>Fit results: visual inspection</h1>
     </div>
-    <br>
-    {% for plotted_figure in plotted_figures %}
-        <img src="{{ plotted_figure.image.url }}"
+    <div>
+    {% for figure_collection in figure_collections %}
+        {% if figure_collection.var_number > 1 %}
+             <hr>
+        {% endif %}
+        <h3 align="left">{{ figure_collection.var_number }}. Variable:
+            {{ figure_collection.param_name }}
+        </h3>
+        <img src="{{ figure_collection.param_image.image.url }}"
              class="img-responsive center-block">
+        {% for plotted_figure in figure_collection.pdf_images %}
+            <img src="{{ plotted_figure.image.url }}"
+                 class="img-responsive center-block">
+            <br>
+        {% endfor %}
     {% endfor %}
+    </div>
     <hr>
     <div class="left-align-div">
         <h2>Probability density function</h2>

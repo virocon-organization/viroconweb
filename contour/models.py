@@ -44,12 +44,6 @@ def media_directory_path(instance, filename):
             primary_key = probabilistic_model.pk
         elif instance.environmental_contour:
             ec = instance.environmental_contour
-            print('printing the probabilistic model:')
-            print(ec.probabilistic_model)
-            print('Printing the pms primary user:')
-            print(ec.probabilistic_model.primary_user)
-            print('Printing the pms primary user username:')
-            print(ec.probabilistic_model.primary_user.username)
             user_name = ec.probabilistic_model.primary_user.username
             model_path = settings.PATH_CONTOUR
             primary_key = ec.pk
@@ -350,6 +344,21 @@ class PlottedFigure(models.Model):
         null=True,
         on_delete=models.CASCADE
     )
+
+    distribution_model = models.ForeignKey(
+        DistributionModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
+    parameter_model = models.ForeignKey(
+        ParameterModel,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+
     environmental_contour = models.ForeignKey(
         EnvironmentalContour,
         blank=True,

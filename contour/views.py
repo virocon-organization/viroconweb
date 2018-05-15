@@ -356,13 +356,11 @@ class MeasureFileHandler(Handler):
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
-                    plotted_figures = PlottedFigure.objects.filter(
-                        probabilistic_model=prob_model
-                    )
+                    figure_collections = plot.sort_plotted_figures(prob_model)
                     return render(request,
                                   'contour/fit_results.html',
                                   {'pk': prob_model.pk,
-                                   'plotted_figures': plotted_figures,
+                                   'figure_collections': figure_collections,
                                    'latex_string_list': latex_string_list
                                    }
                                   )
@@ -375,6 +373,7 @@ class MeasureFileHandler(Handler):
                           'contour/measure_file_model_fit.html',
                           {'form': fit_form}
                           )
+
 
     @staticmethod
     def new_fit(request, pk):
@@ -938,8 +937,8 @@ class ProbabilisticModelHandler(Handler):
                 var_symbols.append(dist.symbol)
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
-            plotted_figures = PlottedFigure.objects.filter(
-                probabilistic_model=probabilistic_model)
+
+            figure_collections = plot.sort_plotted_figures(probabilistic_model)
 
             return render(
                 request,
@@ -947,7 +946,7 @@ class ProbabilisticModelHandler(Handler):
                 {'user': request.user,
                  'probabilistic_model': probabilistic_model,
                  'latex_string_list': latex_string_list,
-                 'plotted_figures': plotted_figures})
+                 'figure_collections': figure_collections})
 
 
 class EnvironmentalContourHandler(Handler):
@@ -1017,11 +1016,11 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
                                                    distribution=dist_name)
             distribution_model.save()
             save_parameter(dist.shape, distribution_model,
-                           fit.mul_var_dist.dependencies[i][0])
+                           fit.mul_var_dist.dependencies[i][0], 'shape')
             save_parameter(dist.loc, distribution_model,
-                           fit.mul_var_dist.dependencies[i][1])
+                           fit.mul_var_dist.dependencies[i][1], 'loc')
             save_parameter(dist.mu, distribution_model,
-                           fit.mul_var_dist.dependencies[i][2])
+                           fit.mul_var_dist.dependencies[i][2], 'scale')
         else:
             distribution_model = DistributionModel(name=var_names[i],
                                                    symbol=var_symbols[i],
@@ -1029,11 +1028,11 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
                                                    distribution=dist.name)
             distribution_model.save()
             save_parameter(dist.shape, distribution_model,
-                           fit.mul_var_dist.dependencies[i][0])
+                           fit.mul_var_dist.dependencies[i][0], 'shape')
             save_parameter(dist.loc, distribution_model,
-                           fit.mul_var_dist.dependencies[i][1])
+                           fit.mul_var_dist.dependencies[i][1], 'loc')
             save_parameter(dist.scale, distribution_model,
-                           fit.mul_var_dist.dependencies[i][2])
+                           fit.mul_var_dist.dependencies[i][2], 'scale')
 
     return probabilistic_model
 
@@ -1106,7 +1105,7 @@ def save_environmental_contour(environmental_contour,
     return environmental_contour
 
 
-def save_parameter(parameter, distribution_model, dependency):
+def save_parameter(parameter, distribution_model, dependency, name):
     """
     Saves a fitted parameter and links it to a DistributionModel.
 
@@ -1119,12 +1118,15 @@ def save_parameter(parameter, distribution_model, dependency):
         The parameter will be linked to this DistributionModel.
     dependency : int
         The dimension the dependency is based on.
+    name : str
+        Name of the parameter ('shape', 'loc' or 'scale')
     """
     if type(parameter) == params.ConstantParam:
         parameter_model = ParameterModel(function='None',
                                          x0=parameter(0),
                                          dependency='!',
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
     elif type(parameter) == params.FunctionParam:
         parameter_model = ParameterModel(function=parameter.func_name,
@@ -1132,13 +1134,15 @@ def save_parameter(parameter, distribution_model, dependency):
                                          x1=parameter.b,
                                          x2=parameter.c,
                                          dependency=dependency,
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
     else:
         parameter_model = ParameterModel(function='None',
                                          x0=0,
                                          dependency='!',
-                                         distribution=distribution_model)
+                                         distribution=distribution_model,
+                                         name=name)
         parameter_model.save()
 
 
@@ -1175,6 +1179,7 @@ def get_info_from_file(url):
 
     return var_names, var_symbols
 
+
 def get_info_from_reader(reader):
     """
     Reads the variable names and symbols form a reader
@@ -1188,10 +1193,10 @@ def get_info_from_reader(reader):
 
     Returns
     -------
-    var_names : list of strings
+    var_names : list of str
         Names of the environmental variables used in csv file,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-    var_symbols : list of strings
+    var_symbols : list of str
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """

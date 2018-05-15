@@ -25,12 +25,12 @@
                         data-target="#measure-file-plot">
                     Show plot
                 </button>
-                <div id="measure-file-plot" class="collapse">
-                    <img src="{{ probabilistic_model.measure_file_model.scatter_plot.url }}"
-                         class="img-responsive center-block">
-                </div>
+            <div id="measure-file-plot" class="collapse">
+                <img src="{{ probabilistic_model.measure_file_model.scatter_plot.url }}"
+                     class="img-responsive center-block">
+            </div>
             </p>
-            {% if plotted_figures %}
+            {% if figure_collections %}
                 <h3>Evaluation of the fit</h3>
                 <button class="btn btn-default"
                         data-toggle="collapse"
@@ -38,9 +38,18 @@
                     Show fits
                 </button>
                 <div id="fit-images" class="collapse">
-                    {% for plotted_figure in plotted_figures %}
-                        <img src="{{ plotted_figure.image.url }}"
+                    {% for figure_collection in figure_collections %}
+                        <hr>
+                        <h3>{{ figure_collection.var_number }}. Variable:
+                            {{ figure_collection.param_name }}
+                        </h3>
+                        <img src="{{ figure_collection.param_image.image.url }}"
                              class="img-responsive center-block">
+                        {% for plotted_figure in figure_collection.pdf_images %}
+                            <img src="{{ plotted_figure.image.url }}"
+                                 class="img-responsive center-block">
+                            <br>
+                        {% endfor %}
                     {% endfor %}
                 </div>
             {% endif %}

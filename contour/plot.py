@@ -13,7 +13,7 @@ from io import BytesIO, StringIO
 from django.core.files.base import ContentFile
 from urllib import request
 from viroconweb.settings import USE_S3
-
+from viroconcom.distributions import ParametricDistribution
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
@@ -68,34 +68,34 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
     The function creates an image which shows a certain fit of a distribution.
     Parameters
     ----------
-    dim_index : int
+    dim_index : int,
           The index of the current dimension (distribution). The index is used
           to recognise the image later.
-    parent_index : int
+    parent_index : int,
         The index of the variable on which the conditional is based
         (when no condition: None).
-    low_index : int
+    low_index : int,
          The index of the interval. (needed to recognize the images later)
-    shape : float
+    shape : float,
         The value of the shape parameter.
-    loc : float
+    loc : float,
         The value of the loc parameter. (location)
-    scale : float
+    scale : float,
         The value of the scale parameter.
-    distribution_type: str
+    distribution_type: str,
         Type / name of the distribution, must be "Normal", "Weibull" or
         "Lognormal"
-    dist_points: list of floats
+    dist_points: list of float,
        The dates for the histogram.
-    interval : list of floats
+    interval : list of float,
         The list contains the interval of the plotted distribution.
-    var_name : str
+    var_name : str,
         The name of a single variable of the probabilistic model.
-    symbol_parent_var : str
+    symbol_parent_var : str,
         Symbol of the variable on which the conditional variable is based.
-    directory : str
+    directory : str,
         The directory where the figure should be saved
-    probabilistic_model : ProbabilisticModel
+    probabilistic_model : ProbabilisticModel,
         Probabilistic model which has the particular pdf.
     """
     fig = plt.figure()
@@ -105,27 +105,27 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
         x = np.linspace(norm.ppf(0.0001, loc, scale),
                         norm.ppf(0.9999, loc, scale), 100)
         y = norm.pdf(x, loc, scale)
-        text = distribution_type + ', ' + 'mu: ' + str(format(loc, '.3f')) + \
-               ' sigma: ' + str(format(scale, '.3f'))
+        text = distribution_type + ',' + \
+               ' μ=' + str(format(loc, '.3f')) + \
+               ' σ=' + str(format(scale, '.3f'))
     elif distribution_type == 'Weibull':
         x = np.linspace(weibull_min.ppf(0.0001, shape, loc, scale),
                         weibull_min.ppf(0.9999, shape, loc, scale), 100)
         y = weibull_min.pdf(x, shape, loc, scale)
-        text = distribution_type + ', ' + 'shape: ' + \
-               str(format(shape, '.3f')) + ' loc: ' + str(
-            format(loc, '.3f')) + ' scale: ' + str(format(scale, '.3f'))
+        text = distribution_type + ',' + \
+               ' α=' + str(format(scale, '.3f')) + \
+               ' β=' + str(format(shape, '.3f')) + \
+               ' γ=' + str(format(loc, '.3f'))
     elif distribution_type == 'Lognormal':
-
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
-
         # The plot function works with the scale parameter but the user
-        # interface works with the mu value. However the scale value must be
+        # interface works with the mu value. However, the scale value must be
         # adjusted.
-        text = distribution_type + ', ' + 'sigma: ' + \
-               str(format(shape, '.3f')) + ' mu: ' + \
-               str(format(np.log(scale), '.3f'))
+        text = distribution_type + ',' + \
+               ' μ=' + str(format(np.log(scale), '.3f')) + \
+               ' σ=' + str(format(shape, '.3f'))
     else:
         raise KeyError('No function match - {}'.format(distribution_type))
 
@@ -163,7 +163,11 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
     plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
-    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+
+    dists_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model,
+                                   distribution_model=dists_models[dim_index])
     file_name = 'fit_' + dim_index_2_digits + '_' + parent_index_2_digits + \
                 '_' + low_index_2_digits + '.png'
     plotted_figure.image.save(file_name, content_file)
@@ -189,10 +193,10 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
           Symbol of a multivariate distribution.
     para_name : str
         Parameter name like shape, location, scale.
-    param_at : list of floats
+    param_at : list of float
          The list contains the x-values of a fitted function for a parameter
          e.g. shape, loc or scale.
-    param_values : list of floats
+    param_values : list of float
         The list contains the y-values of a fitted function for a parameter
         e.g. shape, loc or scale.
     fit_func : FunctionParam
@@ -204,27 +208,8 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
     probabilistic_model : ProbabilisticModel
         Probabilistic model that was created based on this fit.
     """
-    if dist_name == 'Weibull':
-        if para_name == 'shape':
-            y_text = 'k (shape)'
-        elif para_name == 'loc':
-            y_text = 'θ (location)'
-        elif para_name == 'scale':
-            y_text = 'λ (scale)'
-    elif dist_name == 'Lognormal':
-        if para_name == 'shape':
-            y_text = 'σ (sigma)'
-        elif para_name == 'scale':
-            y_text = 'μ (mu)'
-    elif dist_name == 'Normal':
-        if para_name == 'shape':
-            return
-        elif para_name == 'loc':
-            y_text = 'μ (mean)'
-        elif para_name == 'scale':
-            y_text = 'σ (standard deviation)'
-    else:
-        y_text = para_name
+
+    y_text = assign_parameter_name(dist_name, para_name)
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -246,7 +231,6 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
 
     ax.scatter(param_at, param_values, color='#9C373A')
     ax.grid(True)
-    plt.title('Variable: ' + var_name)
     plt.ylabel(y_text)
     plt.xlabel(var_name)
 
@@ -256,14 +240,22 @@ def plot_parameter_fit_overview(dim_index, var_name, var_symbol, para_name,
     plt.savefig(f, bbox_inches='tight')
     plt.close(fig)
     content_file = ContentFile(f.getvalue())
-    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model)
+
+    dists_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+    param_models = ParameterModel.objects.filter(
+        distribution=dists_models[dim_index])
+    param_model = param_models.get(name=para_name)
+    plotted_figure = PlottedFigure(probabilistic_model=probabilistic_model,
+                                   distribution_model=dists_models[dim_index],
+                                   parameter_model=param_model)
     file_name = 'fit_' + str(dim_index) + para_name + '.png'
+
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
 
 
 def plot_var_dependent(param_name,
-                       param_index,
                        dim_index,
                        var_name,
                        var_names,
@@ -283,17 +275,14 @@ def plot_var_dependent(param_name,
     ----------
     param_name : str
         The name of the parameter (e.g. shape, loc or scale).
-    param_index : int
-        The index represents a parameter of the three possible parameter shape,
-        loc, scale. (0 = shape, 1 = loc, 2 = scale)
     dim_index : int
         The dimension of the distribution.
     var_name: str
-        Name of the distribution.
+        Variable name of this distribution.
     var_names : list of str
-        The name of the distribution.
+        Variable names of all distributions.
     var_symbols : list of str
-        The symbols of the distribution.
+        Variable symbols of all distributions.
     param : FunctionParam
         The used function for the fit (e.g. exponential, power function)
     directory : str
@@ -320,6 +309,7 @@ def plot_var_dependent(param_name,
 
     if do_dependent_plot:
         for j in range(len(param_at)):
+            param_index = ParametricDistribution.param_name_to_index(param_name)
             basic_fit = fit_inspection_data.get_basic_fit(param_name, j)
             interval_limits = calculate_intervals(param_at, dim_index, j)
             parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
@@ -334,10 +324,8 @@ def plot_var_dependent(param_name,
 
 
 def plot_var_independent(param_name,
-                         param_index,
                          dim_index,
                          var_names,
-                         var_symbols,
                          directory,
                          fit_inspection_data,
                          fit,
@@ -350,15 +338,10 @@ def plot_var_independent(param_name,
     ----------
     param_name : str
         The name of the parameter (e.g. shape, loc or scale).
-    param_index : int
-        The index represents a parameter of the three possible parameter shape,
-        loc, scale. (0 = shape, 1 = loc, 2 = scale)
     dim_index : int
         The dimension of the distribution.
     var_names : list of str
         The name of the distribution.
-    var_symbols : list of str
-        The symbols of the distribution.
     directory : str
         Path to the directory where the images will be stored.
     fit_inspection_data : FitInspectionData
@@ -370,6 +353,7 @@ def plot_var_independent(param_name,
     """
     basic_fit = fit_inspection_data.get_basic_fit(param_name, 0)
     interval_limits = []
+    param_index = ParametricDistribution.param_name_to_index(param_name)
     parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
     symbol_parent_var = None
     plot_pdf_with_raw_data(dim_index,
@@ -413,20 +397,46 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         do_independent_plot = True
         do_dependent_plot = True
 
+        print('Printing the scale value of the distribution object at i = ' + str(i))
+        print(fit.mul_var_dist.distributions[i].scale)
+        print('Printing the mu value of the distribution object at i = ' + str(i))
+        if hasattr(fit.mul_var_dist.distributions[i], 'mu'):
+            print(fit.mul_var_dist.distributions[i].mu)
+        else:
+            print('does not have "mu" as attribute.')
+
+        # Scale
+        if fit_inspection_data.scale_at is not None:
+            plot_var_dependent('scale', i, var_names[i], var_names,
+                               var_symbols,
+                               fit.mul_var_dist.distributions[i].scale,
+                               directory,
+                               fit.mul_var_dist.distributions[i].name,
+                               fit_inspection_data, fit,
+                               probabilistic_model,
+                               do_dependent_plot
+                               )
+            do_dependent_plot = False
+        else:
+            plot_var_independent('scale', i, var_names,
+                                 directory, fit_inspection_data, fit,
+                                 probabilistic_model)
+            do_independent_plot = False
+
         # Shape
         if fit.mul_var_dist.distributions[i].name != 'Normal':
             if fit_inspection_data.shape_at is not None:
                 plot_var_dependent(
-                    'shape', 0, i, var_names[i], var_names, var_symbols,
+                    'shape', i, var_names[i], var_names, var_symbols,
                     fit.mul_var_dist.distributions[i].shape, directory,
                     fit.mul_var_dist.distributions[i].name,
                     fit_inspection_data, fit, probabilistic_model,
                     do_dependent_plot
                 )
                 do_dependent_plot = False
-            else:
+            elif do_independent_plot:
                 plot_var_independent(
-                    'shape', 0, i, var_names, var_symbols, directory,
+                    'shape', i, var_names, directory,
                     fit_inspection_data,
                     fit, probabilistic_model
                 )
@@ -436,33 +446,16 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         if fit.mul_var_dist.distributions[i].name != 'Lognormal':
             if fit_inspection_data.loc_at is not None:
                 plot_var_dependent(
-                    'loc', 1, i, var_names[i], var_names, var_symbols,
+                    'loc', i, var_names[i], var_names, var_symbols,
                     fit.mul_var_dist.distributions[i].loc, directory,
                     fit.mul_var_dist.distributions[i].name,
                     fit_inspection_data, fit, probabilistic_model,
                     do_dependent_plot
                 )
-                do_dependent_plot = False
             elif do_independent_plot:
-                plot_var_independent('loc', 1, i, var_names,var_symbols,
+                plot_var_independent('loc', i, var_names,
                                      directory, fit_inspection_data, fit,
                                      probabilistic_model)
-                do_independent_plot = False
-        # Scale
-        if fit_inspection_data.scale_at is not None:
-            plot_var_dependent('scale', 2, i, var_names[i], var_names,
-                               var_symbols,
-                               fit.mul_var_dist.distributions[i].scale,
-                               directory,
-                               fit.mul_var_dist.distributions[i].name,
-                               fit_inspection_data, fit,
-                               probabilistic_model,
-                               do_dependent_plot
-                               )
-        elif do_independent_plot:
-            plot_var_independent('scale', 2, i, var_names, var_symbols,
-                                 directory, fit_inspection_data, fit,
-                                 probabilistic_model)
 
 
 def calculate_intervals(interval_centers, dimension_index,
@@ -745,12 +738,15 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         latex_content += r"File: '\verb|" + \
                          probabilistic_model.measure_file_model.title + \
                          r"|' \subsection{Fitting}"
-        plotted_figures = PlottedFigure.objects.filter(
-            probabilistic_model=probabilistic_model)
-        for plotted_figure in plotted_figures:
-            url_plotted_figure = plotted_figure.image.url
+
+        figure_collections = sort_plotted_figures(probabilistic_model)
+
+        for figure_collection in figure_collections:
+            latex_content += str(figure_collection.var_number) + r". Variable "
+            latex_content += adjust_param_name_latex(figure_collection.param_name)
+            url_plotted_figure = figure_collection.param_image.image.url
             local_path_plotted_figure = full_directory_prob_model + \
-                                       os.path.split(url_plotted_figure)[1]
+                                        os.path.split(url_plotted_figure)[1]
             if USE_S3:
                 request.urlretrieve(url_plotted_figure,
                                     local_path_plotted_figure
@@ -759,6 +755,20 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
             latex_content += r"\includegraphics[width=\textwidth]{" + \
                              local_path_plotted_figure + r"}"
             latex_content += r"\end{figure}"
+
+            for pdf_image in figure_collection.pdf_images:
+                url_plotted_figure = pdf_image.image.url
+                local_path_plotted_figure = full_directory_prob_model + \
+                                            os.path.split(url_plotted_figure)[1]
+                if USE_S3:
+                    request.urlretrieve(url_plotted_figure,
+                                        local_path_plotted_figure
+                                        )
+                latex_content += r"\begin{figure}[H]"
+                latex_content += r"\includegraphics[width=\textwidth]{" + \
+                                 local_path_plotted_figure + r"}"
+                latex_content += r"\end{figure}"
+
     else:
         latex_content += r"No associated file. The model was created by " \
                          r"direct input."
@@ -964,3 +974,166 @@ def create_design_conditions_csv(contour_coordinates, environmental_contour):
     environmental_contour.design_conditions_csv.save(
         settings.EEDC_FILE_NAME, content_file)
     environmental_contour.save()
+
+
+def assign_parameter_name(dist_name, param_name):
+    """
+    Assigns the correct parameter name matching for the distribution
+
+    Parameters
+    ---------
+    dist_name : str
+        The name of a distribution.
+    param_name : str
+        The name of a parameter as it is saved in the database.
+
+    Returns
+    -------
+    assigned_name : str
+        The parameter name matching to the distribution.
+    """
+    assigned_name = param_name
+    if dist_name == 'Weibull':
+        if param_name == 'shape':
+            assigned_name = 'β'
+        elif param_name == 'loc':
+            assigned_name = 'γ'
+        elif param_name == 'scale':
+            assigned_name = 'α'
+    elif dist_name == 'Lognormal' or dist_name == 'Lognormal_2':
+        if param_name == 'shape':
+            assigned_name = 'σ'
+        elif param_name == 'scale':
+            assigned_name = 'μ'
+    elif dist_name == 'Normal':
+        if param_name == 'shape':
+            return
+        elif param_name == 'loc':
+            assigned_name = 'μ'
+        elif param_name == 'scale':
+            assigned_name = 'σ'
+
+    return assigned_name
+
+
+def adjust_param_name_latex(param_name):
+    """
+    Adjusts the parameter name for the latex report.
+
+    Parameters
+    ----------
+    param_name : str
+        Name of a parameter.
+
+    Returns
+    -------
+    The adjusted parameter name for the latex report.
+    """
+    if param_name == 'α parameter':
+        return r"$\alpha$ parameter"
+    elif param_name == 'β parameter':
+        return r"$\beta$ parameter"
+    elif param_name == 'γ parameter':
+        return r"$\gamma$ parameter"
+    elif param_name == 'σ parameter':
+        return r"$\sigma$ parameter"
+    elif param_name == 'μ parameter':
+        return r"$\mu$ parameter"
+    elif param_name == 'independent parameters' \
+            or param_name == 'independent parameter':
+        return param_name
+    else:
+        return r"parameter"
+
+
+def sort_plotted_figures(probabilistic_model):
+    """
+    Sorts the images showing the fits to generate a structured overview in the
+    template.
+
+    Parameters
+    ----------
+    probabilistic_model : ProbabilisticModel,
+        A probabilistic model generated by a fit.
+
+    Returns
+    -------
+    figure_collections : list of FittingFigureCollection,
+        The FittingFiguresCollections represents all images that are linked to a
+        parameter of a distribution.
+    """
+    figure_collections = []
+
+    dist_models = DistributionModel.objects.filter(
+        probabilistic_model=probabilistic_model)
+
+    for i, dist in enumerate(dist_models):
+        plotted_figures = PlottedFigure.objects.filter(
+            distribution_model=dist)
+
+        if len(plotted_figures) == 1:
+            figure_collection = FittingFigureCollection()
+            figure_collection.var_number = i + 1
+            figure_collection.param_image = plotted_figures[0]
+            figure_collection.param_name = 'independent parameters'
+            figure_collections.append(figure_collection)
+        else:
+            param_images = []
+            pdf_images = []
+            for j, plotted_figure in enumerate(plotted_figures):
+                # If a PlottedFigure is assigned to a ParameterModel instance
+                # the PlottedFigure holds an image which shows a fit of a
+                # parameter's dependency or if the PlottedFigure object's
+                # image url includes the String 'None' then the image shows
+                # fitted distribution of all independent parameters. Both types
+                # of images will be appended to the param_images list.
+                if plotted_figure.parameter_model or 'None' in plotted_figure.image.url:
+                    param_images.append(plotted_figure)
+                else:
+                    pdf_images.append(plotted_figure)
+
+            for param in param_images:
+                figure_collection = FittingFigureCollection()
+                figure_collection.var_number = i + 1
+                figure_collection.param_image = param
+                # Filter the independent distribution plot of the fitted
+                # parameters.
+                if 'None' in param.image.url:
+                    figure_collection.param_name = 'independent parameter'
+                else:
+                    figure_collection.pdf_images = pdf_images
+                    figure_collection.param_name = assign_parameter_name(
+                        dist.distribution, param.parameter_model.name)
+                    figure_collection.param_name = \
+                        figure_collection.param_name + ' parameter'
+
+                figure_collections.append(figure_collection)
+
+    return figure_collections
+
+
+class FittingFigureCollection:
+    """
+    Holds information and images of a fitted distribution parameter to view the
+    fit results of a parameter.
+
+    Attributes
+    ----------
+    var_number : int,
+        The dimension number of a distribution.
+    pdf_images : list of PlottedFigure,
+        PlottedFigures which show a fitted distribution.
+    param_image : PlottedFigure,
+        The PlottedFigure which shows a fit function of a parameter.
+    param_name : str,
+        The name of the parameter (shape, loc, scale).
+
+    """
+    def __init__(self):
+        self.var_number = 0
+        self.pdf_images = []
+        self.param_image = None
+        self.param_name = None
+
+
+
