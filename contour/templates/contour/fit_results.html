@@ -6,16 +6,16 @@
         <h1>Fit results: visual inspection</h1>
     </div>
     <div>
-    {% for template_image in sorted_figures %}
-        {% if template_image.var_number > 1 %}
+    {% for figure_collection in figure_collections %}
+        {% if figure_collection.var_number > 1 %}
              <hr>
         {% endif %}
-        <h3 align="left">{{ template_image.var_number }}. Variable:
-            {{ template_image.param_name }}
+        <h3 align="left">{{ figure_collection.var_number }}. Variable:
+            {{ figure_collection.param_name }}
         </h3>
-        <img src="{{ template_image.param_image.image.url }}"
+        <img src="{{ figure_collection.param_image.image.url }}"
              class="img-responsive center-block">
-        {% for plotted_figure in template_image.pdf_images %}
+        {% for plotted_figure in figure_collection.pdf_images %}
             <img src="{{ plotted_figure.image.url }}"
                  class="img-responsive center-block">
             <br>

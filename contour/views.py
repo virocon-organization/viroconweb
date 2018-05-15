@@ -356,11 +356,11 @@ class MeasureFileHandler(Handler):
                     latex_string_list = multivariate_distribution.latex_repr(
                         var_symbols
                     )
-                    sorted_figures = plot.sort_plotted_figures(prob_model)
+                    figure_collections = plot.sort_plotted_figures(prob_model)
                     return render(request,
                                   'contour/fit_results.html',
                                   {'pk': prob_model.pk,
-                                   'sorted_figures': sorted_figures,
+                                   'figure_collections': figure_collections,
                                    'latex_string_list': latex_string_list
                                    }
                                   )
@@ -938,7 +938,7 @@ class ProbabilisticModelHandler(Handler):
             multivariate_distribution = plot.setup_mul_dist(probabilistic_model)
             latex_string_list = multivariate_distribution.latex_repr(var_symbols)
 
-            sorted_figures = plot.sort_plotted_figures(probabilistic_model)
+            figure_collections = plot.sort_plotted_figures(probabilistic_model)
 
             return render(
                 request,
@@ -946,7 +946,7 @@ class ProbabilisticModelHandler(Handler):
                 {'user': request.user,
                  'probabilistic_model': probabilistic_model,
                  'latex_string_list': latex_string_list,
-                 'sorted_figures': sorted_figures})
+                 'figure_collections': figure_collections})
 
 
 class EnvironmentalContourHandler(Handler):

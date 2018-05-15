@@ -30,7 +30,7 @@
                      class="img-responsive center-block">
             </div>
             </p>
-            {% if sorted_figures %}
+            {% if figure_collections %}
                 <h3>Evaluation of the fit</h3>
                 <button class="btn btn-default"
                         data-toggle="collapse"
@@ -38,14 +38,14 @@
                     Show fits
                 </button>
                 <div id="fit-images" class="collapse">
-                    {% for template_image in sorted_figures %}
+                    {% for figure_collection in figure_collections %}
                         <hr>
-                        <h3>{{ template_image.var_number }}. Variable:
-                            {{ template_image.param_name }}
+                        <h3>{{ figure_collection.var_number }}. Variable:
+                            {{ figure_collection.param_name }}
                         </h3>
-                        <img src="{{ template_image.param_image.image.url }}"
+                        <img src="{{ figure_collection.param_image.image.url }}"
                              class="img-responsive center-block">
-                        {% for plotted_figure in template_image.pdf_images %}
+                        {% for plotted_figure in figure_collection.pdf_images %}
                             <img src="{{ plotted_figure.image.url }}"
                                  class="img-responsive center-block">
                             <br>
