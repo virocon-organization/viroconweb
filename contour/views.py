@@ -1193,10 +1193,10 @@ def get_info_from_reader(reader):
 
     Returns
     -------
-    var_names : list of strings
+    var_names : list of str
         Names of the environmental variables used in csv file,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-    var_symbols : list of strings
+    var_symbols : list of str
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """

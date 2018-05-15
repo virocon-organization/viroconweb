@@ -151,7 +151,7 @@ class ComputeInterface:
         state_duration : float,
             The sea state's or more general the environmental state's duration
             in hours.
-        limits : list of tuples,
+        limits : list of tuple,
             One 2-element tuple per dimension in mul_var_distribution,
             containing min and max limits for calculation ((min, max)).
             The smaller value is always assumed minimum.
