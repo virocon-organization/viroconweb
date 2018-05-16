@@ -12,14 +12,18 @@
         </div>
         <div class="panel-body">
             <div class="col-sm-4">Normal distribution
-                <a href="{% static 'images/example_normal.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                <a href="{% static 'images/example_normal.svg' %}"
+                   class="thumbnail"
+                   data-lightbox="lightbox"
                    data-title="Normal distribution">
                     <img class="img-responsive" src="{% static 'images/example_normal.svg' %}">
                 </a>
                 {% latexify 'f(x) = \frac{1}{ \sqrt{2 \pi \sigma^2}} e^{- \frac{(x- \mu)^2}{2 \sigma^2}}' math_inline=True %}
             </div>
             <div class="col-sm-4">Weibull distribution
-                <a href="{% static 'images/example_weibull.svg' %}" class="thumbnail" data-lightbox="lightbox"
+                <a href="{% static 'images/example_weibull.svg' %}"
+                   class="thumbnail"
+                   data-lightbox="lightbox"
                    data-title="Weibull distribution">
                     <img class="img-responsive" src="{% static 'images/example_weibull.svg' %}">
                 </a>
