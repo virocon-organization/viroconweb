@@ -462,3 +462,11 @@ input {
 .thump-img-caption {
    width: 14vw;
 }
+
+.bg-danger {
+    padding: 12px;
+    border-color: lightcoral;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 4px
+}
