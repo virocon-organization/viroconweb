@@ -25,12 +25,12 @@ def about(request):
 
 def imprint(request):
     """
-    Takes a generated HttpRequest for the imprint page and returns a HttpResponse for the imprint page.
+    Returns a HttpResponse for the Legal Info page.
 
     Parameters
     ----------
     request : HttpRequest
-        The generated request for the imprint page.
+        The generated request for the Legal Info page.
 
 
     Return
@@ -40,6 +40,44 @@ def imprint(request):
 
     """
     return render(request, 'info/imprint.html')
+
+
+def terms(request):
+    """
+    Returns a HttpResponse for the Terms of Service page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        The request for the Terms of Service page.
+
+
+    Return
+    ------
+    HttpResponse
+        Is based on the template info/terms_and_privacy.html.
+
+    """
+    return render(request, 'info/terms_and_privacy.html')
+
+
+def privacy(request):
+    """
+    Returns a HttpResponse for the Privacy Polcy page.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        The request for the Privacy Policy page.
+
+
+    Return
+    ------
+    HttpResponse
+        Is based on the template info/terms_and_privacy.html.
+
+    """
+    return render(request, 'info/terms_and_privacy.html')
 
 
 def help(request):

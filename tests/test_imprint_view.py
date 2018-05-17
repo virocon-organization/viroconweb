@@ -9,5 +9,5 @@ class ImprintTestCase(TestCase):
 
     def test_renders_correctly(self):
         response = self.client.get(reverse('info:imprint'), follow=True)
-        self.assertContains(response, "Imprint",
+        self.assertContains(response, "Legal Notice",
                             status_code = 200)
