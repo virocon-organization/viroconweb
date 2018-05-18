@@ -51,9 +51,7 @@ viroconcom and then computes a environmental contour.
 
 ## Documentation
 **Code** The code's documentation can be found
-[here](https://ahaselsteiner.github.io/viroconweb/). Currently, this is the
-documentation of the package viroconcom, we will update it to become ViroCon's
-documentation.
+[here](https://ahaselsteiner.github.io/viroconweb/).
 
 **Methods** The app has a help page, which describes the implemented methods in
 detail. It can be found
@@ -85,8 +83,8 @@ python manage.py runserver
 ```
 Then you should reach a local version of ViroCon at http://localhost:8000
 
-**Conventions** We follow the python styleguide PEP8:
-https://www.python.org/dev/peps/pep-0008
+**Conventions** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/styleguide.html)
+we summarize our conventions, which are consistent with PEP8.
 
 ## License
 This software is licensed under the MIT license. For more information, read the
