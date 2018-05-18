@@ -1,3 +1,6 @@
+"""
+URLs of the contour package.
+"""
 from django.conf.urls import url
 from . import views
 

@@ -1,3 +1,6 @@
+"""
+Generic plotting methods.
+"""
 from shapely.ops import cascaded_union, polygonize
 from scipy.spatial import Delaunay
 import shapely.geometry as geometry
@@ -7,16 +10,23 @@ from shapely.geometry import MultiPoint
 from shapely.geometry import Point
 import warnings
 
-# thanks to: http://blog.thehumangeo.com/2014/05/12/drawing-boundaries-in-python/
+# Based on: http://blog.thehumangeo.com/2014/05/12/drawing-boundaries-in-python
 def alpha_shape(points, alpha):
     """
-    Compute the alpha shape (concave hull) of a set
-    of points.
-    @param points: Iterable container of points.
-    @param alpha: alpha value to influence the
-        gooeyness of the border. Smaller numbers
-        don't fall inward as much as larger numbers.
-        Too large, and you lose everything!
+    Computes the alpha shape (concave hull) of a set of points
+
+    Parameters
+    ----------
+    points : MultiPoint,
+        Iterable container of points.
+    alpha : float,
+        Alpha value to influence the gooeyness of the border. Smaller numbers
+        don't fall inward as much as larger numbers. Too large and you lose
+        everything!
+
+    Returns
+    -------
+
     """
     if len(points) < 4:
         # When you have a triangle, there is no sense
@@ -66,9 +76,20 @@ def alpha_shape(points, alpha):
 
 def convert_ndarray_list_to_multipoint(ndarray_list):
     """
-    Converts the array list format to a multipoint format such that the alpha_shape algorithm can work with it.
-    :param matrix:          ndarray_list as matrix[0] in plot.py
-    :return:                Multipoint object
+    Converts an array list to a MultiPoint, which is required by alpha_shape
+
+    Parameters
+    ----------
+    ndarray_list : list of ndarray,
+        A list of data points.
+        # TODO: Type "list of ndarray" is inconsistent with the documentation
+        of plot.plot_contour which claims it is a list of float. Check that.
+
+    Returns
+    -------
+    points: MultiPoint,
+        The data points as an MultiPoint object such that the method
+        alpha_shape can work with it.
     """
     points_list = []
     data_dimension = len(ndarray_list)

@@ -1,3 +1,6 @@
+"""
+Plots measurement files, distributions and contours.
+"""
 import pandas as pd
 import numpy as np
 import os
@@ -60,9 +63,18 @@ from .models import ProbabilisticModel, DistributionModel, ParameterModel, \
 from .compute_interface import setup_mul_dist
 
 
-def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
-                           scale, distribution_type, dist_points, interval,
-                           var_name, symbol_parent_var, directory,
+def plot_pdf_with_raw_data(dim_index,
+                           parent_index,
+                           low_index,
+                           shape,
+                           loc,
+                           scale,
+                           distribution_type,
+                           dist_points,
+                           interval,
+                           var_name,
+                           symbol_parent_var,
+                           directory,
                            probabilistic_model):
     """
     The function creates an image which shows a certain fit of a distribution.
@@ -120,20 +132,21 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
         x = np.linspace(lognorm.ppf(0.0001, shape, scale=scale),
                         lognorm.ppf(0.9999, shape, scale=scale), 100)
         y = lognorm.pdf(x, shape, scale=scale)
-        # The plot function works with the scale parameter but the user
-        # interface works with the mu value. However, the scale value must be
-        # adjusted.
+
+        # plot_pdf_with_raw_data works with the scale parameter, but the user
+        # should be presented the mu value. Consequently, the scale value must
+        # be converted.
         text = distribution_type + ',' + \
                ' μ=' + str(format(np.log(scale), '.3f')) + \
                ' σ=' + str(format(shape, '.3f'))
+
     else:
         raise KeyError('No function match - {}'.format(distribution_type))
 
     text = text + ' ('
     if symbol_parent_var:
         text = text + str(format(interval[0], '.3f')) + '≤' + \
-               symbol_parent_var + '<' + str(
-            format(interval[1], '.3f')) + ', '
+               symbol_parent_var + '<' + str(format(interval[1], '.3f')) + ', '
     text = text + 'n=' + str(len(dist_points)) + ')'
 
     ax.plot(x, y, 'r-', lw=5, alpha=0.6, label=distribution_type)
@@ -172,8 +185,6 @@ def plot_pdf_with_raw_data(dim_index, parent_index, low_index, shape, loc,
                 '_' + low_index_2_digits + '.png'
     plotted_figure.image.save(file_name, content_file)
     plotted_figure.save()
-
-    return
 
 
 def plot_parameter_fit_overview(dim_index,

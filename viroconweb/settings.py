@@ -95,7 +95,7 @@ if not key_exists:
 else:
     SECRET_KEY = os.environ["SECRET_KEY"]
 
-if RUN_MODE == 'production-TURN-OFF':
+if RUN_MODE == 'production':
     # Quick-start development settings - unsuitable for production
     # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist
     DEBUG = False

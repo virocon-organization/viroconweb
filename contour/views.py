@@ -1,3 +1,6 @@
+"""
+Handles requests and outputs rendered html.
+"""
 import os
 import csv
 import warnings

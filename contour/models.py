@@ -1,3 +1,6 @@
+"""
+Models for viroconweb, e.g. for a measurement file and a environmental contour.
+"""
 from django.utils import timezone
 from .validators import validate_csv_upload
 from django.db import models
@@ -276,8 +279,8 @@ class AdditionalContourOption(models.Model):
     are only applicable to one method. Consequently, AdditionalContourOption
     can be used as a dictionary to specify additional options.
 
-    Idea how this model works is based on this stackoverflow post: https://stack
-    overflow.com/questions/402217/how-to-store-a-dictionary-on-a-django-model
+    The idea how this model works is based on this stackoverflow post:
+    https://stackoverflow.com/questions/402217/how-to-store-a-dictionary-on-a-django-model
     """
     # Key can for example be "Number of points on the contour"
     option_key = models.CharField(default=None, max_length=240, null=True)

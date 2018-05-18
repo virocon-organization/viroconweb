@@ -1,3 +1,6 @@
+"""
+Forms to handle user input.
+"""
 from django.forms import ModelForm
 from django import forms
 from .models import MeasureFileModel

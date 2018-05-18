@@ -1,3 +1,6 @@
+"""
+Validators to check e.g. uploaded data or calculated contours.
+"""
 import re
 import numpy as np
 from django.core.exceptions import ValidationError

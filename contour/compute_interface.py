@@ -1,6 +1,8 @@
 """
-The interface between this package (viroconweb) and the package virocomcom,
-which handles the statistical computations
+Interface between viroconweb and the package viroconcom.
+
+The package viroconcom handles the statistical computations and is imported
+in this module.
 """
 import pandas as pd
 

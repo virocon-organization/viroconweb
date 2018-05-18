@@ -1,3 +1,6 @@
+"""
+Signals to correctly delete models and associated files.
+"""
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from .models import MeasureFileModel, ProbabilisticModel, EnvironmentalContour
