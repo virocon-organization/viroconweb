@@ -77,7 +77,8 @@ def plot_pdf_with_raw_data(dim_index,
                            directory,
                            probabilistic_model):
     """
-    The function creates an image which shows a certain fit of a distribution.
+    Creates and saves an image, which shows a fit of a distribution.
+
     Parameters
     ----------
     dim_index : int,
@@ -95,7 +96,7 @@ def plot_pdf_with_raw_data(dim_index,
     scale : float,
         The value of the scale parameter.
     distribution_type: str,
-        Type / name of the distribution, must be "Normal", "Weibull" or
+        Name of the distribution, must be "Normal", "Weibull" or
         "Lognormal"
     dist_points: list of float,
        The dates for the histogram.
