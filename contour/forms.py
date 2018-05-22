@@ -10,12 +10,6 @@ from .validators import validate_csv_upload
 SUB = {ord(c): ord(t) for c, t in zip(u"0123456789", u"₀₁₂₃₄₅₆₇₈₉")}
 
 
-class MeasureForm(ModelForm):
-    class Meta:
-        model = MeasureFileModel
-        exclude = ('secondary_user', 'upload_date', 'primary_user')
-
-
 class SecUserForm(ModelForm):
     class Meta:
         model = MeasureFileModel
@@ -23,12 +17,18 @@ class SecUserForm(ModelForm):
 
 
 class MeasureFileForm(forms.Form):
+    """
+    Form for uploading a measurement file.
+    """
     title = forms.CharField(max_length=50, label='Title')
     measure_file = forms.FileField(label='Measurement file', max_length=255,
                                    validators=[validate_csv_upload])
 
 
 class MeasureFileFitForm(forms.Form):
+    """
+    Form for defining a fit, which should be applied to a measurement file.
+    """
     DISTRIBUTIONS = (('Weibull', 'Weibull'),('Normal', 'Normal'),
                      ('Lognormal_2', 'Log-Normal'))
     title = forms.CharField(max_length=50, label='Title')
@@ -114,6 +114,9 @@ class MeasureFileFitForm(forms.Form):
 
 
 class VariablesForm(forms.Form):
+    """
+    Form for the direct input of a probabilistic model.
+    """
     DISTRIBUTIONS = (('Normal', 'Normal'), ('Weibull', 'Weibull'),
                      ('Lognormal_2', 'Log-normal'))
 
@@ -287,6 +290,10 @@ class VariablesForm(forms.Form):
 
 
 class VariableNumber(forms.Form):
+    """
+    Form for specifying the numbers of variables a probabilistic model should
+    have.
+    """
     variable_number = forms.IntegerField(
         min_value=2,
         max_value=10,
@@ -294,6 +301,9 @@ class VariableNumber(forms.Form):
 
 
 class HDCForm(forms.Form):
+    """
+    Form for the settings to calculate a highest density contour (HDC).
+    """
     def __init__(self, var_names, *args, **kwargs):
         super(HDCForm, self).__init__(*args, **kwargs)
         for i, name in enumerate(var_names):
@@ -348,6 +358,9 @@ class HDCForm(forms.Form):
 
 
 class IFormForm(forms.Form):
+    """
+    Form for the input to calculate an IFORM contour.
+    """
     return_period = forms.DecimalField(
         label='Return period [years]',
         required=True,

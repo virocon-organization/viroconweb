@@ -74,7 +74,6 @@ def plot_pdf_with_raw_data(dim_index,
                            interval,
                            var_name,
                            symbol_parent_var,
-                           directory,
                            probabilistic_model):
     """
     Creates and saves an image, which shows a fit of a distribution.
@@ -106,8 +105,6 @@ def plot_pdf_with_raw_data(dim_index,
         The name of a single variable of the probabilistic model.
     symbol_parent_var : str,
         Symbol of the variable on which the conditional variable is based.
-    directory : str,
-        The directory where the figure should be saved
     probabilistic_model : ProbabilisticModel,
         Probabilistic model which has the particular pdf.
     """
@@ -280,7 +277,6 @@ def plot_var_dependent(fit,
                        dim_index,
                        var_names,
                        var_symbols,
-                       directory,
                        probabilistic_model,
                        do_dependent_plot=True):
     """
@@ -299,8 +295,6 @@ def plot_var_dependent(fit,
         Variable names of all distributions.
     var_symbols : list of str,
         Variable symbols of all distributions.
-    directory : str,
-        Path to the directory where the images will be stored.
     probabilistic_model : ProbabilisticModel,
         Probabilistic model that was created based on that fit.
     do_dependent_plot : Boolean, optional
@@ -340,19 +334,24 @@ def plot_var_dependent(fit,
             interval_limits = calculate_intervals(param_at, dim_index, j)
             parent_index = fit.mul_var_dist.dependencies[dim_index][param_index]
             symbol_parent_var = var_symbols[parent_index]
-            plot_pdf_with_raw_data(dim_index, parent_index, j, basic_fit.shape,
-                                   basic_fit.loc, basic_fit.scale,
+            plot_pdf_with_raw_data(dim_index,
+                                   parent_index,
+                                   j,
+                                   basic_fit.shape,
+                                   basic_fit.loc,
+                                   basic_fit.scale,
                                    fit.mul_var_dist.distributions[
                                        dim_index].name,
-                                   basic_fit.samples, interval_limits,
-                                   var_names[dim_index], symbol_parent_var,
-                                   directory, probabilistic_model)
+                                   basic_fit.samples,
+                                   interval_limits,
+                                   var_names[dim_index],
+                                   symbol_parent_var,
+                                   probabilistic_model)
 
 
 def plot_var_independent(param_name,
                          dim_index,
                          var_names,
-                         directory,
                          fit_inspection_data,
                          fit,
                          probabilistic_model):
@@ -368,8 +367,6 @@ def plot_var_independent(param_name,
         The dimension of the distribution.
     var_names : list of str
         The name of the distribution.
-    directory : str
-        Path to the directory where the images will be stored.
     fit_inspection_data : FitInspectionData
         Information for plotting the fits of a single dimension.
     fit : Fit
@@ -393,7 +390,6 @@ def plot_var_independent(param_name,
                            interval_limits,
                            var_names[dim_index],
                            symbol_parent_var,
-                           directory,
                            probabilistic_model)
 
 
@@ -413,7 +409,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
         Path to the directory where the images will be stored.
     probabilistic_model : ProbabilisticModel
        Model for a multivariate distribution, e.g. a sea state description.
-
     """
     directory = directory + '/' + str(probabilistic_model.pk)
     if not os.path.exists(directory):
@@ -430,7 +425,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                                i,
                                var_names,
                                var_symbols,
-                               directory,
                                probabilistic_model,
                                do_dependent_plot
                                )
@@ -439,7 +433,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
             plot_var_independent('scale',
                                  i,
                                  var_names,
-                                 directory,
                                  fit_inspection_data,
                                  fit,
                                  probabilistic_model)
@@ -453,7 +446,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                                    i,
                                    var_names,
                                    var_symbols,
-                                   directory,
                                    probabilistic_model,
                                    do_dependent_plot
                                    )
@@ -462,7 +454,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                 plot_var_independent('shape',
                                      i,
                                      var_names,
-                                     directory,
                                      fit_inspection_data,
                                      fit,
                                      probabilistic_model
@@ -477,7 +468,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                                    i,
                                    var_names,
                                    var_symbols,
-                                   directory,
                                    probabilistic_model,
                                    do_dependent_plot
                 )
@@ -485,7 +475,6 @@ def plot_fit(fit, var_names, var_symbols, directory, probabilistic_model):
                 plot_var_independent('loc',
                                      i,
                                      var_names,
-                                     directory,
                                      fit_inspection_data,
                                      fit,
                                      probabilistic_model
@@ -505,7 +494,6 @@ def calculate_intervals(interval_centers, dimension_index,
         The index of the dimension.
     interval_center_index : int
         The index of the interval centers in the current dimension.
-
     """
     if dimension_index == 0 or len(interval_centers) < 2:
         interval_limits = [min(interval_centers),
@@ -567,7 +555,6 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     var_names: list of str
       Name of the variables of the probabilistic model
     """
-
     probabilistic_model = environmental_contour.probabilistic_model
 
     path = settings.PATH_MEDIA + settings.PATH_USER_GENERATED + str(user)
@@ -644,7 +631,21 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
     plotted_figure.save()
 
 
-def plot_data_set_as_scatter(user, measure_file_model, var_names):
+def plot_data_set_as_scatter(measure_file_model, var_names):
+    """
+    Plots the data of a measurement file as a scatter plot.
+
+    In case the measurement file has more than 2 variables, multiple
+    scatter plots are generated.
+
+    Parameters
+    ----------
+    measure_file_model : MeasureFileModel,
+        The measurement file model, which should be plotted.
+    var_names : list of str,
+        The names of the variables (each column in the measurement file
+        represents one environmental variable).
+    """
     fig = plt.figure(figsize=(7.5, 5.5*(len(var_names)-1)))
     data_path = measure_file_model.measure_file.url
     if data_path[0] == '/':
@@ -654,6 +655,8 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names):
     # which caused a bug since the first data row was ignored, see issue #20.
     data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
 
+    # Plot all variables against the first variable. This is done in subplots
+    # such that only a single figure is generated.
     for i in range(len(var_names) - 1):
         ax = fig.add_subplot(len(var_names) - 1, 1, i + 1)
         ax.scatter(data[:, 0], data[:, i + 1], s=5, c='k')
@@ -670,33 +673,6 @@ def plot_data_set_as_scatter(user, measure_file_model, var_names):
     content_file = ContentFile(f.getvalue())
     measure_file_model.scatter_plot.save('scatter_plot.png', content_file)
     measure_file_model.save()
-
-
-def data_to_table(matrix, var_names):
-    """
-    The function adjusts the matrix generated by compute to fit in the table
-    generation tool of the pdf framework.
-    :param matrix:          data points. 
-    :param var_names:       names of the variables. 
-    :return:                adjusted table
-    """
-    table = []
-    header = []
-    header.append('#')
-    for name in var_names:
-        header.append(name)
-    table.append(header)
-    for i, x in enumerate(matrix[0][1]):
-        row = []
-        row.append(i)
-        for j in range(len(matrix[0])):
-
-            # The formating that is used is taken from https://stackoverflow.
-            # com/questions/455612/limiting-floats-to-two-decimal-points
-            row.append("{0:.2f}".format(matrix[0][j][i]))
-
-        table.append(row)
-    return table
 
 
 def create_latex_report(contour_coordinates, user, environmental_contour,
@@ -901,11 +877,11 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
         X extreme environmental design conditions
 
     """
+    # Constants, which define the layout of the report.
+    max_eedcs_to_list_in_table = 100
+    lines_for_page_break = 40
 
-    MAX_EEDCS_TO_LIST_IN_TABLE = 100
-    LINES_FOR_PAGE_BREAK = 40
-
-    reached_max_eedc_number = 0
+    reached_max_eedc_number = False
 
     table_string = r"\begin{tabular}{"
     table_head_line = get_latex_eedc_table_head_line(var_names)
@@ -923,18 +899,18 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
                 table_string += r"\\"
             else:
                 table_string += r" & "
-        if i % LINES_FOR_PAGE_BREAK == 0 and i > 0:
+        if i % lines_for_page_break == 0 and i > 0:
             table_string += r"\end{tabular}"
             table_string += r"\newpage"
             table_string += r"\begin{tabular}{"
             table_string += table_head_line
-        if i == MAX_EEDCS_TO_LIST_IN_TABLE - 1:
-            reached_max_eedc_number = 1
+        if i == max_eedcs_to_list_in_table - 1:
+            reached_max_eedc_number = True
             break
 
     table_string += r"\end{tabular} \vspace{1em} \newline "
     if reached_max_eedc_number:
-        table_string += "Only the first " + str(MAX_EEDCS_TO_LIST_IN_TABLE) + \
+        table_string += "Only the first " + str(max_eedcs_to_list_in_table) + \
                         " out of " + str(len(matrix[0][1])) + \
                         " EEDCs are listed."
 
@@ -1016,15 +992,17 @@ def assign_parameter_name(dist_name, param_name):
 
     Parameters
     ---------
-    dist_name : str
-        The name of a distribution.
-    param_name : str
-        The name of a parameter as it is saved in the database.
+    dist_name : str,
+        The name of a distribution, must be 'Weibull', 'Lognormal',
+        'Lognormal_2' or 'Normal'.
+    param_name : str,
+        The name of a parameter as it is saved in the database, must be
+        'shape' 'loc' or 'scale'.
 
     Returns
     -------
-    assigned_name : str
-        The parameter name matching to the distribution.
+    assigned_name : str,
+        The parameter name matching to the distribution e.g. 'σ'.
     """
     assigned_name = param_name
     if dist_name == 'Weibull':
@@ -1056,7 +1034,7 @@ def adjust_param_name_latex(param_name):
 
     Parameters
     ----------
-    param_name : str
+    param_name : str,
         Name of a parameter.
 
     Returns
