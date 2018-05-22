@@ -635,7 +635,7 @@ def plot_data_set_as_scatter(measure_file_model, var_names):
     """
     Plots the data of a measurement file as a scatter plot.
 
-    In case the measurement file has more than 2 variables multiple
+    In case the measurement file has more than 2 variables, multiple
     scatter plots are generated.
 
     Parameters
@@ -877,7 +877,7 @@ def get_latex_eedc_table(matrix, var_names, var_symbols):
         X extreme environmental design conditions
 
     """
-    # Constants to define the layout
+    # Constants, which define the layout of the report.
     max_eedcs_to_list_in_table = 100
     lines_for_page_break = 40
 

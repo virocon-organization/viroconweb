@@ -69,7 +69,8 @@ class Handler:
     @staticmethod
     def overview(request, model_class):
         """
-        Renders an overview about all objects of a Django Model (a data base).
+        Renders an overview about all objects of a Django Model (all data base
+        entries).
 
         Parameters
         ----------
@@ -201,7 +202,8 @@ class Handler:
     @abstractmethod
     def select(request):
         """
-        A reduced overview of all objects to guide the user through the process.
+        A reduced overview of all objects to guide the user through the work
+        flow shown at the Dashboard.
 
         Parameters
         ----------
@@ -551,9 +553,9 @@ class ProbabilisticModelHandler(Handler):
         HttpResponse,
             Renders feedback to the user based on whether she/he is:
             * logged in (normal behaviour)
-            * Sent a defined probabilistic model as a 'post' request (normal
+            * Sent a defined probabilistic model as a POST request (normal
             behaviour)
-            * Requested a form with a 'get' request or (unexpected beavhiour)
+            * Requested a form with a GET request or (unexpected beavhiour)
 
         """
         if request.user.is_anonymous:
