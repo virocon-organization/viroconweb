@@ -416,9 +416,7 @@ class MeasureFileHandler(Handler):
             directory_after_static = settings.PATH_USER_GENERATED + \
                                      str(request.user) + \
                                      '/measurement/' + str(pk)
-            plot.plot_data_set_as_scatter(request.user,
-                                          measure_file_model,
-                                          var_names)
+            plot.plot_data_set_as_scatter(measure_file_model, var_names)
             return render(request,
                           'contour/measure_file_model_plot.html',
                           {'user': request.user,
