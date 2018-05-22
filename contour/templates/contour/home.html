@@ -24,7 +24,7 @@
             {% endfor %}
         </ul>
     {% endif %}
-    <div class="{% if not user.is_authenticated %}not-active{% endif %}">
+    <div class="dashboard {% if not user.is_authenticated %}not-active{% endif %}">
         <div class="row">
             <div class="col-md-6 ">
                 <div class="flow-chart-image hidden-xs hidden-sm">
@@ -52,7 +52,8 @@
                             </div>
                             Upload a measurement file
                         </div>
-                        <div class="collapse" id="collapse-add-measurement-file">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-add-measurement-file">
                             Upload your own measurement data as coma seperated
                             values (csv). The file will be
                             saved and linked with your profile.
@@ -63,7 +64,7 @@
             <div class="col-md-6">
             </div>
         </div>
-        <div class="row">
+        <div class="row arrow-row">
             <div class="col-md-6 ">
                 <img src="{% static 'images/FlowChartArrow_370px854px.png' %}"
                      class="image-bar hidden-xs hidden-sm">
@@ -93,7 +94,8 @@
                             </div>
                             Fit probabilistic model to data
                         </div>
-                        <div class="collapse" id="collapse-fit-probabilistic-model">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-fit-probabilistic-model">
                             Fit a probabilistic model to your measured data.
                             The fit will be visualized. If the results are
                             satisfying you can save the probabilistic model.
@@ -115,7 +117,8 @@
 
                             Enter probabilistic model directly
                         </div>
-                        <div class="collapse" id="collapse-enter-pm-directly">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-enter-pm-directly">
                             Enter a probabilistic model directly by fully
                             specifying the joint probability density function
                             using the conditional modeling approach.
@@ -124,7 +127,7 @@
                 </a>
             </div>
         </div>
-        <div class="row">
+        <div class="row arrow-row">
             <div class="col-md-6">
                 <img src="{% static 'images/FlowChartArrowTurnsRight_370px854px.png' %}"
                      class="image-bar-angle hidden-xs hidden-sm">
@@ -149,7 +152,8 @@
                             </div>
                             Compute environmental contour
                         </div>
-                        <div class="collapse" id="collapse-create-contour">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-create-contour">
                             Compute environmental contours using either the
                             highest density contour (HDC) method or the
                             inverse first order reliability method (IFORM).
@@ -178,7 +182,7 @@
                             Measurement files
                         </div>
 
-                        <div class="collapse"
+                        <div class="collapse dashboard-collapse"
                              id="collapse-measurefiles-overview">
                             Inspect, share or delete your uploaded
                             measurement files.
@@ -197,7 +201,8 @@
                             </div>
                             Probabilistic models
                         </div>
-                        <div class="collapse" id="collapse-pm-overview">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-pm-overview">
                             Inspect, share or delete your probabilistic models.
                         </div>
                     </div>
@@ -214,7 +219,8 @@
                             </div>
                             Environmental contours
                         </div>
-                        <div class="collapse" id="collapse-ec-overview">
+                        <div class="collapse dashboard-collapse"
+                             id="collapse-ec-overview">
                             Inspect, share or delete your environmental contours.
                         </div>
                     </div>

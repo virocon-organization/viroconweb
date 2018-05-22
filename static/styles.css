@@ -322,6 +322,51 @@ h2 {
     background-color: #c1d7e9 !important;
 }
 
+
+@media (max-width: 767px) {
+    .input-additional-info {
+        padding-top: 6px;
+        padding-left: 15px;
+    }
+}
+
+
+.panel-work-step, .panel-overview {
+    position: relative;
+}
+
+.dashboard-collapse {
+    position: absolute;
+    background-color: white;
+    border-color: black;
+    border-width: 2px;
+    border-style: solid;
+    border-top: none;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    z-index: 1;
+    margin-left: -2px;
+    margin-right: -2px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 18px;
+}
+
+@media (max-width: 992px) {
+    .panel-work-step, .panel-overview {
+        position: static;
+    }
+
+    .dashboard-collapse {
+        position: static;
+        background-color: transparent;
+        border-color: transparent;
+        border-width: 0px;
+        border-style: solid;
+    }
+}
+
+
 .panel-overview {
     border-color: #1A1A1A;
     border-width: 2px;
