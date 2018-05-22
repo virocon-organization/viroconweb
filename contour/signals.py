@@ -49,7 +49,7 @@ def _delete_file(instance, path):
 @receiver(post_delete)
 def delete_file(sender, instance=None, **kwargs):
     """
-    Deletes a file when the corresponding MeasureFileModel object is deleted.
+    Deletes media files when the corresponding the DjangoModel is deleted.
 
     Parameters
     ----------

@@ -38,15 +38,27 @@ def validate_contour_coordinates(contour_coordinates):
                                           '(Infinity).')
 
 def validate_csv_upload(value):
+    """
 
-    #check file size
+    Parameters
+    ----------
+    value : django.core.files.File,
+        The file that the user wants to upload.
+
+    Raises
+    ------
+    ValidationError,
+        If the file is too large ot does not have the right format.
+    """
+
+    # Validate the file size.
     limit = 100 * 1024 * 1024
     if value.size > limit:
         raise ValidationError('File too large. Size should not exceed 100 MiB.')
     elif value.size == 0:
         raise ValidationError("File is empty.")
 
-    #check if text file
+    # Validate if it is a text file.
     try:
         input_str = value.read().decode("utf-8")
     except UnicodeDecodeError:
@@ -57,7 +69,7 @@ def validate_csv_upload(value):
     header = input_lines[0]
     body = "\n".join(input_lines[1:]) + "\n"
 
-    #check header
+    # Validate the header.
     header_parts = header.split(";")
     if len(header_parts) == 0:
         raise ValidationError("Empty header.", code="invalid")
@@ -79,7 +91,7 @@ def validate_csv_upload(value):
     if not header_is_ok:
         raise ValidationError("Error in header.", code="invalid")
 
-    #check body
+    # Validate the body.
     if len(body) == 0:
         raise ValidationError("Empty body.", code="invalid")
 
