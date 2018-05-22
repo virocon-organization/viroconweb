@@ -13,12 +13,11 @@ import django
 django.setup()
 
 from django.shortcuts import redirect
-from django.shortcuts import render, get_object_or_404, HttpResponse, \
-    HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.urls import reverse
-from multiprocessing import Pool, TimeoutError
+from multiprocessing import TimeoutError
 from urllib import request
 from abc import abstractmethod
 
@@ -60,86 +59,109 @@ FITTING_ERROR_MSG = 'An error occured while fitting a probabliistic model ' \
 
 
 def index(request):
+    """
+    Renders the landing page, i.e. the 'Dashboard'.
+    """
     return render(request, 'contour/home.html')
 
 
 class Handler:
     @staticmethod
-    def overview(request, collection):
+    def overview(request, model_class):
         """
-        The method overview shows a overview of all items in a specific database.
-        :param request:     to load an overview of database model.
-        :param collection:  the selected database.       
-        :return:            HttpResponse. 
+        Renders an overview about all objects of a Django Model (a data base).
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to show the overview.
+        model_class : class of models.Model,
+            The class of a Django Model as defined in models.py, e.g.
+            MeasurementFileModel or EnvironmentalContour.
+
+        Returns
+        -------
+        HttpResponse,
+            The rendered overview.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
-            meas = collection.objects.all()  # better name
+            objects = model_class.objects.all()
             context = set()
-            for item in meas:
+            for object in objects:
                 bool_ = False
-                for secUser in item.secondary_user.all():
+                for secUser in object.secondary_user.all():
                     if secUser == request.user:
                         bool_ = True
                 if bool_:
-                    context.add(item)
-                elif item.primary_user == request.user:
-                    context.add(item)
+                    context.add(object)
+                elif object.primary_user == request.user:
+                    context.add(object)
 
-            base = 'contour:' + collection.url_str()
-            html = 'contour/' + collection.url_str() + '_overview.html'
+            base = 'contour:' + model_class.url_str()
+            html = 'contour/' + model_class.url_str() + '_overview.html'
             update = base + '_update'
             delete = base + '_delete'
             add = base + '_add'
             calc = base + '_calc'
 
             return render(request, html, {'context': context,
-                                          'name': collection,
+                                          'name': model_class,
                                           'update': update,
                                           'delete': delete,
                                           'add': add,
                                           'calc': calc})
 
     @staticmethod
-    def delete(request, pk, collection):
+    def delete(request, pk, model_class):
         """
-        The method deletes a specific item from the database
-        :param request:     to delete an item.
-        :param collection:  the selected database
-        :param pk:          the primary key from a specific item from the database          
-        :return:            HttpResponse.
+        Deletes an object from the data base.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The request to delete the object.
+        pk : int,
+            The object's primary key.
+        model_class: class of models.Model,
+            The class of the Django Model (as defined in models.py).
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
-            instance = get_object_or_404(collection, pk=pk)
-            if hasattr(instance, 'primary_user'):
-                if instance.primary_user == request.user:
-                    instance.delete()
+            object = get_object_or_404(model_class, pk=pk)
+            if hasattr(object, 'primary_user'):
+                if object.primary_user == request.user:
+                    object.delete()
                 else:
-                    instance.secondary_user.remove(request.user)
+                    object.secondary_user.remove(request.user)
             else:
-                instance.delete()
-            redirection = 'contour:' + collection.url_str() + '_overview'
+                object.delete()
+            redirection = 'contour:' + model_class.url_str() + '_overview'
             return redirect(redirection)
 
     @staticmethod
-    def update(request, pk, collection):
+    def update(request, pk, model_class):
         """
-        The method updates a specific item from the database
-        :param request:     to update an item.
-        :param collection:  the selected database.
-        :param pk:          the primary key from a specific item from the database.
-        :return:            HttpResponse.
+        Updates an object in the data base.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The request to update the object.
+        pk : int,
+            The object's primary key.
+        model_class: class of models.Model,
+            The class of the Django Model (as defined in models.py).
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
-            redirection = 'contour:' + collection.url_str() + '_overview'
+            redirection = 'contour:' + model_class.url_str() + '_overview'
             template = 'contour/update_sec_user.html'
             if request.method == 'POST':
-                instance = get_object_or_404(collection, pk=pk)
+                object = get_object_or_404(model_class, pk=pk)
                 username = request.POST.get('username', '')
                 username = username.replace(",", " ")
                 username = username.replace(";", " ")
@@ -149,14 +171,14 @@ class Handler:
                 for name in users:
                     try:
                         user = User.objects.get(username=name)
-                        instance.secondary_user.add(user)
+                        object.secondary_user.add(user)
                     except:
                         messages.add_message(request, messages.ERROR,
                                              'Error. The user name you entered'
                                              ', ' + name + ', does not exist.')
                         return redirect('contour:index')
                     else:
-                        instance.save()
+                        object.save()
                 return redirect(redirection)
             else:
                 return render(request, template, {'form': forms.SecUserForm})
@@ -165,24 +187,34 @@ class Handler:
     @abstractmethod
     def add(request, *args):
         """
-       The method adds an item to a certain Model (database).
-       :param request:     to add an item to the model. 
-       :return:            different HttpResponses. Success: redirect
-       to a certain model overview, Fault: return info
-                           about wrong input.
-       """
+        Adds an object to the data base.
+
+        Must be overwritten by the Handler specific to one Django Model.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            The request to add the object to the data base.
+        """
 
     @staticmethod
     @abstractmethod
     def select(request):
         """
-        The method returns a HttpResponse where you can select a File
-        from a Model to do further calculations.
-        :return:        HttpResponse to select an item form a certain model. 
+        A reduced overview of all objects to guide the user through the process.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to render the select view.
+
+        Returns
+        -------
+
         """
 
     @staticmethod
-    def show(request, pk, model):
+    def show(request, pk, model_class):
         """
         Shows an object from the data base, e.g. an EnvironmentalContour object.
 
@@ -192,9 +224,9 @@ class Handler:
             The HttpRequest to show the object.
         pk : int,
             Primary key of the object in the data base.
-        model : models.Model,
-            A Django model, which has a database associated to it, e.g.
-            models.EnvronmentalContour. This is the class, not an instance.
+        model_class : models.Model,
+            The class of the Django model, which should be shown. For example
+            the class models.EnvronmentalContour.
 
 
         Returns
@@ -205,41 +237,41 @@ class Handler:
         if request.user.is_anonymous:
             return HttpResponseRedirect(reverse('contour:index'))
         else:
-            html = 'contour/' + model.url_str() + '_show.html'
-            object = model.objects.get(pk=pk)
+            html = 'contour/' + model_class.url_str() + '_show.html'
+            object = model_class.objects.get(pk=pk)
             return render(request, html, {'object': object})
 
 
 class MeasureFileHandler(Handler):
     @staticmethod
-    def overview(request, collection=MeasureFileModel):
-        return Handler.overview(request, collection)
+    def overview(request, model_class=MeasureFileModel):
+        return Handler.overview(request, model_class)
 
     @staticmethod
-    def delete(request, pk, collection=MeasureFileModel):
-        return Handler.delete(request, pk, collection)
+    def delete(request, pk, model_class=MeasureFileModel):
+        return Handler.delete(request, pk, model_class)
 
     @staticmethod
-    def update(request, pk, collection=MeasureFileModel):
-        return Handler.update(request, pk, collection)
+    def update(request, pk, model_class=MeasureFileModel):
+        return Handler.update(request, pk, model_class)
 
     @staticmethod
     def select(request):
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
-            collection = MeasureFileModel
-            meas = collection.objects.all()
+            model_class = MeasureFileModel
+            objects = model_class.objects.all()
             context = set()
-            for item in meas:
+            for object in objects:
                 bool_ = False
-                for secUser in item.secondary_user.all():
+                for secUser in object.secondary_user.all():
                     if secUser == request.user:
                         bool_ = True
                 if bool_:
-                    context.add(item)
-                elif item.primary_user == request.user:
-                    context.add(item)
+                    context.add(object)
+                elif object.primary_user == request.user:
+                    context.add(object)
 
             return render(request,
                           'contour/measure_file_model_select.html',
@@ -249,9 +281,19 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def add(request):
         """
-        The method adds an item to MeasureFile 
-        :return: 
+        Adds a MeasurementFileModel to the data base.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to add the model to the data base.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the a response to the user after she/he added the model.
         """
+
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
@@ -300,10 +342,19 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def fit_file(request, pk):
         """
-        The method fits a MeasureFile item and shows the result. If the fit
-        isn't possible the user is going to be
-        informed with an error message.
-        :return:        HttpResponse.
+        Fits a probabilistic model to a measurement file and renders the result.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to peform a fit.
+        pk : int,
+            Primary key of the measurement file.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the fitting result.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -381,11 +432,19 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def new_fit(request, pk):
         """
-        The method deletes the previous fit and returns the form to enter a new
-        fit.
-        :param request: to make a new fit.
-        :param pk:      primary key of the previous fit. 
-        :return:        HttpResponse to enter a new fit.     
+        Deletes the previous fit and returns the form to define a new fit.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to perform a new fit.
+        pk : int,
+            Primary key of the previous fit, which will be deleted.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the view to select a measurement file for fitting.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -402,8 +461,19 @@ class MeasureFileHandler(Handler):
     @staticmethod
     def plot_file(request, pk):
         """
-        The method plots a MeasureFile
-        :return:        HttpResponse.
+        Plots and renders a measurement file.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to plot a measurement file.
+        pk : int,
+            Primary key of the measurement file, which will be plotted.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the plotted measurement file.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -427,19 +497,34 @@ class MeasureFileHandler(Handler):
 
 class ProbabilisticModelHandler(Handler):
     @staticmethod
-    def overview(request, collection=models.ProbabilisticModel):
-        return Handler.overview(request, collection)
+    def overview(request, model_class=models.ProbabilisticModel):
+        return Handler.overview(request, model_class)
 
     @staticmethod
-    def delete(request, pk, collection=models.ProbabilisticModel):
-        return Handler.delete(request, pk, collection)
+    def delete(request, pk, model_class=models.ProbabilisticModel):
+        return Handler.delete(request, pk, model_class)
 
     @staticmethod
-    def update(request, pk, collection=models.ProbabilisticModel):
-        return Handler.update(request, pk, collection)
+    def update(request, pk, model_class=models.ProbabilisticModel):
+        return Handler.update(request, pk, model_class)
 
     @staticmethod
     def select(request):
+        """
+        Renders an overview of the probabilistic models with the option to
+        select one to calculate an environmental contour.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to select a probabilistic model to calculate a contour.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders an overview of the probabilistic models with the option to
+            select one to calculate an environmental contour.
+        """
         if request.user.is_anonymous:
             return redirect('contour:index')
         else:
@@ -454,13 +539,22 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def add(request, *args):
         """
-        The method adds an item to the ProbabilisticModel (database).
-        :param request:     to add an item to the model. 
-        :param var_num:     number of variables which should be added to
-        the model.
-        :return:            different HttpResponses. Success: redirect to
-        select probabilistic model, Fault: return info
-                            about wrong input.
+        Adds a ProbabilisticModel to the data base.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to add the model to the data base.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders feedback to the user based on whether she/he is:
+            * logged in (normal behaviour)
+            * Sent a defined probabilistic model as a 'post' request (normal
+            behaviour)
+            * Requested a form with a 'get' request or (unexpected beavhiour)
+
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -556,11 +650,27 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def calculate(request, pk, method):
         """
-        The method handles the calculation requests and calls the specific calculation method iform_calc or hdc_calc.
-        :param request:     user request to calculate a function. 
-        :param pk:          primary key of item of the ProbabilisticModel database.
-        :param method:      the calculation method. 'I' = iform_calc, 'H' = hdc_calc.
-        :return:            a graph with table (pdf) or error message.
+        Handles requests to calculate an environmental contour.
+
+        This method handles both requests, for an IFORM contour and for a
+        highest density contour.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to calculate a contour.
+        pk : int,
+            Primary key of the probabilistic model, which the contour should be
+            based on.
+        method : str,
+            Defines, which method should be used. Must be either 'I' form IFORM
+            contour or 'H' for highest density contour.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the form for inputing all preprocessing options to calculate
+            a contour.
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -897,9 +1007,19 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def set_variables_number(request):
         """
-        The method sets the variable number in the VariablesForm
-        :param request:     user request to change the variable number 
-        :return:            a VariablesForm with the certain variable number 
+        Sets the number of variables when a probabilistc model is defined
+        directly.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to set the number of variables of the probabilistic model.
+
+        Returns
+        -------
+        HttpResponse,
+            Either adds the probabilistic model to the data base (POST request)
+            or renders the form to add a probabilistic model (GET request).
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -922,9 +1042,20 @@ class ProbabilisticModelHandler(Handler):
     @staticmethod
     def show_model(request, pk):
         """
-        The method shows a probabilistic model (name, equation of the joint pdf,
-        information about the fit)
-        :return:        HttpResponse.
+        Shows a probabilistic model.
+
+        Parameters
+        ----------
+        request : HttpRequest,
+            Request to show a probabilistic model.
+        pk : int,
+            Primary key of the probabilistic model.
+
+        Returns
+        -------
+        HttpResponse,
+            Renders the definition of the probabilistic model (its name,
+            the probability density function, information about the fit)
         """
         if request.user.is_anonymous:
             return redirect('contour:index')
@@ -952,24 +1083,24 @@ class ProbabilisticModelHandler(Handler):
 
 class EnvironmentalContourHandler(Handler):
     """
-    Handler for EnvironmentalContour objects
+    Handler for EnvironmentalContour objects.
     """
 
     @staticmethod
-    def overview(request, collection=models.EnvironmentalContour):
-        return Handler.overview(request, collection)
+    def overview(request, model_class=models.EnvironmentalContour):
+        return Handler.overview(request, model_class)
 
     @staticmethod
-    def delete(request, pk, collection=models.EnvironmentalContour):
-        return Handler.delete(request, pk, collection)
+    def delete(request, pk, model_class=models.EnvironmentalContour):
+        return Handler.delete(request, pk, model_class)
 
     @staticmethod
-    def update(request, pk, collection=models.EnvironmentalContour):
-        return Handler.update(request, pk, collection)
+    def update(request, pk, model_class=models.EnvironmentalContour):
+        return Handler.update(request, pk, model_class)
 
     @staticmethod
-    def show(request, pk, model=models.EnvironmentalContour):
-        return Handler.show(request, pk, model)
+    def show(request, pk, model_class=models.EnvironmentalContour):
+        return Handler.show(request, pk, model_class)
 
     @staticmethod
     def delete(request, pk, collection=models.EnvironmentalContour):
@@ -983,23 +1114,23 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
 
     Parameters
     ----------
-    fit : Fit
+    fit : Fit,
         Calculated fit results of a measurement file.
-    model_title : str
+    model_title : str,
         Title of the probabilistic model.
-    var_names : list of str
+    var_names : list of str,
         Names of the variables.
-    var_symbols : list of str
+    var_symbols : list of str,
         Names of the symbols of the probabilistic model's variables.
-    user : str
+    user : str,
         Name of a user.
-    measure_file : MeasureFileModel
+    measure_file : MeasureFileModel,
         MeasureFileModel object linked to the probabilistic model.
 
     Returns
     -------
     ProbabilisticModel
-        Which was fitted to measurement data
+        ProbabilisticModel that was fitted to the measurement file.
 
     """
     probabilistic_model = ProbabilisticModel(primary_user=user,
@@ -1023,10 +1154,12 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
             save_parameter(dist.mu, distribution_model,
                            fit.mul_var_dist.dependencies[i][2], 'scale')
         else:
-            distribution_model = DistributionModel(name=var_names[i],
-                                                   symbol=var_symbols[i],
-                                                    probabilistic_model=probabilistic_model,
-                                                   distribution=dist.name)
+            distribution_model = DistributionModel(
+                name=var_names[i],
+                symbol=var_symbols[i],
+                probabilistic_model=probabilistic_model,
+                distribution=dist.name
+            )
             distribution_model.save()
             save_parameter(dist.shape, distribution_model,
                            fit.mul_var_dist.dependencies[i][0], 'shape')
@@ -1039,9 +1172,9 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
 
 
 def save_environmental_contour(environmental_contour,
-                           additional_contour_options,
-                           contour_coordinates,
-                           user):
+                               additional_contour_options,
+                               contour_coordinates,
+                               user):
     """
     Saves an EnvironmentalContour object and its depending models to the data
     base.
@@ -1066,7 +1199,8 @@ def save_environmental_contour(environmental_contour,
 
     Returns
     -------
-
+    EnvironmentalContour,
+        The saved environmental contour object.
     """
     # Only save the object if it has not been saved yet.
     if environmental_contour.pk is None:
@@ -1149,19 +1283,19 @@ def save_parameter(parameter, distribution_model, dependency, name):
 
 def get_info_from_file(url):
     """	
-    Reads the variable names and symbols form a csv. file.
+    Reads the variable names and symbols form a csv file.
     
     Parameters
     ----------
-    url : str
+    url : str,
         Path to the csv file.
 
     Returns
     -------
-    var_names : list of strings
+    var_names : list of str,
         Names of the environmental variables used in csv file,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-    var_symbols : list of strings
+    var_symbols : list of str,
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """
@@ -1183,7 +1317,7 @@ def get_info_from_file(url):
 
 def get_info_from_reader(reader):
     """
-    Reads the variable names and symbols form a reader
+    Reads the variable names and symbols form a reader.
 
     Parameters
     ----------
@@ -1194,10 +1328,10 @@ def get_info_from_reader(reader):
 
     Returns
     -------
-    var_names : list of str
+    var_names : list of str,
         Names of the environmental variables used in csv file,
         e.g. ['wind speed [m/s]', 'significant wave height [m]']
-    var_symbols : list of str
+    var_symbols : list of str,
         Symbols of the environental variables used in the csv file,
         e.g. ['V', 'Hs']
     """
