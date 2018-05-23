@@ -35,19 +35,16 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 
 ## How to use ViroCon
 
-If you want to compute environmental contours with a simple web-based user
-interface, go to our hosted application at
-https://virocon.herokuapp.com
+![Usage of viroconweb](static/images/calculating_a_contour_with_viroconweb.gif)
 
-Here we will input a GIF that shows how a users interacts with the app.
+You can either use our hosted application at https://virocon.herokuapp.com or
+run a local copy of ViroCon (take at look at the 'Run app' paragraph at the
+'Contributing' section).
 
-If you want to compute environmental contours with Python, use the package we
+If you don't want to work with viroconweb's graphical userer interface, but
+want to compute environmental contours with Python, use the package we
 built for the needed statistical computations,
 [viroconcom](https://github.com/ahaselsteiner/viroconcom).
-
-Here we will input a GIF that shows how a user uses pip install to install
-viroconcom and then computes a environmental contour.
-
 
 ## Documentation
 **Code** The code's documentation can be found
@@ -58,7 +55,7 @@ detail. It can be found
 [here](https://virocon.herokuapp.com/info/help).
 
 **Paper** We are currently writing an academic paper describing ViroCon. We will
-provide the a linkt to it here.
+provide the a link to it here.
 
 ## Contributing
 There are various ways you can contribute.
