@@ -1306,11 +1306,11 @@ def get_info_from_file(url):
     if url[0:8] == 'https://':
         req = request.Request(url)
         print('Trying to urlopen the url: ' + str(url))
-        with request.urlopen(req,  newline='') as response:
+        with request.urlopen(req) as response:
             reader = csv.reader(codecs.iterdecode(response, 'utf-8'), delimiter=';')
             var_names, var_symbols = get_header_info_from_reader(reader)
     else:
-        with open(url, 'r', newline='') as file:
+        with open(url, 'r') as file:
             reader = csv.reader(file, delimiter=';')
             var_names, var_symbols = get_header_info_from_reader(reader)
 
