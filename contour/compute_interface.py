@@ -8,7 +8,7 @@ import pandas as pd
 
 from .models import MeasureFileModel, ParameterModel, DistributionModel, \
     ProbabilisticModel
-from .settings import MAX_COMPUTING_TIME
+from .settings import MAX_COMPUTING_TIME, NR_LINES_HEADER
 
 from viroconcom.fitting import Fit
 from viroconcom.contours import IFormContour, HighestDensityContour
@@ -46,7 +46,7 @@ class ComputeInterface:
         data_path = mfm_item.measure_file.url
         if data_path[0] == '/':
             data_path = data_path[1:]
-        data = pd.read_csv(data_path, sep=';', header=1).as_matrix()
+        data = pd.read_csv(data_path, sep=';', header=NR_LINES_HEADER-1).as_matrix()
         dists = []
         dates = []
         for i in range(0, var_number):
