@@ -67,30 +67,45 @@ def validate_csv_upload(value):
 
 
     input_lines = input_str.splitlines()
-    header = input_lines[0]
-    body = "\n".join(input_lines[1:]) + "\n"
+    header_line_1 = input_lines[0]
+    header_line_2 = input_lines[1]
+    body = "\n".join(input_lines[2:]) + "\n"
 
-    # Validate the header.
-    header_parts = header.split(";")
+    # Validate the header and start with the first line, which should contain
+    # the variable names.
+    header_parts = header_line_1.split(";")
     if len(header_parts) == 0:
         raise ValidationError("Empty header.", code="invalid")
-    if len(header_parts) % 2 != 0:
-        raise ValidationError("Long name and symbol are needed "
-                              "for each variable.", code="invalid")
+    var_num = int(len(header_parts))
 
-    var_num = int(len(header_parts) / 2)
-
-    h_pattern_str = r"^(?:[^;]{1,50};\s*[^,\s]{1,5}\s*;){1,9}" \
-                    r"[^;]{1,50};\s*[^;\s]{1,5}$"
+    h_pattern_str = r"^(?:[^;]{1,50};){1,9}[^;]{1,50}$"
     h_pattern = re.compile(h_pattern_str, re.ASCII)
 
     header_is_ok = False
-    result = h_pattern.match(header)
+    result = h_pattern.match(header_line_1)
     if result:
-        header_is_ok = (result.end()-result.start() == len(header))
+        header_is_ok = (result.end()-result.start() == len(header_line_1))
 
     if not header_is_ok:
-        raise ValidationError("Error in header.", code="invalid")
+        raise ValidationError("Error in header's first line.", code="invalid")
+
+    # Valide the second line, which should contain the variable symbols.
+    header_parts = header_line_2.split(";")
+    if int(len(header_parts)) != var_num:
+        raise ValidationError("Error in the header's second line. "
+                              "A variable symbol for each variable must "
+                              "be provided.", code="invalid")
+
+    h_pattern_str = r"^(?:[^,\s]{1,5};){1,9}[^;\s]{1,5}$"
+    h_pattern = re.compile(h_pattern_str, re.ASCII)
+
+    header_is_ok = False
+    result = h_pattern.match(header_line_2)
+    if result:
+        header_is_ok = (result.end()-result.start() == len(header_line_2))
+
+    if not header_is_ok:
+        raise ValidationError("Error in header's second line.", code="invalid")
 
     # Validate the body.
     if len(body) == 0:
