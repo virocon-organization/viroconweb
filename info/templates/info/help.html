@@ -67,7 +67,8 @@
             contour encloses all variable combinations, which must be
             considered in the design process (the design region).
             (b) Flowchart describing the design process utilizing an
-            environmental contour. Image and caption from Haselsteiner et al.
+            environmental contour. Image and caption from Haselsteiner
+            <i>et al.</i>
             [4].
         </div>
         <p>
@@ -103,26 +104,30 @@
         </div>
         <div class="img-caption">
             Fig. 2. Contour based on the inverse first order reliability method.
-            Image altered from Haselsteiner et al. [4].
+            Image altered from Haselsteiner <i>et al.</i> [4].
         </div>
         More information on the IFORM contour can be found
-        in the publication from Winterstein et al. [5], which introduced the
+        in the publication from Winterstein <i>et al.</i> [5], which introduced the
         method.
         <h3>4.2 Highest density contour (HDC) </h3>
         <p>
             A highest density contour (HDC) is defined in the original
-            variable space. It is the boundary of a highest density region R:
+            variable space. The contour <i>C</i> is the boundary of the
+            highest density region <i>R</i>:
             <div class="equation-at-help">
-                {% latexify 'R(f_m) = {f(x) \geq f_m}' math_inline=True %},
+                {% latexify 'C(f_m) = \{ x:x \in \mathbb{R}^p, f(x) = f_m\}' math_inline=True %},
+            </div>
+            <div class="equation-at-help">
+                {% latexify 'R(f_m) = \{ f(x) \geq f_m \}' math_inline=True %},
             </div>
             <div class="equation-at-help">
                 {% latexify '\int_{R(f_m)} f(x)dx = 1 - \alpha' math_inline=True %},
             </div>
         </p>
         <p>
-            where α is the exceedance
-            probability, which depends on the return period T (in years) and the
-            environmental state duration D (in hours):
+            where <i>α</i> is the exceedance
+            probability, which depends on the return period <i>T</i> (in years) and the
+            environmental state duration <i>D</i> (in hours):
             <div class="equation-at-help">
                 {% latexify '\alpha = \dfrac{1}{n} = \dfrac{1}{T \times 365.25 \times 24/D}' math_inline=True %}.
             </div>
@@ -130,7 +135,7 @@
         <p>
             By definition a highest density contour has constant probability
             density along
-            its path and encloses a region that contains 1-α probability
+            its path and encloses a region that contains 1-<i>α</i> probability
             (Fig. 3).
         </p>
         <div align="center">
@@ -139,10 +144,10 @@
         </div>
         <div class="img-caption">
             Fig. 3. Definition of a highest density contour. Image altered from
-            Haselsteiner et al. [4].
+            Haselsteiner <i>et al.</i> [4].
         </div>
         More information on the highest density contour method can be found
-        in the publication from Haselsteiner et al. [4], which introduced the
+        in the publication from Haselsteiner <i>et al.</i> [4], which introduced the
         method.
         <h2>References</h2>
         <p>
