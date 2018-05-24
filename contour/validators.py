@@ -4,6 +4,7 @@ Validators to check e.g. uploaded data or calculated contours.
 import re
 import numpy as np
 from django.core.exceptions import ValidationError
+from .settings import MAX_FILE_SIZE_M_IN_MIB
 
 def validate_contour_coordinates(contour_coordinates):
     """
@@ -52,7 +53,7 @@ def validate_csv_upload(value):
     """
 
     # Validate the file size.
-    limit = 100 * 1024 * 1024
+    limit = MAX_FILE_SIZE_M_IN_MIB * 1024 * 1024
     if value.size > limit:
         raise ValidationError('File too large. Size should not exceed 100 MiB.')
     elif value.size == 0:

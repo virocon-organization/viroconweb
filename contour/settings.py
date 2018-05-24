@@ -20,7 +20,10 @@ if RUN_MODE == 'production':
     MAX_COMPUTING_TIME = 15.0
 else:
     MAX_COMPUTING_TIME = 120.0
+
 # Saving all coordinates to the database is slow since a lot of operations
 # might be necessary. Consequenetly, this can be turned off.
 DO_SAVE_CONTOUR_COORDINATES_IN_DB = False
 
+# Maximum file size in MiB of a measurement file that is allowed to be uploaded.
+MAX_FILE_SIZE_M_IN_MIB = 100
