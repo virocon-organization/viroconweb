@@ -478,12 +478,12 @@ input {
 }
 
 .img-caption {
-    align: center;
     font-size: 18px;
     margin-left: 30px;
     margin-right: 30px;
     margin-top: 5px;
     margin-bottom: 15px;
+    text-align: justify;
 }
 
 .thump-img-container {

@@ -17,6 +17,7 @@ from django.core.files.base import ContentFile
 from urllib import request
 from viroconweb.settings import USE_S3
 from viroconcom.distributions import ParametricDistribution
+from .settings import NR_LINES_HEADER
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
@@ -571,7 +572,7 @@ def plot_contour(contour_coordinates, user, environmental_contour, var_names):
             data_path = probabilistic_model.measure_file_model.measure_file.url
             if data_path[0] == '/':
                 data_path = data_path[1:]
-            data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
+            data = pd.read_csv(data_path, sep=';', header=NR_LINES_HEADER-1).as_matrix()
             ax.scatter(data[:, 0], data[:, 1], s=5, c='k',
                        label='measured/simulated data')
 
@@ -651,9 +652,10 @@ def plot_data_set_as_scatter(measure_file_model, var_names):
     if data_path[0] == '/':
         data_path = data_path[1:]
 
-    # Number of lines of th header is correctly set to 0! Originally it was 1,
-    # which caused a bug since the first data row was ignored, see issue #20.
-    data = pd.read_csv(data_path, sep=';', header=0).as_matrix()
+    # For some reason here the header parameter must be the number of lines
+    # of the header - 1, consequently 1. There was a bug related to this,
+    # as the first data row was ignored, see issue #20.
+    data = pd.read_csv(data_path, sep=';', header=NR_LINES_HEADER-1).as_matrix()
 
     # Plot all variables against the first variable. This is done in subplots
     # such that only a single figure is generated.

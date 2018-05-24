@@ -27,3 +27,5 @@ DO_SAVE_CONTOUR_COORDINATES_IN_DB = False
 
 # Maximum file size in MiB of a measurement file that is allowed to be uploaded.
 MAX_FILE_SIZE_M_IN_MIB = 100
+
+NR_LINES_HEADER = 2

@@ -1307,17 +1307,17 @@ def get_info_from_file(url):
         req = request.Request(url)
         print('Trying to urlopen the url: ' + str(url))
         with request.urlopen(req) as response:
-            reader = csv.reader(codecs.iterdecode(response, 'utf-8'), delimiter=';').__next__()
-            var_names, var_symbols = get_info_from_reader(reader)
+            reader = csv.reader(codecs.iterdecode(response, 'utf-8'), delimiter=';')
+            var_names, var_symbols = get_header_info_from_reader(reader)
     else:
         with open(url, 'r') as file:
-            reader = csv.reader(file, delimiter=';').__next__()
-            var_names, var_symbols = get_info_from_reader(reader)
+            reader = csv.reader(file, delimiter=';')
+            var_names, var_symbols = get_header_info_from_reader(reader)
 
     return var_names, var_symbols
 
 
-def get_info_from_reader(reader):
+def get_header_info_from_reader(reader):
     """
     Reads the variable names and symbols form a reader.
 
@@ -1339,10 +1339,17 @@ def get_info_from_reader(reader):
     """
     var_names = []
     var_symbols = []
-    i = 0
-    while i < (len(reader)):
-        var_names.append(reader[i])
-        i += 1
-        var_symbols.append(reader[i])
-        i += 1
+    for i, row in enumerate(reader):
+        j = 0
+        while j < (len(row)):
+            # The first row contains the variable names.
+            if i == 0:
+                var_names.append(row[j])
+            # The second row contains the variable symbols.
+            elif i == 1:
+                var_symbols.append(row[j])
+            # The body starts at line 3, consequently we can stop here.
+            elif i == 2:
+                return var_names, var_symbols
+            j += 1
     return var_names, var_symbols
