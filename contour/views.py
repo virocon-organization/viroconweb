@@ -1348,7 +1348,7 @@ def get_header_info_from_reader(reader):
             # The second row contains the variable symbols.
             elif i == 1:
                 var_symbols.append(row[j])
-            # The body starts at line 3
+            # The body starts at line 3, consequently we can stop here.
             elif i == 2:
                 return var_names, var_symbols
             j += 1
