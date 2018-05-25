@@ -39,8 +39,11 @@ class MeasureFileFitForm(forms.Form):
 
         # First variable
         self.fields['_%s' % variable_names[0]] = forms.CharField(
-            widget=forms.TextInput(attrs={'value': 'name'}),
-            max_length=50)
+            widget=forms.TextInput(
+                attrs={'value': 'name',}
+            ),
+            max_length=50,
+            label='1. Variable, ' + variable_names[0])
         self.fields['distribution_%s' % 0] = forms.ChoiceField(
             choices=self.DISTRIBUTIONS,
             initial='Weibull',
@@ -69,7 +72,9 @@ class MeasureFileFitForm(forms.Form):
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
 
             self.fields['_%s' % variable_names[i]] = forms.CharField(
-                widget=forms.TextInput(attrs={'value': 'name'}))
+                widget=forms.TextInput(attrs={
+                    'value': 'name',}),
+                label= str(i+1) + '. Variable, ' + variable_names[i])
             self.fields['distribution_%s' % i] = forms.ChoiceField(
                 choices=self.DISTRIBUTIONS, initial='Weibull',
                 label='Distribution',

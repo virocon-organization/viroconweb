@@ -458,6 +458,9 @@ input {
     }
 }
 
+.panel-title > label {
+    font-weight: inherit;
+}
 
 .contour-pdf, .user-guide {
     width: 100%;
