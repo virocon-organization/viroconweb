@@ -128,6 +128,7 @@ class VariablesForm(forms.Form):
     def __init__(self, variable_count=2, *args, **kwargs):
         super(VariablesForm, self).__init__(*args, **kwargs)
 
+        self.variable_count = variable_count
         self.fields['variable_name_%s' % 0] = forms.CharField(
             min_length=3,
             label='1. Variable name',
