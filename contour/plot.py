@@ -187,7 +187,7 @@ def plot_pdf_with_raw_data(dim_index,
 
 
 def plot_parameter_fit_overview(dim_index,
-                                var_name,
+                                parent_var_name,
                                 para_name,
                                 param_at,
                                 param_values,
@@ -199,25 +199,23 @@ def plot_parameter_fit_overview(dim_index,
 
     Parameters
     ----------
-    dim_index : int
+    dim_index : int,
         Index of the related distribution.
-    var_name : str
-        Name of a multivariate distribution.
-    var_symbol : str
-          Symbol of a multivariate distribution.
-    para_name : str
+    parent_var_name : str,
+        Name of the variable that the parameter depends on.
+    para_name : str,
         Parameter name like shape, location, scale.
-    param_at : list of float
-         The list contains the x-values of a fitted function for a parameter
-         e.g. shape, loc or scale.
-    param_values : list of float
+    param_at : list of float,
+        The list contains the x-values of a fitted function for a parameter
+        e.g. shape, loc or scale.
+    param_values : list of float,
         The list contains the y-values of a fitted function for a parameter
         e.g. shape, loc or scale.
-    fit_func : FunctionParam
+    fit_func : FunctionParam,
         The fit function e.g. power function, exponential
-    directory : str
+    directory : str,
         The directory where the figure will be saved.
-    dist_name : str
+    dist_name : str,
         Name of the distribution, e.g. "Lognormal".
     probabilistic_model : ProbabilisticModel
         Probabilistic model that was created based on this fit.
@@ -250,7 +248,7 @@ def plot_parameter_fit_overview(dim_index,
     ax.scatter(param_at, param_values_for_plot, color='#9C373A')
     ax.grid(True)
     plt.ylabel(y_text)
-    plt.xlabel(var_name)
+    plt.xlabel(parent_var_name)
 
     # For the following block thanks to: https://stackoverflow.com/questions/
     # 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database
@@ -318,8 +316,13 @@ def plot_var_dependent(fit,
                          "'scale', 'shape', or 'loc', but was {}.".format(param_name))
     param_at, param_value = fit_inspection_data.get_dependent_param_points(param_name)
 
+    # Get the name of the variable that this parameter is dependent on.
+    dependency_tuple = fit.mul_var_dist.dependencies[dim_index]
+    dim_index_of_parent = dependency_tuple[ParametricDistribution.param_name_to_index(param_name)]
+    parent_var_name = var_names[dim_index_of_parent]
+
     plot_parameter_fit_overview(dim_index,
-                                var_names[dim_index],
+                                parent_var_name,
                                 param_name,
                                 param_at,
                                 param_value,
