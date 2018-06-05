@@ -2,9 +2,12 @@
 Validators to check e.g. uploaded data or calculated contours.
 """
 import re
+
 import numpy as np
 from django.core.exceptions import ValidationError
-from .settings import MAX_FILE_SIZE_M_IN_MIB
+
+from .settings import MAX_FILE_SIZE_M_IN_MIB, MAX_LENGTH_FILE_NAME
+
 
 def validate_contour_coordinates(contour_coordinates):
     """
@@ -52,10 +55,18 @@ def validate_csv_upload(value):
         If the file is too large ot does not have the right format.
     """
 
+    # Validate the file name's length.
+    if len(value.name) > MAX_LENGTH_FILE_NAME:
+        raise ValidationError(
+            'File name too long. The size should not exceed ' +
+            str(MAX_LENGTH_FILE_NAME) + ' characters, but was ' +
+            str(len(value.name)) + ' characters.')
+
     # Validate the file size.
     limit = MAX_FILE_SIZE_M_IN_MIB * 1024 * 1024
     if value.size > limit:
-        raise ValidationError('File too large. Size should not exceed 100 MiB.')
+        raise ValidationError('File too large. Size should not exceed ' +
+                              str(MAX_FILE_SIZE_M_IN_MIB) + ' MiB.')
     elif value.size == 0:
         raise ValidationError("File is empty.")
 

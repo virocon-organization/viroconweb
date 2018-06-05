@@ -1,15 +1,20 @@
 """
 Models for viroconweb, e.g. for a measurement file and a environmental contour.
 """
-from django.utils import timezone
-from .validators import validate_csv_upload
-from django.db import models
-from user.models import User
-from django.core.exceptions import ValidationError
-from . import settings
-from time import gmtime, strftime
 import random
 import string
+from time import strftime
+
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+
+from user.models import User
+
+from . import settings
+from .settings import MAX_LENGTH_FILE_NAME
+from .validators import validate_csv_upload
+
 
 # Based on: https://stackoverflow.com/questions/34239877/django-save-user-
 # uploads-in-seperate-folders
@@ -101,7 +106,7 @@ class MeasureFileModel(models.Model):
     measure_file = models.FileField(
         upload_to=media_directory_path,
         validators=[validate_csv_upload],
-        max_length=120,
+        max_length=MAX_LENGTH_FILE_NAME,
     )
     scatter_plot = models.ImageField(
         upload_to=media_directory_path,
