@@ -30,42 +30,44 @@
                 {% latexify latex_string math_inline=True %}
             </p>
         {% endfor %}
-        <hr>
-        <div class="col-md-2">
+    </div>
+    <hr>
+    <div class="clearfix left-align-div">
+        <div class="col-md-6">
+            <span style="color: gray;">
+                <small>Your fitted probabilistic model has been saved.</small>
+            </span>
+        </div>
+        <div class="col-md-3">
             <form class="form-horizontal"
                   action="{% url 'contour:measure_file_model_new_fit' pk %}"
                   method="post"
                   enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
-                    <button type="submit" class="btn btn-default">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete it</button>
                 </div>
             </form>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="form-horizontal">
                 <div class="form-group">
                     <div class="dropdown">
                       <button class="btn btn-primary dropdown-toggle"
                               type="button"
                               data-toggle="dropdown">
-                          Save and
+                          Compute
                           <span class="caret"></span>
                       </button>
                       <ul class="dropdown-menu">
                         <li>
                             <a href="{% url 'contour:probabilistic_model_calc' pk 'I' %}">
-                            Compute IFORM contour
+                            IFORM contour
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'contour:probabilistic_model_calc' pk 'H' %}">
-                            Compute highest density contour
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'contour:index' %}">
-                                Go to dashboard
+                            highest density contour
                             </a>
                         </li>
                       </ul>
@@ -73,7 +75,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-8"></div>
     </div>
     {% include "latexify/scripts.html" %}
 {% endblock content %}

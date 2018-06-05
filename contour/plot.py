@@ -155,7 +155,7 @@ def plot_pdf_with_raw_data(dim_index,
     if n_intervals_histogram < 10:
         n_intervals_histogram = 10
 
-    ax.hist(dist_points, n_intervals_histogram, normed=True,
+    ax.hist(dist_points, n_intervals_histogram, density=True,
             histtype='stepfilled', alpha=0.9, color='#54889c')
     ax.grid(True)
 
