@@ -100,7 +100,9 @@ class MeasureFileModel(models.Model):
     upload_date = models.DateTimeField(default=timezone.now)
     measure_file = models.FileField(
         upload_to=media_directory_path,
-        validators=[validate_csv_upload])
+        validators=[validate_csv_upload],
+        max_length=120,
+    )
     scatter_plot = models.ImageField(
         upload_to=media_directory_path,
         null=True,
