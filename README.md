@@ -7,12 +7,7 @@ ViroCon is an easy-to-use web-based software to compute environmental contours.
 
 ## About
 
-This is the code of the web application
-[ViroCon](https://virocon.herokuapp.com).
-
-**ViroCon is currently under development. There is no stable version yet. At
-this moment the version hosted at Heroku might be different from the repo's
-Master branch.**
+This is the code of the web application ViroCon.
 
 ViroCon helps you to design marine structures, which need to withstand load
 combinations based on wave, wind and current. It lets you define extreme
@@ -37,9 +32,16 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 
 ![Usage of viroconweb](static/images/calculating_a_contour_with_viroconweb.gif)
 
-You can either use our hosted application at https://virocon.herokuapp.com or
-run a local copy of ViroCon (take at look at the 'Run app' paragraph at the
-'Contributing' section).
+To run a copy of ViroCon locally use the following commands:
+```
+git clone https://github.com/ahaselsteiner/viroconweb
+pip install -r requirements.txt
+python manage.py collectstatic
+python manage.py migrate
+python manage.py runserver
+```
+Then you should reach a local version of ViroCon at http://localhost:8000
+
 
 If you don't want to work with viroconweb's graphical userer interface, but
 want to compute environmental contours with Python, use the package we
@@ -51,33 +53,25 @@ built for the needed statistical computations,
 [here](https://ahaselsteiner.github.io/viroconweb/).
 
 **Methods** The app has a help page, which describes the implemented methods in
-detail. It can be found
-[here](https://virocon.herokuapp.com/info/help).
+detail. If you runt he app it can be found at http://localhost:8000/info/help.
+Its template is located
+[here](https://github.com/ahaselsteiner/viroconweb/blob/master/info/templates/info/help.html).
 
 **Paper** We are currently writing an academic paper describing ViroCon. We will
-provide the a link to it here.
+provide a link to it here.
 
 ## Contributing
-There are various ways you can contribute.
+There are various ways you can contribute. You could improve the code, improve
+the documentation, add a feature or simply report a bug or an improvement and
+leave it to us to implement it.
 
 **Issue** If you spotted a bug, have an idea for an improvement or a new
- feature please open a issue. You can either leave it to us to work on the
- issue or do it yourself.
+ feature please open a issue. Please open an issue in both cases: If you want to
+ work on in yourself and if you want to leave it to us to work on it.
 
 **Fork** If you want to work on an issue yourself please fork the repository,
 then develop the feature in your copy of the repository and finally
 file a pull request to merge it into our repository.
-
-**Run app** To run a copy of ViroCon locally use the following
-commands:
-```
-git clone https://github.com/ahaselsteiner/viroconweb
-pip install -r requirements.txt
-python manage.py collectstatic
-python manage.py migrate
-python manage.py runserver
-```
-Then you should reach a local version of ViroCon at http://localhost:8000
 
 **Conventions** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/styleguide.html)
 we summarize our conventions, which are consistent with PEP8.

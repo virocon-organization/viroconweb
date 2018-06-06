@@ -26,6 +26,7 @@ from . import models
 from . import plot
 from . import settings
 
+from viroconweb.settings import RUN_MODE
 from .models import User, MeasureFileModel, EnvironmentalContour, ContourPath, \
     ExtremeEnvDesignCondition, EEDCScalar, AdditionalContourOption, \
     ProbabilisticModel, DistributionModel, ParameterModel, PlottedFigure
@@ -382,12 +383,21 @@ class MeasureFileHandler(Handler):
                                             var_number=var_number
                                             )
                     except (ValueError, RuntimeError, IndexError, TypeError,
-                            NameError, KeyError, Exception) as err:
+                            NameError, KeyError, TimeoutError) as err:
+                        if RUN_MODE == 'production' and err.__class__.__name__ == 'TimeoutError':
+                            fitting_error_message = \
+                                'Consider running a copy of ViroCon locally to ' \
+                                'allow a longer copmutational time. See the ' \
+                                'instruction at https://github.com/' \
+                                'ahaselsteiner/viroconweb#how-to-use-virocon on' \
+                                'how to do that. ' + FITTING_ERROR_MSG
+                        else:
+                            fitting_error_message = FITTING_ERROR_MSG
                         return render(
                             request,
                             'contour/error.html',
                             {'error_message': err,
-                             'text': FITTING_ERROR_MSG,
+                             'text': fitting_error_message,
                                'header': 'Fit measurement file to probabilistic '
                                          'model',
                                'return_url': 'contour:measure_file_model_select'
