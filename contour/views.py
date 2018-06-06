@@ -47,13 +47,7 @@ CONTOUR_REPORT_ERROR_MSG = 'An error occured when trying to generate ' \
                            'Feel free to contact us if you ' \
                            'think this error is caused by a bug: ' \
                            'virocon@uni-bremen.de'
-DATA_BASE_TIME_OUT_ERROR_MSG = "Writing to the data base takes too long. " \
-                               "It takes longer than the given value for a " \
-                               "timeout, which is " \
-                               "'{} seconds'.".format(
-                                MAX_COMPUTING_TIME)
-FITTING_ERROR_MSG = 'An error occured while fitting a probabliistic model ' \
-                    'to the file. Feel free to contact us if you ' \
+FITTING_ERROR_MSG = 'Feel free to contact us if you ' \
                     'think this error is caused by a bug: ' \
                     'virocon@uni-bremen.de'
 
@@ -387,9 +381,12 @@ class MeasureFileHandler(Handler):
                         if RUN_MODE == 'production' and err.__class__.__name__ == 'TimeoutError':
                             fitting_error_message = \
                                 'Consider running a copy of ViroCon locally to ' \
-                                'allow a longer copmutational time. See the ' \
-                                'instruction at https://github.com/' \
-                                'ahaselsteiner/viroconweb#how-to-use-virocon on' \
+                                'allow a longer computation time. See the ' \
+                                'instruction at <a href="https://github.com/' \
+                                'ahaselsteiner/viroconweb#how-to-use-virocon">' \
+                                'https://github.com/' \
+                                'ahaselsteiner/viroconweb#how-to-use-virocon' \
+                                '</a> on ' \
                                 'how to do that. ' + FITTING_ERROR_MSG
                         else:
                             fitting_error_message = FITTING_ERROR_MSG

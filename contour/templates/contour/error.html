@@ -12,10 +12,14 @@
                 <h3 class="panel-title">Error</h3>
             </div>
             <br>
-            <p class="bg-danger">
-                {{ error_message }} <br>
-                {{ text }}
-            </p>
+            <div class="bg-danger left-align-div">
+                <p>
+                    {{ error_message }}
+                </p>
+                <p>
+                    {{ text }}
+                </p>
+            </div>
             <a href="{% url return_url %}">
                 <button type="button" class="btn btn-primary">Back</button>
             </a>
