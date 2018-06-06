@@ -49,15 +49,15 @@ built for the needed statistical computations,
 [viroconcom](https://github.com/ahaselsteiner/viroconcom).
 
 ## Documentation
-**Code** The code's documentation can be found
+**Code.** The code's documentation can be found
 [here](https://ahaselsteiner.github.io/viroconweb/).
 
-**Methods** The app has a help page, which describes the implemented methods in
+**Methods.** The app has a help page, which describes the implemented methods in
 detail. If you runt he app it can be found at http://localhost:8000/info/help.
 Its template is located
 [here](https://github.com/ahaselsteiner/viroconweb/blob/master/info/templates/info/help.html).
 
-**Paper** We are currently writing an academic paper describing ViroCon. We will
+**Paper.** We are currently writing an academic paper describing ViroCon. We will
 provide a link to it here.
 
 ## Contributing
@@ -67,15 +67,15 @@ There are various ways you can contribute. You could
  * add a feature or
  * report a bug or an improvement and leave it to us to implement it.
 
-**Issue** If you spotted a bug, have an idea for an improvement or a new
+**Issue.** If you spotted a bug, have an idea for an improvement or a new
  feature please open a issue. Please open an issue in both cases: If you want to
  work on in yourself and if you want to leave it to us to work on it.
 
-**Fork** If you want to work on an issue yourself please fork the repository,
+**Fork.** If you want to work on an issue yourself please fork the repository,
 then develop the feature in your copy of the repository and finally
 file a pull request to merge it into our repository.
 
-**Conventions** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/styleguide.html)
+**Conventions.** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/styleguide.html)
 we summarize our conventions, which are consistent with PEP8.
 
 ## License
