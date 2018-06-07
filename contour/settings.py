@@ -17,7 +17,7 @@ EEDC_FILE_NAME = 'design_conditions.csv'
 # a contour or saving the contour to the data base. The time limit is important
 # for production. Heroku would throw its own timeout error after 30 s.
 if RUN_MODE == 'production':
-    MAX_COMPUTING_TIME = 2.0
+    MAX_COMPUTING_TIME = 3.0
 else:
     MAX_COMPUTING_TIME = 120.0
 

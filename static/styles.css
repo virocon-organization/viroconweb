@@ -516,7 +516,8 @@ input {
     border-color: lightcoral;
     border-style: solid;
     border-width: 1px;
-    border-radius: 4px
+    border-radius: 4px;
+    margin-bottom: 15px;
 }
 
 .clearfix::after {
