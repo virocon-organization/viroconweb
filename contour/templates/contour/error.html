@@ -17,7 +17,7 @@
                     {{ error_message }}
                 </p>
                 <p>
-                    {{ text }}
+                    {{ text|safe }}
                 </p>
             </div>
             <a href="{% url return_url %}">
