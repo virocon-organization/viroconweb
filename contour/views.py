@@ -380,14 +380,14 @@ class MeasureFileHandler(Handler):
                             NameError, KeyError, TimeoutError) as err:
                         if RUN_MODE == 'production' and err.__class__.__name__ == 'TimeoutError':
                             fitting_error_message = \
-                                'Consider running a copy of ViroCon locally to ' \
-                                'allow a longer computation time. See the ' \
+                                '<p>Consider running a copy of ViroCon locally ' \
+                                'to allow a longer computation time. See the ' \
                                 'instruction at <a href="https://github.com/' \
                                 'ahaselsteiner/viroconweb#how-to-use-virocon">' \
                                 'https://github.com/' \
                                 'ahaselsteiner/viroconweb#how-to-use-virocon' \
                                 '</a> on ' \
-                                'how to do that. ' + FITTING_ERROR_MSG
+                                'how to do that.</p>' + FITTING_ERROR_MSG
                         else:
                             fitting_error_message = FITTING_ERROR_MSG
                         return render(
