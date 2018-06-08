@@ -23,7 +23,7 @@ Sphinx==1.7.1
 sphinxcontrib-websupport==1.0.1
 statsmodels==0.8.0
 whitenoise==3.3.1
-viroconcom=1.0.7
+viroconcom==1.0.7
 # Requirements for heroku:
 gunicorn==19.7.1
 psycopg2==2.7.3.1
