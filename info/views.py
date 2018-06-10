@@ -2,6 +2,8 @@
 Manages Python functions which take Web requests and returns Web responses.
 """
 from django.shortcuts import render
+from viroconweb.settings import VERSION as VIROCONWEB_VERSION
+from viroconcom.version import __version__ as VIROCONCOM_VERSION
 
 
 def about(request):
@@ -20,7 +22,12 @@ def about(request):
         Is based on the template info/about.html.
 
     """
-    return render(request, 'info/about.html')
+    return render(request,
+                  'info/about.html',
+                  {'user': request.user,
+                   'viroconweb_version': VIROCONWEB_VERSION,
+                   'viroconcom_version': VIROCONCOM_VERSION,}
+                  )
 
 
 def imprint(request):

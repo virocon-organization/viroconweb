@@ -15,6 +15,13 @@ import dj_database_url
 import random
 import string
 
+from os import path
+
+
+here = path.abspath(path.dirname(__file__))
+parent_dir = os.path.join(here, os.pardir)
+with open(path.join(parent_dir, 'VERSION')) as version_file:
+    VERSION = version_file.read().strip()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
