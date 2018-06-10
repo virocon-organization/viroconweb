@@ -79,7 +79,7 @@ h2 {
     color: #343b3e;
 }
 
-.navbar-inverse {
+.navbar-bottom {
     background-color: #feffff;
     margin-bottom: 0px;
     margin-left: 0px;
@@ -93,7 +93,13 @@ h2 {
     box-shadow: 0px 0px 2px 0px #999;
 }
 
-.navbar-inverse .navbar-nav > li > a {
+@media (max-width: 767px) {
+    .navbar-bottom {
+        height: auto;
+    }
+}
+
+.navbar-bottom > li > a {
     padding-top: 4px !important;
     padding-bottom: 0 !important;
     color: black;
