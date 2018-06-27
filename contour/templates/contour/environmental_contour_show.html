@@ -8,16 +8,12 @@
     <div style="text-align:center">
         <div id="mygraph" class="img-responsive"></div>
     </div>
-
-
-
-
     {% if warn != 'None' %}
-        <br>
+        <div>
         {% for w in warn %}
             <span class="text-danger">{{ w.message }}</span>
         {% endfor %}
-        <br>
+        </div>
     {% endif %}
     <div class="col-md-3">
     </div>
