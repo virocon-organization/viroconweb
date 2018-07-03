@@ -17,7 +17,9 @@ from django.core.files.base import ContentFile
 from urllib import request
 from viroconweb.settings import USE_S3
 from viroconcom.distributions import ParametricDistribution
-from .settings import NR_LINES_HEADER
+from .settings import NR_LINES_HEADER, VIROCON_CITATION
+from viroconweb.settings import VERSION as VIROCONWEB_VERSION
+from viroconcom.version import __version__ as VIROCONCOM_VERSION
 
 # There is a problem with using matplotlib on a server (with Heroku and Travis).
 #
@@ -821,6 +823,13 @@ def create_latex_report(contour_coordinates, user, environmental_contour,
         key = additonal_option.option_key
         val = additonal_option.option_value
         latex_content += r"\item " + key + ": " + str(val)
+    latex_content += r"\end{itemize}"
+
+    latex_content += r"\subsection{Software} \
+        \begin{itemize}"
+    latex_content += r"\item viroconweb version: " + VIROCONWEB_VERSION
+    latex_content += r"\item viroconcom version: " + VIROCONCOM_VERSION
+    latex_content += r"\item ViroCon citation: " + VIROCON_CITATION
     latex_content += r"\end{itemize}"
 
     render_dict = dict(

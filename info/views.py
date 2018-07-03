@@ -2,6 +2,7 @@
 Manages Python functions which take Web requests and returns Web responses.
 """
 from django.shortcuts import render
+from contour.settings import VIROCON_CITATION
 from viroconweb.settings import VERSION as VIROCONWEB_VERSION
 from viroconcom.version import __version__ as VIROCONCOM_VERSION
 
@@ -25,6 +26,7 @@ def about(request):
     return render(request,
                   'info/about.html',
                   {'user': request.user,
+                   'virocon_citation': VIROCON_CITATION,
                    'viroconweb_version': VIROCONWEB_VERSION,
                    'viroconcom_version': VIROCONCOM_VERSION,}
                   )

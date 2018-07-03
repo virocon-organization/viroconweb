@@ -10,6 +10,14 @@ The "autoescape on" tells it to treat the following as raw text.
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{lastpage}
+\usepackage{fancyhdr}
+\renewcommand{\headrulewidth}{0pt}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{}
+\lfoot{ViroCon Report}
+\rfoot{Page \thepage/\pageref{LastPage}}
 \begin{document}
   {{ content|safe }}
 \end{document}
