@@ -6,4 +6,4 @@ Welcome to viroconweb's documentation
    :maxdepth: 2
 
    reference
-   styleguide
+   contributionguide

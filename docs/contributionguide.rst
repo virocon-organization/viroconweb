@@ -6,8 +6,9 @@ Contribution Guide
 1. Introduction
 ***************
 
-This style guide in conjunction with *PEP8* and the *Guide of
-NumPy/SciPy Documentation* by Ralf Gommers describes the conventions to
+This contribution guide focuses on the code style. Together with *PEP8*
+(van Rossum et al., 2001) and the *Guide of NumPy/SciPy Documentation*
+(Gommers et al, 2017) it describes the conventions to
 follow while designing the software viroconweb. The guide is supposed to
 help the developer to stick to a constant style and layout, which will
 make the code more readable. This style guide provides conventions and
@@ -102,11 +103,10 @@ Always be accurate describing Parameters (Gommers, 2017), e.g.
     """
     Parameters
     ——————–
-    array : ndarray,
-        Array of arbitrary shape with all values >= 0.
-    limit : float,
-        limit to sum up to.
-    """
+    x : type
+        Description of parameter `x`.
+    y
+        Description of parameter `y` (with type not specified)
 
 3.3.4. Returns
 --------------
@@ -174,10 +174,11 @@ covers the new feature.
 References
 **********
 
-Gommers, R. (2017): A Guide to NumPy/SciPy Documentation.
-https://github.com/numpy/numpy/blob/master/doc/HOWTO\_DOCUMENT.rst.txt#a-guide-to-numpyscipy-documentation
-(last access 22.09.2017)
+R. Gommers, endolith, chebee7i, T. Kluyver, P. de Buyl, C. Harris et al. (2017):
+A Guide to NumPy/SciPy Documentation.
+https://github.com/numpy/numpy/blob/maintenance/1.14.x/doc/HOWTO_DOCUMENT.rst.txt
+(last access: July 9th 2018)
 
 van Rossum, G.; Warsaw, B.; Coghlan, N. (2001): Style Guide for Python
 Code.https://www.python.org/dev/peps/pep-0008 (last access
-18.05.2018)
+May 18th 2018)

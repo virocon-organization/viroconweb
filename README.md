@@ -75,7 +75,7 @@ There are various ways you can contribute. You could
 then develop the feature in your copy of the repository and finally
 file a pull request to merge it into our repository.
 
-**Conventions.** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/styleguide.html)
+**Conventions.** In our [Contribution Guide](https://ahaselsteiner.github.io/viroconweb/contributionguide.html)
 we summarize our conventions, which are consistent with PEP8.
 
 ## License
