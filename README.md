@@ -3,11 +3,14 @@
 [![Build Status](https://travis-ci.org/ahaselsteiner/viroconweb.svg?branch=master)](https://travis-ci.org/ahaselsteiner/viroconweb)
 [![Coverage Status](https://coveralls.io/repos/github/ahaselsteiner/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/ahaselsteiner/viroconweb?branch=master)
 
-ViroCon is an easy-to-use web-based software to compute environmental contours.
+ViroCon is a software to compute environmental contours.
+
+![Usage of viroconweb](static/images/calculating_a_contour_with_viroconweb.gif)
 
 ## About
 
-This is the code of the web application ViroCon.
+viroconweb is a package belonging to the software ViroCon. Using the web
+framework Django it provides a browser-based graphical user interface.
 
 ViroCon helps you to design marine structures, which need to withstand load
 combinations based on wave, wind and current. It lets you define extreme
@@ -29,8 +32,6 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
  has its own [repository](https://github.com/ahaselsteiner/viroconcom).
 
 ## How to use ViroCon
-
-![Usage of viroconweb](static/images/calculating_a_contour_with_viroconweb.gif)
 
 To run a copy of ViroCon locally fist clone the repository by typing
 ```
