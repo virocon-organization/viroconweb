@@ -32,15 +32,25 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 
 ![Usage of viroconweb](static/images/calculating_a_contour_with_viroconweb.gif)
 
-To run a copy of ViroCon locally use the following commands:
+To run a copy of ViroCon locally fist clone the repository by typing
 ```
 git clone https://github.com/ahaselsteiner/viroconweb
+```
+in your console.
+
+Then install all required python packages and prepare the web-application.
+```
 pip install -r requirements.txt
 python manage.py collectstatic
 python manage.py migrate
+```
+
+Now everything should be set up and you can run a local copy by running
+manage.py and using 'runserver' as the argument.
+```
 python manage.py runserver
 ```
-Then you should reach a local version of ViroCon at http://localhost:8000
+You should reach a local version of ViroCon at http://localhost:8000
 
 
 If you don't want to work with viroconweb's graphical userer interface, but
