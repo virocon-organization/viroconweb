@@ -42,7 +42,7 @@ To run a copy of ViroCon locally fist clone the repository by typing
 ```
 git clone https://github.com/ahaselsteiner/viroconweb
 ```
-in your shell (your shell could be bash if you are using a Mac or cmx.exe if you
+in your shell (your shell could be Bash if you are using a Mac or cmd.exe if you
 are using Windows;
 [wikipedia entry for shell](https://en.wikipedia.org/wiki/Command-line_interface#Modern_usage_as_an_operating_system_shell)).
 
