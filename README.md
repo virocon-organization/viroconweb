@@ -46,20 +46,22 @@ in your shell (your shell could be Bash if you are using a Mac or cmd.exe if you
 are using Windows;
 [wikipedia entry for shell](https://en.wikipedia.org/wiki/Command-line_interface#Modern_usage_as_an_operating_system_shell)).
 
-Then install all required python packages and prepare the web-application.
+Then install all required python packages and prepare the web-application. Type
 ```
 pip install -r requirements.txt
 python manage.py collectstatic
 python manage.py migrate
 ```
+in your shell.
 
 ### Usage
 Now everything should be set up and you can run a local copy by running
-manage.py and using 'runserver' as the argument.
+manage.py and using 'runserver' as the argument. Type
 ```
 python manage.py runserver
 ```
-You should reach a local version of ViroCon at http://localhost:8000
+in your shell. You should reach a local version of ViroCon at
+http://localhost:8000
 
 
 If you don't want to work with viroconweb's graphical userer interface, but
