@@ -33,21 +33,23 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 
 ## How to use ViroCon
 ### Requirements
-Make sure you have installed Python 3
-([https://www.python.org](https://www.python.org))
-and git ([https://git-scm.com](https://git-scm.com)).
+Make sure you have installed
+* Python 3.6.4
+(even Python 3.5 won't work! [www.python.org](https://www.python.org/downloads/release/python-364/), think
+about using the python version management [pyenv](https://github.com/pyenv/pyenv))
+* git ([https://git-scm.com](https://git-scm.com)) and
+* [LaTeX](https://miktex.org/download).
 
 ### Install
 To run a copy of ViroCon locally fist clone the repository by typing
 ```
 git clone https://github.com/ahaselsteiner/viroconweb
 ```
-in your shell (your shell could be Bash if you are using a Mac or cmd.exe if you
-are using Windows;
-[wikipedia entry for shell](https://en.wikipedia.org/wiki/Command-line_interface#Modern_usage_as_an_operating_system_shell)).
+in your [shell](https://en.wikipedia.org/wiki/Command-line_interface#Modern_usage_as_an_operating_system_shell).
 
 Then install all required python packages and prepare the web-application. Type
 ```
+cd viroconweb
 pip install -r requirements.txt
 python manage.py collectstatic
 python manage.py migrate
