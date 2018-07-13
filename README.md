@@ -36,7 +36,7 @@ ViroCon is written in Python 3.6.4 and uses the web framework Django 1.11.11.
 Make sure you have installed
 * [Python 3.6.4](https://www.python.org/downloads/release/python-364)
 (even Python 3.5 won't work; consider using the python version management [pyenv](https://github.com/pyenv/pyenv))
-* [git](https://git-scm.com)) and
+* [git](https://git-scm.com) and
 * [LaTeX](https://miktex.org/download).
 
 ### Install
