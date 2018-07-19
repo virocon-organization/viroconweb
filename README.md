@@ -18,7 +18,7 @@ environmental conditions with a given return period using the environmental
 contour method.
 
 The following methods are available in viroconweb (additonal methods are
-available in [viroconcom](https://github.com/virocon-organization/viroconcom):
+available in [viroconcom](https://github.com/virocon-organization/viroconcom)):
 * Fitting a probabilistic model to measurement data using maximum likelihood
 estimation
 * Defining a probabilistic model with the conditonal modeling approach (CMA)
