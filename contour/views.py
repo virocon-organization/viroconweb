@@ -383,9 +383,9 @@ class MeasureFileHandler(Handler):
                                 '<p>Consider running a copy of ViroCon locally ' \
                                 'to allow a longer computation time. See the ' \
                                 'instruction at <a href="https://github.com/' \
-                                'ahaselsteiner/viroconweb#how-to-use-virocon">' \
+                                'virocon-organization/viroconweb#how-to-use-virocon">' \
                                 'https://github.com/' \
-                                'ahaselsteiner/viroconweb#how-to-use-virocon' \
+                                'virocon-organization/viroconweb#how-to-use-virocon' \
                                 '</a> on ' \
                                 'how to do that.</p>' + FITTING_ERROR_MSG
                         else:
