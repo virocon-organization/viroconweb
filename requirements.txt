@@ -26,6 +26,4 @@ whitenoise==3.3.1
 gunicorn==19.7.1
 psycopg2==2.7.3.1
 # Second ViroCon package: viroconcom
---extra-index-url https://testpypi.python.org/pypi
-viroconcom==1.1.4
-
+viroconcom==1.1.5

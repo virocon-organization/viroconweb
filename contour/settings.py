@@ -21,7 +21,7 @@ VIROCON_CITATION = 'A.F. Haselsteiner, J. Lehmkuhl, T. Pape, K.-L. Windmeier, ' 
 # a contour or saving the contour to the data base. The time limit is important
 # for production. Heroku would throw its own timeout error after 30 s.
 if RUN_MODE == 'production':
-    MAX_COMPUTING_TIME = 5.0
+    MAX_COMPUTING_TIME = 15.0
 else:
     MAX_COMPUTING_TIME = 120.0
 
