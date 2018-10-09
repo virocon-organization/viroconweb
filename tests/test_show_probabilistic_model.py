@@ -21,7 +21,7 @@ class ShowProbModelTestCase(TestCase):
             'location_0_0': '0.888',
             'variable_name_1': 'peak period [s]',
             'variable_symbol_1': 'Tp',
-            'distribution_1': 'Lognormal_2',
+            'distribution_1': 'Lognormal_SigmaNoneMu',
             'scale_dependency_1': '0power3',
             'scale_1_0': '0.1',
             'scale_1_1': '1.489',

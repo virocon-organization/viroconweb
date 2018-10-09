@@ -242,7 +242,7 @@ def setup_mul_dist(probabilistic_model: ProbabilisticModel):
             distributions.append(NormalDistribution(*parameters))
         elif dist.distribution == 'Weibull':
             distributions.append(WeibullDistribution(*parameters))
-        elif dist.distribution == 'Lognormal_ShapeNoneScale':
+        elif dist.distribution == 'Lognormal_SigmaNoneMu':
             distributions.append(
                 LognormalDistribution(sigma=parameters[0], mu=parameters[2]))
         elif dist.distribution == 'KernelDensity':

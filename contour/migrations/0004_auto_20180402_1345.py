@@ -91,7 +91,7 @@ def load_data(apps, schema_editor):
 
     distribution_model = DistributionModel(
         name='peak period [s]',
-        distribution='Lognormal_2',
+        distribution='Lognormal_SigmaNoneMu',
         symbol='Tp',
         probabilistic_model=probabilistic_model)
     distribution_model.save()
@@ -158,7 +158,7 @@ def load_data(apps, schema_editor):
 
     distribution_model = DistributionModel(
         name='peak period [s]',
-        distribution='Lognormal_2',
+        distribution='Lognormal_SigmaNoneMu',
         symbol='Tp',
         probabilistic_model=probabilistic_model)
     distribution_model.save()
@@ -187,7 +187,7 @@ def load_data(apps, schema_editor):
 
     distribution_model = DistributionModel(
         name='wind speed [m/s]',
-        distribution='Lognormal_2',
+        distribution='Lognormal_SigmaNoneMu',
         symbol='V',
         probabilistic_model=probabilistic_model)
     distribution_model.save()
