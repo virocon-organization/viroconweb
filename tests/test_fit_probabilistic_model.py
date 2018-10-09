@@ -49,9 +49,9 @@ class FitProbModelTestCase(TestCase):
                 'distribution_0' : 'Weibull',
                 'width_of_intervals_0' : '2',
                 '_peak period [s]': 'peak period [s]',
-                'distribution_1' : 'Lognormal_2',
-                'scale_dependency_1' : '0f2',
-                'shape_dependency_1' : '0f1',
+                'distribution_1' : 'Lognormal_SigmaNoneMu',
+                'scale_dependency_1' : '0exp3',
+                'shape_dependency_1' : '0power3',
                 'location_dependency_1' : '!None'
             }
         form = MeasureFileFitForm(

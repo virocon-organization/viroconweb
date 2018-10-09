@@ -30,7 +30,7 @@ class MeasureFileFitForm(forms.Form):
     Form for defining a fit, which should be applied to a measurement file.
     """
     DISTRIBUTIONS = (('Weibull', 'Weibull'),('Normal', 'Normal'),
-                     ('Lognormal_2', 'Log-Normal'))
+                     ('Lognormal_SigmaNoneMu', 'Log-Normal'))
     title = forms.CharField(max_length=50, label='Title')
 
 
@@ -64,9 +64,9 @@ class MeasureFileFitForm(forms.Form):
             condition.append(('!None', 'none'))
             for j in range(0, variable_count):
                 if j < i:
-                    condition.append((str(j) + 'f1', variable_names[j] +
+                    condition.append((str(j) + 'power3', variable_names[j] +
                                       ' - power function'))
-                    condition.append((str(j) + 'f2', variable_names[j] +
+                    condition.append((str(j) + 'exp3', variable_names[j] +
                                       ' - exponential'))
 
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
@@ -123,7 +123,7 @@ class VariablesForm(forms.Form):
     Form for the direct input of a probabilistic model.
     """
     DISTRIBUTIONS = (('Normal', 'Normal'), ('Weibull', 'Weibull'),
-                     ('Lognormal_2', 'Log-normal'))
+                     ('Lognormal_SigmaNoneMu', 'Log-normal'))
 
     def __init__(self, variable_count=2, *args, **kwargs):
         super(VariablesForm, self).__init__(*args, **kwargs)
@@ -170,9 +170,9 @@ class VariablesForm(forms.Form):
             condition.append(('!None', 'none'))
             for j in range(0, variable_count):
                 if j < i:
-                    condition.append((str(j) + 'f1', str(j + 1) +
+                    condition.append((str(j) + 'power3', str(j + 1) +
                                       '. variable - power function'))
-                    condition.append((str(j) + 'f2', str(j + 1) +
+                    condition.append((str(j) + 'exp3', str(j + 1) +
                                       '. variable - exponential'))
             func_call = 'dist_select("dist_{}", "{}")'.format(i, i)
             self.fields['variable_name_%s' % i] = forms.CharField(

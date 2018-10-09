@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default='peak period', max_length=50)),
                 ('symbol', models.CharField(default='Tp', max_length=5)),
-                ('distribution', models.CharField(choices=[('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'), ('Lognormal_2', 'Log-Normal'), ('KernelDensity', 'Kernel Density')], max_length=15)),
+                ('distribution', models.CharField(choices=[('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'), ('Lognormal_SigmaNoneMu', 'Log-Normal'), ('KernelDensity', 'Kernel Density')], max_length=15)),
             ],
         ),
         migrations.CreateModel(
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
             name='ParameterModel',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('function', models.CharField(choices=[(None, 'None'), ('f1', 'power function'), ('f2', 'exponential')], max_length=6)),
+                ('function', models.CharField(choices=[(None, 'None'), ('power3', 'power function'), ('exp3', 'exponential')], max_length=6)),
                 ('x0', models.DecimalField(decimal_places=5, default=0.0, max_digits=10, null=True)),
                 ('x1', models.DecimalField(decimal_places=5, default=0.0, max_digits=10, null=True)),
                 ('x2', models.DecimalField(decimal_places=5, default=0.0, max_digits=10, null=True)),
