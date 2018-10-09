@@ -180,8 +180,8 @@ class ParameterModel(models.Model):
     another variable. The two available funtions have 3 parameters each, which
     are represented by x0, x1 and x2.
     """
-    FUNCTIONS = ((None, 'None'), ('f1', 'power function'),
-                 ('f2', 'exponential'))
+    FUNCTIONS = ((None, 'None'), ('power3', 'power function'),
+                 ('exp3', 'exponential'))
     function = models.CharField(choices=FUNCTIONS, max_length=6)
     x0 = models.DecimalField(default=0.000, decimal_places=5, max_digits=10,
                              null=True)

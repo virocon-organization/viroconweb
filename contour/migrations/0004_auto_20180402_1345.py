@@ -96,7 +96,7 @@ def load_data(apps, schema_editor):
         probabilistic_model=probabilistic_model)
     distribution_model.save()
     parameter_model = ParameterModel(
-        function='f2',
+        function='exp3',
         x0=0.0400,
         x1=0.1748,
         x2=-0.2243,
@@ -110,7 +110,7 @@ def load_data(apps, schema_editor):
         distribution=distribution_model)
     parameter_model.save()
     parameter_model = ParameterModel(
-        function='f1',
+        function='power3',
         x0=0.1000,
         x1=1.489,
         x2=0.1901,
@@ -163,7 +163,7 @@ def load_data(apps, schema_editor):
         probabilistic_model=probabilistic_model)
     distribution_model.save()
     parameter_model = ParameterModel(
-        function='f2',
+        function='exp3',
         x0=0.0400,
         x1=0.1748,
         x2=-0.2243,
@@ -177,7 +177,7 @@ def load_data(apps, schema_editor):
         distribution=distribution_model)
     parameter_model.save()
     parameter_model = ParameterModel(
-        function='f1',
+        function='power3',
         x0=0.1000,
         x1=1.489,
         x2=0.1901,
@@ -192,7 +192,7 @@ def load_data(apps, schema_editor):
         probabilistic_model=probabilistic_model)
     distribution_model.save()
     parameter_model = ParameterModel(
-        function='f2',
+        function='exp3',
         x0=0.0400,
         x1=0.1748,
         x2=-0.2243,
@@ -206,7 +206,7 @@ def load_data(apps, schema_editor):
         distribution=distribution_model)
     parameter_model.save()
     parameter_model = ParameterModel(
-        function='f1',
+        function='power3',
         x0=0.1000,
         x1=1.489,
         x2=0.1901,

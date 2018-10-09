@@ -26,4 +26,4 @@ whitenoise==3.3.1
 gunicorn==19.7.1
 psycopg2==2.7.3.1
 # Second ViroCon package: viroconcom
-viroconcom==1.1.5
+viroconcom==1.1.6

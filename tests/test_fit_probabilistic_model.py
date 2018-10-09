@@ -50,8 +50,8 @@ class FitProbModelTestCase(TestCase):
                 'width_of_intervals_0' : '2',
                 '_peak period [s]': 'peak period [s]',
                 'distribution_1' : 'Lognormal_2',
-                'scale_dependency_1' : '0f2',
-                'shape_dependency_1' : '0f1',
+                'scale_dependency_1' : '0exp3',
+                'shape_dependency_1' : '0power3',
                 'location_dependency_1' : '!None'
             }
         form = MeasureFileFitForm(
