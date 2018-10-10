@@ -28,7 +28,7 @@ estimation
 
 ViroCon is written in Python 3.6.4. The software is seperated in two main
 packages, viroconweb and viroconcom. This is the repository of viroconweb,
-which is a web application written with the web framework Django 1.11.11.
+which is a web application written with the web framework Django 1.11.
 The second package, viroconcom, handles the statistical computations and
  has its own [repository](https://github.com/virocon-organization/viroconcom).
 
