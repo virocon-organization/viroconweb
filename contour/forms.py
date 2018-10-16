@@ -30,7 +30,7 @@ class MeasureFileFitForm(forms.Form):
     Form for defining a fit, which should be applied to a measurement file.
     """
     DISTRIBUTIONS = (('Weibull', 'Weibull'),('Normal', 'Normal'),
-                     ('Lognormal_SigmaNoneMu', 'Log-Normal'))
+                     ('Lognormal_SigmaMu', 'Log-Normal'))
     title = forms.CharField(max_length=50, label='Title')
 
 
@@ -123,7 +123,7 @@ class VariablesForm(forms.Form):
     Form for the direct input of a probabilistic model.
     """
     DISTRIBUTIONS = (('Normal', 'Normal'), ('Weibull', 'Weibull'),
-                     ('Lognormal_SigmaNoneMu', 'Log-normal'))
+                     ('Lognormal_SigmaMu', 'Log-normal'))
 
     def __init__(self, variable_count=2, *args, **kwargs):
         super(VariablesForm, self).__init__(*args, **kwargs)

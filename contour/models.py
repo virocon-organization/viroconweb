@@ -158,7 +158,7 @@ class DistributionModel(models.Model):
     shape, location).
     """
     DISTRIBUTIONS = (('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'),
-                     ('Lognormal_SigmaNoneMu', 'Log-Normal'),
+                     ('Lognormal_SigmaMu', 'Log-Normal'),
                      ('KernelDensity', 'Kernel Density'))
     name = models.CharField(default="peak period", max_length=50)
     symbol = models.CharField(default="Tp", max_length=5)
@@ -219,7 +219,7 @@ class ParameterModel(models.Model):
                 raise ValidationError(
                     "The Weibull distribution's shape parameter, k, "
                     "must be > 0.")
-        elif self.distribution.distribution == 'Lognormal_SigmaNoneMu':
+        elif self.distribution.distribution == 'Lognormal_SigmaMu':
             if self.name == 'shape' and self.x0 <= 0:
                 raise ValidationError(
                     "The Log-normal's distribution's shape parameter, sigma, "

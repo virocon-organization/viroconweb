@@ -1008,7 +1008,7 @@ def assign_parameter_name(dist_name, param_name):
     ---------
     dist_name : str,
         The name of a distribution, must be 'Weibull', 'Lognormal',
-        'Lognormal_SigmaNoneMu' or 'Normal'.
+        'Lognormal_SigmaMu' or 'Normal'.
     param_name : str,
         The name of a parameter as it is saved in the database, must be
         'shape' 'loc' or 'scale'.
@@ -1026,7 +1026,7 @@ def assign_parameter_name(dist_name, param_name):
             assigned_name = 'γ'
         elif param_name == 'scale':
             assigned_name = 'α'
-    elif dist_name == 'Lognormal' or dist_name == 'Lognormal_SigmaNoneMu':
+    elif dist_name == 'Lognormal' or dist_name == 'Lognormal_SigmaMu':
         if param_name == 'shape':
             assigned_name = 'σ'
         elif param_name == 'scale':

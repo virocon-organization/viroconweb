@@ -49,7 +49,7 @@ class FitProbModelTestCase(TestCase):
                 'distribution_0' : 'Weibull',
                 'width_of_intervals_0' : '2',
                 '_peak period [s]': 'peak period [s]',
-                'distribution_1' : 'Lognormal_SigmaNoneMu',
+                'distribution_1' : 'Lognormal_SigmaMu',
                 'scale_dependency_1' : '0exp3',
                 'shape_dependency_1' : '0power3',
                 'location_dependency_1' : '!None'

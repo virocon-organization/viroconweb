@@ -38,7 +38,12 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default='peak period', max_length=50)),
                 ('symbol', models.CharField(default='Tp', max_length=5)),
-                ('distribution', models.CharField(choices=[('Normal', 'Normal Distribution'), ('Weibull', 'Weibull'), ('Lognormal_SigmaNoneMu', 'Log-Normal'), ('KernelDensity', 'Kernel Density')], max_length=15)),
+                ('distribution', models.CharField(choices=[
+                    ('Normal', 'Normal Distribution'),
+                    ('Weibull', 'Weibull'),
+                    ('Lognormal_SigmaMu', 'Log-Normal'),
+                    ('KernelDensity', 'Kernel Density')],
+                    max_length=15)),
             ],
         ),
         migrations.CreateModel(

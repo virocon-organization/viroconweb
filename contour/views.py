@@ -1149,7 +1149,7 @@ def save_fitted_prob_model(fit, model_title, var_names, var_symbols, user,
 
     for i, dist in enumerate(fit.mul_var_dist.distributions):
         if dist.name == 'Lognormal':
-            dist_name = "Lognormal_SigmaNoneMu"
+            dist_name = 'Lognormal_SigmaMu'
 
             distribution_model = DistributionModel(name=var_names[i],
                                                    symbol=var_symbols[i],
