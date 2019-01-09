@@ -80,8 +80,9 @@ detail. If you runt he app it can be found at http://localhost:8000/info/help.
 Its template is located
 [here](https://github.com/virocon-organization/viroconweb/blob/master/info/templates/info/help.html).
 
-**Paper.** We are currently writing an academic paper describing ViroCon. We will
-provide a link to it here.
+**Paper.** Our [SoftwareX paper](https://github.com/ahaselsteiner/publications/blob/master/2018-10-25_SoftwareX_ViroCon_revised.pdf)
+"ViroCon: A software to compute multivariate extremes using the environmental
+contour method." provides a concise description of the software.
 
 ## Contributing
 There are various ways you can contribute. You could
@@ -100,6 +101,17 @@ file a pull request to merge it into our repository.
 
 **Conventions.** In our [Contribution Guide](https://virocon-organization.github.io/viroconweb/contributionguide.html)
 we summarize our conventions, which are consistent with PEP8.
+
+## Cite
+If you are using viroconcom in your academic work please cite it by referencing
+our SoftwareX paper.
+
+Example: Environmental contours were computed using the package viroconcom
+(version 1.2.0) of the software ViroCon [1].
+
+[1] A.F. Haselsteiner, J. Lemkuhl, T. Pape, K.-L. Windmeier, K.-D. Thoben:
+ViroCon: A software to compute multivariate extremes using the environmental
+contour method. Accepted by SoftwareX.
 
 ## License
 This software is licensed under the MIT license. For more information, read the
