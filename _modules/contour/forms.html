@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>contour.forms &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for contour.forms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Forms to handle user input.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="k">import</span> <span class="n">ModelForm</span>
+<span class="kn">from</span> <span class="nn">django</span> <span class="k">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="k">import</span> <span class="n">MeasureFileModel</span>
+<span class="kn">from</span> <span class="nn">.validators</span> <span class="k">import</span> <span class="n">validate_csv_upload</span>
+
+<span class="c1"># For subscript text</span>
+<span class="n">SUB</span> <span class="o">=</span> <span class="p">{</span><span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">):</span> <span class="nb">ord</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;0123456789&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;₀₁₂₃₄₅₆₇₈₉&quot;</span><span class="p">)}</span>
+
+
+<div class="viewcode-block" id="SecUserForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.SecUserForm">[docs]</a><span class="k">class</span> <span class="nc">SecUserForm</span><span class="p">(</span><span class="n">ModelForm</span><span class="p">):</span>
+<div class="viewcode-block" id="SecUserForm.Meta"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.SecUserForm.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">MeasureFileModel</span></div></div>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;secondary_user&#39;</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="MeasureFileForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.MeasureFileForm">[docs]</a><span class="k">class</span> <span class="nc">MeasureFileForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for uploading a measurement file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+    <span class="n">measure_file</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measurement file&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span></div>
+                                   <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">validate_csv_upload</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="MeasureFileFitForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.MeasureFileFitForm">[docs]</a><span class="k">class</span> <span class="nc">MeasureFileFitForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for defining a fit, which should be applied to a measurement file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DISTRIBUTIONS</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">),(</span><span class="s1">&#39;Normal&#39;</span><span class="p">,</span> <span class="s1">&#39;Normal&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">,</span> <span class="s1">&#39;Log-Normal&#39;</span><span class="p">))</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">,</span> <span class="n">variable_count</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MeasureFileFitForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># First variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">variable_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,}</span>
+            <span class="p">),</span>
+            <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1. Variable, &#39;</span> <span class="o">+</span> <span class="n">variable_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DISTRIBUTIONS</span><span class="p">,</span>
+            <span class="n">initial</span><span class="o">=</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Distribution&#39;</span><span class="p">,</span>
+            <span class="n">widget</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span>
+            <span class="p">})</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;width_of_intervals_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;2&#39;</span><span class="p">}),</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Width of intervals&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Additional variables</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">variable_count</span><span class="p">):</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;!None&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">variable_count</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;power3&#39;</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span>
+                                      <span class="s1">&#39; - power function&#39;</span><span class="p">))</span>
+                    <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;exp3&#39;</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span>
+                                      <span class="s1">&#39; - exponential&#39;</span><span class="p">))</span>
+
+            <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dist_select(&quot;dist_</span><span class="si">{}</span><span class="s1">&quot;, &quot;</span><span class="si">{}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">variable_names</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,}),</span>
+                <span class="n">label</span><span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;. Variable, &#39;</span> <span class="o">+</span> <span class="n">variable_names</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DISTRIBUTIONS</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Distribution&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;dist_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                    <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">})</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">variable_count</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;width_of_intervals_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                    <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                    <span class="n">min_value</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+                    <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;2&#39;</span><span class="p">}),</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Width of intervals&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;α dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;scale_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+                <span class="p">})</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;β dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;shape_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+                <span class="p">})</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;γ dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;loc_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">})</span></div>
+            <span class="p">)</span>
+
+
+<div class="viewcode-block" id="VariablesForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.VariablesForm">[docs]</a><span class="k">class</span> <span class="nc">VariablesForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for the direct input of a probabilistic model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DISTRIBUTIONS</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;Normal&#39;</span><span class="p">,</span> <span class="s1">&#39;Normal&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">,</span> <span class="s1">&#39;Log-normal&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_count</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">VariablesForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable_count</span> <span class="o">=</span> <span class="n">variable_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;variable_name_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+            <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1. Variable name&#39;</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;e.g. significant wave height [m]&#39;</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;variable_symbol_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+            <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">max_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;1. Variable symbol&#39;</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">TextInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;e.g. Hs&#39;</span><span class="p">}))</span>
+        <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dist_select(&quot;dist_</span><span class="si">{}</span><span class="s1">&quot;, &quot;</span><span class="si">{}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DISTRIBUTIONS</span><span class="p">,</span>
+            <span class="n">initial</span><span class="o">=</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Distribution&#39;</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;distribution form-control&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;dist_0&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scale_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;α:&#39;</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">SUB</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;2.776&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;scale_0_0&#39;</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;shape_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">min_value</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;β:&#39;</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">SUB</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.471&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;shape_0_0&#39;</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;location_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;γ:&#39;</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">SUB</span><span class="p">),</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;0.8888&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;loc_0_0&#39;</span><span class="p">}))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">variable_count</span><span class="p">):</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;!None&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">variable_count</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">:</span>
+                    <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;power3&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span>
+                                      <span class="s1">&#39;. variable - power function&#39;</span><span class="p">))</span>
+                    <span class="n">condition</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;exp3&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span>
+                                      <span class="s1">&#39;. variable - exponential&#39;</span><span class="p">))</span>
+            <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dist_select(&quot;dist_</span><span class="si">{}</span><span class="s1">&quot;, &quot;</span><span class="si">{}</span><span class="s1">&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;variable_name_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+                <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;. Variable name&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;variable_symbol_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span>
+                <span class="n">max_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;. Variable symbol&#39;</span><span class="p">,</span>
+                <span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">DISTRIBUTIONS</span><span class="p">,</span>
+                <span class="n">initial</span><span class="o">=</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Distribution&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;dist_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                                           <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">}))</span>
+            <span class="c1"># Scale</span>
+            <span class="n">dependency_id</span> <span class="o">=</span> <span class="s1">&#39;scale_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">param_class</span> <span class="o">=</span> <span class="s1">&#39;scale_param</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+            <span class="n">dist_id</span> <span class="o">=</span> <span class="s1">&#39;dist_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dependentChooser(&quot;&#39;</span> <span class="o">+</span> <span class="n">dependency_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> \
+                        <span class="n">param_class</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> <span class="n">dist_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;α dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">dependency_id</span><span class="p">,</span>
+                                           <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">}))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scale_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Constant value:&#39;</span><span class="p">,</span>
+                            <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                       <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.489&#39;</span><span class="p">}))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scale_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                           <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                           <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                               <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                                      <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s1">&#39;display:none&#39;</span><span class="p">,</span>
+                                                      <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.489&#39;</span><span class="p">}))</span>
+
+            <span class="c1"># Shape</span>
+            <span class="n">dependency_id</span> <span class="o">=</span> <span class="s1">&#39;shape_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">param_class</span> <span class="o">=</span> <span class="s1">&#39;shape_param</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+            <span class="n">dist_id</span> <span class="o">=</span> <span class="s1">&#39;dist_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dependentChooser(&quot;&#39;</span> <span class="o">+</span> <span class="n">dependency_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> \
+                        <span class="n">param_class</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> <span class="n">dist_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;β dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span>
+                    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">dependency_id</span><span class="p">,</span>
+                           <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">}))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;shape_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Constant value:&#39;</span><span class="p">,</span>
+                                           <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                           <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                               <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                                      <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.489&#39;</span><span class="p">}))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;shape_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                           <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">initial</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                           <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                               <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                                                   <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                                   <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s1">&#39;display:none&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.489&#39;</span><span class="p">}))</span>
+
+            <span class="c1"># Location</span>
+            <span class="n">dependency_id</span> <span class="o">=</span> <span class="s1">&#39;location_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">param_class</span> <span class="o">=</span> <span class="s1">&#39;location_param</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+            <span class="n">dist_id</span> <span class="o">=</span> <span class="s1">&#39;dist_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">func_call</span> <span class="o">=</span> <span class="s1">&#39;dependentChooser(&quot;&#39;</span> <span class="o">+</span> <span class="n">dependency_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> \
+                        <span class="n">param_class</span> <span class="o">+</span> <span class="s1">&#39;&quot;, &quot;&#39;</span> <span class="o">+</span> <span class="n">dist_id</span> <span class="o">+</span> <span class="s1">&#39;&quot;)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">(</span>
+                <span class="n">choices</span><span class="o">=</span><span class="n">condition</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;γ dependency&#39;</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Select</span><span class="p">(</span>
+                    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;form-control&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">dependency_id</span><span class="p">,</span>
+                           <span class="s1">&#39;onclick&#39;</span><span class="p">:</span> <span class="n">func_call</span><span class="p">}))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;location_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                            <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                            <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Constant value:&#39;</span><span class="p">,</span>
+                            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                       <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">}))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;location_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                           <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                           <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                                           <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                                               <span class="n">attrs</span><span class="o">=</span><span class="p">{</span>
+                                                   <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="n">param_class</span><span class="p">,</span>
+                                                   <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s1">&#39;display:none&#39;</span><span class="p">,</span>
+                                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">}))</span>
+</div>
+    <span class="n">collection_name</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Title&#39;</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="VariableNumber"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.VariableNumber">[docs]</a><span class="k">class</span> <span class="nc">VariableNumber</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for specifying the numbers of variables a probabilistic model should</span>
+<span class="sd">    have.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">variable_number</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span></div>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of environmental variables&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="HDCForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.HDCForm">[docs]</a><span class="k">class</span> <span class="nc">HDCForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for the settings to calculate a highest density contour (HDC).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">HDCForm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;limit_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; lower limit&#39;</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">max_value</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;limit_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; upper limit&#39;</span><span class="p">,</span>
+                <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                <span class="n">max_value</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;20&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;delta_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; grid size &#39;</span><span class="p">,</span>
+                 <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">decimal_places</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                 <span class="n">max_value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                 <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                     <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;0.5&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+        <span class="k">pass</span>
+
+    <span class="n">n_years</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Return period [years]&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">decimal_places</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+    <span class="n">sea_state</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Environmental state duration [hours]&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">decimal_places</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;3.0&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span></div>
+    <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;HDC&#39;</span>
+
+
+<div class="viewcode-block" id="IFormForm"><a class="viewcode-back" href="../../api/contour/forms.html#contour.forms.IFormForm">[docs]</a><span class="k">class</span> <span class="nc">IFormForm</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Form for the input to calculate an IFORM contour.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">return_period</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Return period [years]&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">decimal_places</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+    <span class="n">sea_state</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Environmental state duration [hours]&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">decimal_places</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+            <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span>
+                <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;3.0&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span>
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span>
+        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of points on the contour&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">widget</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">NumberInput</span><span class="p">(</span><span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;50&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;contour_input_field&#39;</span><span class="p">}))</span></div>
+    <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;IFORM&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

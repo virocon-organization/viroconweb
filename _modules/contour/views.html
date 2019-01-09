@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>contour.views &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for contour.views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Handles requests and outputs rendered html.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="c1"># These imports and the setup() call is recuired for multiprocessing, see</span>
+<span class="c1"># https://stackoverflow.com/questions/46908035/apps-arent-loaded-yet-</span>
+<span class="c1"># exception-occurs-when-using-multi-processing-in-django</span>
+<span class="kn">import</span> <span class="nn">django</span>
+<span class="n">django</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="k">import</span> <span class="n">redirect</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="k">import</span> <span class="n">render</span><span class="p">,</span> <span class="n">get_object_or_404</span><span class="p">,</span> <span class="n">HttpResponseRedirect</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="k">import</span> <span class="n">messages</span>
+<span class="kn">from</span> <span class="nn">django.urls</span> <span class="k">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="ne">TimeoutError</span>
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">abstractmethod</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">plot</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">settings</span>
+
+<span class="kn">from</span> <span class="nn">viroconweb.settings</span> <span class="k">import</span> <span class="n">RUN_MODE</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="k">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">MeasureFileModel</span><span class="p">,</span> <span class="n">EnvironmentalContour</span><span class="p">,</span> <span class="n">ContourPath</span><span class="p">,</span> \
+    <span class="n">ExtremeEnvDesignCondition</span><span class="p">,</span> <span class="n">EEDCScalar</span><span class="p">,</span> <span class="n">AdditionalContourOption</span><span class="p">,</span> \
+    <span class="n">ProbabilisticModel</span><span class="p">,</span> <span class="n">DistributionModel</span><span class="p">,</span> <span class="n">ParameterModel</span><span class="p">,</span> <span class="n">PlottedFigure</span>
+
+<span class="kn">from</span> <span class="nn">.compute_interface</span> <span class="k">import</span> <span class="n">ComputeInterface</span>
+<span class="kn">from</span> <span class="nn">.validators</span> <span class="k">import</span> <span class="n">validate_contour_coordinates</span>
+<span class="kn">from</span> <span class="nn">viroconcom</span> <span class="k">import</span> <span class="n">distributions</span><span class="p">,</span> <span class="n">params</span>
+<span class="kn">from</span> <span class="nn">.settings</span> <span class="k">import</span> <span class="n">MAX_COMPUTING_TIME</span><span class="p">,</span> <span class="n">DO_SAVE_CONTOUR_COORDINATES_IN_DB</span>
+
+
+<span class="n">CONTOUR_CALCULATION_ERROR_MSG</span> <span class="o">=</span> <span class="s1">&#39;Please consider different settings for the &#39;</span> \
+                                <span class="s1">&#39;contour or think about your probabilistic &#39;</span> \
+                                <span class="s1">&#39;model. Feel free to contact us if you &#39;</span> \
+                                <span class="s1">&#39;think this error is caused by a bug: &#39;</span> \
+                                <span class="s1">&#39;virocon@uni-bremen.de&#39;</span>
+<span class="n">CONTOUR_REPORT_ERROR_MSG</span> <span class="o">=</span> <span class="s1">&#39;An error occured when trying to generate &#39;</span> \
+                           <span class="s1">&#39;the report for the contour. &#39;</span> \
+                           <span class="s1">&#39;Feel free to contact us if you &#39;</span> \
+                           <span class="s1">&#39;think this error is caused by a bug: &#39;</span> \
+                           <span class="s1">&#39;virocon@uni-bremen.de&#39;</span>
+<span class="n">FITTING_ERROR_MSG</span> <span class="o">=</span> <span class="s1">&#39;Feel free to contact us if you &#39;</span> \
+                    <span class="s1">&#39;think this error is caused by a bug: &#39;</span> \
+                    <span class="s1">&#39;virocon@uni-bremen.de&#39;</span>
+
+
+
+<div class="viewcode-block" id="index"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.index">[docs]</a><span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Renders the landing page, i.e. the &#39;Dashboard&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;contour/home.html&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Handler"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler">[docs]</a><span class="k">class</span> <span class="nc">Handler</span><span class="p">:</span>
+<div class="viewcode-block" id="Handler.overview"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.overview">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders an overview about all objects of a Django Model (all data base</span>
+<span class="sd">        entries).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to show the overview.</span>
+<span class="sd">        model_class : class of models.Model,</span>
+<span class="sd">            The class of a Django Model as defined in models.py, e.g.</span>
+<span class="sd">            MeasurementFileModel or EnvironmentalContour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            The rendered overview.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">model_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="nb">object</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="n">bool_</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">secUser</span> <span class="ow">in</span> <span class="nb">object</span><span class="o">.</span><span class="n">secondary_user</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">secUser</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                        <span class="n">bool_</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">bool_</span><span class="p">:</span>
+                    <span class="n">context</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">object</span><span class="o">.</span><span class="n">primary_user</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                    <span class="n">context</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+            <span class="n">base</span> <span class="o">=</span> <span class="s1">&#39;contour:&#39;</span> <span class="o">+</span> <span class="n">model_class</span><span class="o">.</span><span class="n">url_str</span><span class="p">()</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="s1">&#39;contour/&#39;</span> <span class="o">+</span> <span class="n">model_class</span><span class="o">.</span><span class="n">url_str</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_overview.html&#39;</span>
+            <span class="n">update</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="s1">&#39;_update&#39;</span>
+            <span class="n">delete</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="s1">&#39;_delete&#39;</span>
+            <span class="n">add</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="s1">&#39;_add&#39;</span>
+            <span class="n">calc</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="s1">&#39;_calc&#39;</span>
+
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">context</span><span class="p">,</span>
+                                          <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">model_class</span><span class="p">,</span>
+                                          <span class="s1">&#39;update&#39;</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span>
+                                          <span class="s1">&#39;delete&#39;</span><span class="p">:</span> <span class="n">delete</span><span class="p">,</span>
+                                          <span class="s1">&#39;add&#39;</span><span class="p">:</span> <span class="n">add</span><span class="p">,</span></div>
+                                          <span class="s1">&#39;calc&#39;</span><span class="p">:</span> <span class="n">calc</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Handler.delete"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.delete">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes an object from the data base.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The request to delete the object.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            The object&#39;s primary key.</span>
+<span class="sd">        model_class: class of models.Model,</span>
+<span class="sd">            The class of the Django Model (as defined in models.py).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">object</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="s1">&#39;primary_user&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">object</span><span class="o">.</span><span class="n">primary_user</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                    <span class="nb">object</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">object</span><span class="o">.</span><span class="n">secondary_user</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">object</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="n">redirection</span> <span class="o">=</span> <span class="s1">&#39;contour:&#39;</span> <span class="o">+</span> <span class="n">model_class</span><span class="o">.</span><span class="n">url_str</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_overview&#39;</span></div>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirection</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Handler.update"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.update">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates an object in the data base.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The request to update the object.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            The object&#39;s primary key.</span>
+<span class="sd">        model_class: class of models.Model,</span>
+<span class="sd">            The class of the Django Model (as defined in models.py).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">redirection</span> <span class="o">=</span> <span class="s1">&#39;contour:&#39;</span> <span class="o">+</span> <span class="n">model_class</span><span class="o">.</span><span class="n">url_str</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_overview&#39;</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;contour/update_sec_user.html&#39;</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="nb">object</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">username</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">username</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">username</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+                <span class="n">users</span> <span class="o">=</span> <span class="n">username</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+                        <span class="nb">object</span><span class="o">.</span><span class="n">secondary_user</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+                                             <span class="s1">&#39;Error. The user name you entered&#39;</span>
+                                             <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;, does not exist.&#39;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">object</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">redirection</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span></div>
+                <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">SecUserForm</span><span class="p">})</span>
+
+<div class="viewcode-block" id="Handler.add"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.add">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an object to the data base.</span>
+
+<span class="sd">        Must be overwritten by the Handler specific to one Django Model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The request to add the object to the data base.</span></div>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Handler.select"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.select">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A reduced overview of all objects to guide the user through the work</span>
+<span class="sd">        flow shown at the Dashboard.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to render the select view.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+</div>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Handler.show"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.Handler.show">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows an object from the data base, e.g. an EnvironmentalContour object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The HttpRequest to show the object.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the object in the data base.</span>
+<span class="sd">        model_class : models.Model,</span>
+<span class="sd">            The class of the Django model, which should be shown. For example</span>
+<span class="sd">            the class models.EnvronmentalContour.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        response : HttpResponse,</span>
+<span class="sd">            Renders an html response showing the object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">html</span> <span class="o">=</span> <span class="s1">&#39;contour/&#39;</span> <span class="o">+</span> <span class="n">model_class</span><span class="o">.</span><span class="n">url_str</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_show.html&#39;</span>
+            <span class="nb">object</span> <span class="o">=</span> <span class="n">model_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;object&#39;</span><span class="p">:</span> <span class="nb">object</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="MeasureFileHandler"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler">[docs]</a><span class="k">class</span> <span class="nc">MeasureFileHandler</span><span class="p">(</span><span class="n">Handler</span><span class="p">):</span>
+<div class="viewcode-block" id="MeasureFileHandler.overview"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.overview">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">MeasureFileModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.delete"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.delete">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">MeasureFileModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.update"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.update">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">MeasureFileModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.select"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.select">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_class</span> <span class="o">=</span> <span class="n">MeasureFileModel</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">model_class</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="nb">object</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="n">bool_</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">secUser</span> <span class="ow">in</span> <span class="nb">object</span><span class="o">.</span><span class="n">secondary_user</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">secUser</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                        <span class="n">bool_</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">bool_</span><span class="p">:</span>
+                    <span class="n">context</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">object</span><span class="o">.</span><span class="n">primary_user</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+                    <span class="n">context</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/measure_file_model_select.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">context</span><span class="p">}</span></div>
+                          <span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.add"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.add">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a MeasurementFileModel to the data base.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to add the model to the data base.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the a response to the user after she/he added the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">measure_file_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MeasureFileForm</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">measure_file_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MeasureFileForm</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span>
+                    <span class="n">files</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">FILES</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">measure_file_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="n">measure_model</span> <span class="o">=</span> <span class="n">MeasureFileModel</span><span class="p">(</span>
+                        <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                        <span class="n">title</span><span class="o">=</span><span class="n">measure_file_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">measure_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="n">measure_model</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                        <span class="n">measure_file_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;measure_file&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">measure_file_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;measure_file&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">file</span>
+                    <span class="p">)</span>
+                    <span class="n">measure_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> \
+                           <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> \
+                           <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="o">+</span> \
+                           <span class="s1">&#39;/measurement/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">measure_model</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+                    <span class="n">measure_model</span><span class="o">.</span><span class="n">path_of_statics</span> <span class="o">=</span> <span class="n">path</span>
+                    <span class="n">measure_model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                        <span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;path_of_statics&#39;</span><span class="p">])</span>
+
+                    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+                        <span class="s1">&#39;contour:measure_file_model_plot&#39;</span><span class="p">,</span>
+                        <span class="n">measure_model</span><span class="o">.</span><span class="n">pk</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                        <span class="n">request</span><span class="p">,</span>
+                        <span class="s1">&#39;contour/measure_file_model_add.html&#39;</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">measure_file_form</span><span class="p">}</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="s1">&#39;contour/measure_file_model_add.html&#39;</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">measure_file_form</span><span class="p">}</span></div>
+                <span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.fit_file"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.fit_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fit_file</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits a probabilistic model to a measurement file and renders the result.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to peform a fit.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the measurement file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the fitting result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mfm_item</span> <span class="o">=</span> <span class="n">MeasureFileModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+            <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span> <span class="o">=</span> <span class="n">get_info_from_file</span><span class="p">(</span><span class="n">mfm_item</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">var_number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span>
+            <span class="n">fit_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MeasureFileFitForm</span><span class="p">(</span>
+                <span class="n">variable_count</span><span class="o">=</span><span class="n">var_number</span><span class="p">,</span>
+                <span class="n">variable_names</span><span class="o">=</span><span class="n">var_names</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">fit_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">MeasureFileFitForm</span><span class="p">(</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span>
+                    <span class="n">variable_count</span><span class="o">=</span><span class="n">var_number</span><span class="p">,</span>
+                    <span class="n">variable_names</span><span class="o">=</span><span class="n">var_names</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">fit_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="n">ci</span> <span class="o">=</span> <span class="n">ComputeInterface</span><span class="p">()</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">fit</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">fit_curves</span><span class="p">(</span><span class="n">mfm_item</span><span class="o">=</span><span class="n">mfm_item</span><span class="p">,</span>
+                                            <span class="n">fit_settings</span><span class="o">=</span><span class="n">fit_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">,</span>
+                                            <span class="n">var_number</span><span class="o">=</span><span class="n">var_number</span>
+                                            <span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span>
+                            <span class="ne">NameError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TimeoutError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">RUN_MODE</span> <span class="o">==</span> <span class="s1">&#39;production&#39;</span> <span class="ow">and</span> <span class="n">err</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;TimeoutError&#39;</span><span class="p">:</span>
+                            <span class="n">fitting_error_message</span> <span class="o">=</span> \
+                                <span class="s1">&#39;&lt;p&gt;Consider running a copy of ViroCon locally &#39;</span> \
+                                <span class="s1">&#39;to allow a longer computation time. See the &#39;</span> \
+                                <span class="s1">&#39;instruction at &lt;a href=&quot;https://github.com/&#39;</span> \
+                                <span class="s1">&#39;virocon-organization/viroconweb#how-to-use-virocon&quot;&gt;&#39;</span> \
+                                <span class="s1">&#39;https://github.com/&#39;</span> \
+                                <span class="s1">&#39;virocon-organization/viroconweb#how-to-use-virocon&#39;</span> \
+                                <span class="s1">&#39;&lt;/a&gt; on &#39;</span> \
+                                <span class="s1">&#39;how to do that.&lt;/p&gt;&#39;</span> <span class="o">+</span> <span class="n">FITTING_ERROR_MSG</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">fitting_error_message</span> <span class="o">=</span> <span class="n">FITTING_ERROR_MSG</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;contour/error.html&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span>
+                             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">fitting_error_message</span><span class="p">,</span>
+                               <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="s1">&#39;Fit measurement file to probabilistic &#39;</span>
+                                         <span class="s1">&#39;model&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;return_url&#39;</span><span class="p">:</span> <span class="s1">&#39;contour:measure_file_model_select&#39;</span>
+                             <span class="p">}</span>
+                        <span class="p">)</span>
+                    <span class="n">directory_prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span>
+                    <span class="n">directory_after_static</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> \
+                                             <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/prob_model/&#39;</span>
+                    <span class="n">directory</span> <span class="o">=</span> <span class="n">directory_prefix</span> <span class="o">+</span> <span class="n">directory_after_static</span>
+                    <span class="n">prob_model</span> <span class="o">=</span> <span class="n">save_fitted_prob_model</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+                                                        <span class="n">fit_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                                                            <span class="s1">&#39;title&#39;</span><span class="p">],</span>
+                                                        <span class="n">var_names</span><span class="p">,</span>
+                                                        <span class="n">var_symbols</span><span class="p">,</span>
+                                                        <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                                                        <span class="n">mfm_item</span><span class="p">)</span>
+                    <span class="n">plot</span><span class="o">.</span><span class="n">plot_fit</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span>
+                                  <span class="n">prob_model</span><span class="p">)</span>
+                    <span class="n">multivariate_distribution</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">setup_mul_dist</span><span class="p">(</span>
+                        <span class="n">prob_model</span>
+                    <span class="p">)</span>
+                    <span class="n">latex_string_list</span> <span class="o">=</span> <span class="n">multivariate_distribution</span><span class="o">.</span><span class="n">latex_repr</span><span class="p">(</span>
+                        <span class="n">var_symbols</span>
+                    <span class="p">)</span>
+                    <span class="n">figure_collections</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">sort_plotted_figures</span><span class="p">(</span><span class="n">prob_model</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="s1">&#39;contour/fit_results.html&#39;</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s1">&#39;pk&#39;</span><span class="p">:</span> <span class="n">prob_model</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+                                   <span class="s1">&#39;figure_collections&#39;</span><span class="p">:</span> <span class="n">figure_collections</span><span class="p">,</span>
+                                   <span class="s1">&#39;latex_string_list&#39;</span><span class="p">:</span> <span class="n">latex_string_list</span>
+                                   <span class="p">}</span>
+                                  <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="s1">&#39;contour/measure_file_model_fit.html&#39;</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">fit_form</span><span class="p">}</span>
+                                  <span class="p">)</span>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/measure_file_model_fit.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">fit_form</span><span class="p">}</span></div>
+                          <span class="p">)</span>
+
+
+<div class="viewcode-block" id="MeasureFileHandler.new_fit"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.new_fit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">new_fit</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes the previous fit and returns the form to define a new fit.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to perform a new fit.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the previous fit, which will be deleted.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the view to select a measurement file for fitting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plot</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="n">user_files</span> <span class="o">=</span> <span class="n">MeasureFileModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/measure_file_model_select.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">user_files</span><span class="p">}</span></div>
+                          <span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileHandler.plot_file"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.MeasureFileHandler.plot_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">plot_file</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots and renders a measurement file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to plot a measurement file.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the measurement file, which will be plotted.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the plotted measurement file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">measure_file_model</span> <span class="o">=</span> <span class="n">MeasureFileModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+            <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span> <span class="o">=</span> <span class="n">get_info_from_file</span><span class="p">(</span>
+                <span class="n">measure_file_model</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">url</span>
+            <span class="p">)</span>
+            <span class="n">directory_prefix</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span>
+            <span class="n">directory_after_static</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> \
+                                     <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span> <span class="o">+</span> \
+                                     <span class="s1">&#39;/measurement/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pk</span><span class="p">)</span>
+            <span class="n">plot</span><span class="o">.</span><span class="n">plot_data_set_as_scatter</span><span class="p">(</span><span class="n">measure_file_model</span><span class="p">,</span> <span class="n">var_names</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/measure_file_model_plot.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                           <span class="s1">&#39;measure_file_model&#39;</span><span class="p">:</span><span class="n">measure_file_model</span><span class="p">,</span>
+                           <span class="s1">&#39;directory&#39;</span><span class="p">:</span> <span class="n">directory_after_static</span><span class="p">}</span></div></div>
+                          <span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProbabilisticModelHandler"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler">[docs]</a><span class="k">class</span> <span class="nc">ProbabilisticModelHandler</span><span class="p">(</span><span class="n">Handler</span><span class="p">):</span>
+<div class="viewcode-block" id="ProbabilisticModelHandler.overview"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.overview">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.delete"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.delete">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.update"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.update">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.select"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.select">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Renders an overview of the probabilistic models with the option to</span>
+<span class="sd">        select one to calculate an environmental contour.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to select a probabilistic model to calculate a contour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders an overview of the probabilistic models with the option to</span>
+<span class="sd">            select one to calculate an environmental contour.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user_pm</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/probabilistic_model_select.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;context&#39;</span><span class="p">:</span> <span class="n">user_pm</span><span class="p">}</span></div>
+                          <span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.add"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.add">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a ProbabilisticModel to the data base.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to add the model to the data base.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders feedback to the user based on whether she/he is:</span>
+<span class="sd">            * logged in (normal behaviour)</span>
+<span class="sd">            * Sent a defined probabilistic model as a POST request (normal</span>
+<span class="sd">            behaviour)</span>
+<span class="sd">            * Requested a form with a GET request or (unexpected beavhiour)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_num</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">var_num_int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">var_num</span><span class="p">)</span>
+            <span class="n">variable_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariablesForm</span><span class="p">(</span><span class="n">variable_count</span><span class="o">=</span><span class="n">var_num_int</span><span class="p">)</span>
+            <span class="n">var_num_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariableNumber</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">variable_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariablesForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span>
+                                                    <span class="n">variable_count</span><span class="o">=</span><span class="n">var_num_int</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">variable_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="n">is_valid_probabilistic_model</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="p">(</span>
+                        <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                        <span class="n">collection_name</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                            <span class="s1">&#39;collection_name&#39;</span><span class="p">],</span>
+                        <span class="n">measure_file_model</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">var_num_int</span><span class="p">):</span>
+                        <span class="n">distribution</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DistributionModel</span><span class="p">(</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                                <span class="s1">&#39;variable_name_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                            <span class="p">],</span>
+                            <span class="n">distribution</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                                <span class="s1">&#39;distribution_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                            <span class="p">],</span>
+                            <span class="n">symbol</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                                <span class="s1">&#39;variable_symbol_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                            <span class="p">],</span>
+                            <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+                        <span class="p">)</span>
+                        <span class="n">distribution</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                        <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                                <span class="n">parameter</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ParameterModel</span><span class="p">(</span>
+                                    <span class="n">function</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                    <span class="n">x0</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span>
+                                        <span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_0&#39;</span>
+                                    <span class="p">],</span>
+                                    <span class="n">dependency</span><span class="o">=</span><span class="s1">&#39;!&#39;</span><span class="p">,</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="n">param</span><span class="p">,</span>
+                                    <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span>
+                                <span class="p">)</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">parameter</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+                                <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                    <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                                         <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+                                                         <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+                                    <span class="n">is_valid_probabilistic_model</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">parameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                                <span class="n">parameter</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ParameterModel</span><span class="p">(</span>
+                                    <span class="n">function</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_dependency_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)][</span><span class="mi">1</span><span class="p">:],</span>
+                                    <span class="n">x0</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_0&#39;</span><span class="p">],</span>
+                                    <span class="n">x1</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_1&#39;</span><span class="p">],</span>
+                                    <span class="n">x2</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_2&#39;</span><span class="p">],</span>
+                                    <span class="n">dependency</span><span class="o">=</span><span class="n">variable_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;_dependency_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)][</span><span class="mi">0</span><span class="p">],</span>
+                                    <span class="n">name</span><span class="o">=</span><span class="n">param</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">)</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="n">parameter</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
+                                <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                                    <span class="n">messages</span><span class="o">.</span><span class="n">add_message</span><span class="p">(</span>
+                                        <span class="n">request</span><span class="p">,</span>
+                                        <span class="n">messages</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span>
+                                        <span class="n">e</span><span class="o">.</span><span class="n">message</span>
+                                    <span class="p">)</span>
+                                    <span class="n">is_valid_probabilistic_model</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">parameter</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">is_valid_probabilistic_model</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:probabilistic_model_select&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                      <span class="s1">&#39;contour/probabilistic_model_add.html&#39;</span><span class="p">,</span>
+                                      <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">variable_form</span><span class="p">,</span>
+                                       <span class="s1">&#39;var_num_form&#39;</span><span class="p">:</span> <span class="n">var_num_form</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="s1">&#39;contour/probabilistic_model_add.html&#39;</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">variable_form</span><span class="p">,</span>
+                                   <span class="s1">&#39;var_num_form&#39;</span><span class="p">:</span> <span class="n">var_num_form</span><span class="p">})</span>
+
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;contour/probabilistic_model_add.html&#39;</span><span class="p">,</span></div>
+                          <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">variable_form</span><span class="p">,</span> <span class="s1">&#39;var_num_form&#39;</span><span class="p">:</span> <span class="n">var_num_form</span><span class="p">})</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.calculate"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.calculate">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles requests to calculate an environmental contour.</span>
+
+<span class="sd">        This method handles both requests, for an IFORM contour and for a</span>
+<span class="sd">        highest density contour.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to calculate a contour.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the probabilistic model, which the contour should be</span>
+<span class="sd">            based on.</span>
+<span class="sd">        method : str,</span>
+<span class="sd">            Defines, which method should be used. Must be either &#39;I&#39; form IFORM</span>
+<span class="sd">            contour or &#39;H&#39; for highest density contour.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the form for inputing all preprocessing options to calculate</span>
+<span class="sd">            a contour.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+            <span class="n">var_names</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">var_symbols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">dists_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">item</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">dists_model</span><span class="p">:</span>
+                <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">var_symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;I&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ProbabilisticModelHandler</span><span class="o">.</span><span class="n">iform_calc</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="n">var_names</span><span class="p">,</span>
+                    <span class="n">var_symbols</span><span class="p">,</span>
+                    <span class="n">item</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ProbabilisticModelHandler</span><span class="o">.</span><span class="n">hdc_calc</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="n">var_names</span><span class="p">,</span>
+                    <span class="n">var_symbols</span><span class="p">,</span>
+                    <span class="n">item</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span></div>
+                <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> no matching calculation method&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.iform_calc"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.iform_calc">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">iform_calc</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">,</span> <span class="n">probabilistic_model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calls the IFORM contour calculation and handles errors if they occur.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The HttpRequest to either show the calculation settings page or to</span>
+<span class="sd">            calculate the contour (differentiated by POST or GET request).</span>
+<span class="sd">        var_names : list of str</span>
+<span class="sd">            Names of the variables.</span>
+<span class="sd">        var_symbols : list of str</span>
+<span class="sd">            Names of the symbols of the probabilistic model&#39;s variables.</span>
+<span class="sd">        probabilistic_model : models.ProbabilisticModel</span>
+<span class="sd">            Probabilistic model, which should be used for the environmental</span>
+<span class="sd">            contour calculation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        response : HttpResponse,</span>
+<span class="sd">            Renders an html response showing contour or the error message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iform_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IFormForm</span><span class="p">()</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">ComputeInterface</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">iform_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">IFormForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">iform_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">warn</span><span class="p">:</span>
+                            <span class="n">contour_coordinates</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">iform</span><span class="p">(</span>
+                                <span class="n">probabilistic_model</span><span class="p">,</span>
+                                <span class="nb">float</span><span class="p">(</span><span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;return_period&#39;</span><span class="p">]),</span>
+                                <span class="nb">float</span><span class="p">(</span><span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;sea_state&#39;</span><span class="p">]),</span>
+                                <span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;n_steps&#39;</span><span class="p">])</span>
+                            <span class="n">validate_contour_coordinates</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)</span>
+                            <span class="n">environmental_contour</span> <span class="o">=</span> <span class="n">EnvironmentalContour</span><span class="p">(</span>
+                                <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                                <span class="n">fitting_method</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                <span class="n">contour_method</span><span class="o">=</span><span class="s2">&quot;Inverse first order reliability &quot;</span>
+                                               <span class="s2">&quot;method (IFORM)&quot;</span><span class="p">,</span>
+                                <span class="n">return_period</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span>
+                                    <span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;return_period&#39;</span><span class="p">]),</span>
+                                <span class="n">state_duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span>
+                                    <span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;sea_state&#39;</span><span class="p">]),</span>
+                                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+                            <span class="p">)</span>
+                            <span class="c1"># Save the environmental contour here that it gets</span>
+                            <span class="c1"># a primary key.</span>
+                            <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                            <span class="n">additional_contour_options</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="n">additional_contour_option</span> <span class="o">=</span> <span class="n">AdditionalContourOption</span><span class="p">(</span>
+                                <span class="n">option_key</span><span class="o">=</span><span class="s2">&quot;Number of points on the contour&quot;</span><span class="p">,</span>
+                                <span class="n">option_value</span><span class="o">=</span><span class="n">iform_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;n_steps&#39;</span><span class="p">],</span>
+                                <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span>
+                            <span class="p">)</span>
+                            <span class="n">additional_contour_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="n">additional_contour_option</span><span class="p">)</span>
+                            <span class="n">save_environmental_contour</span><span class="p">(</span>
+                                <span class="n">environmental_contour</span><span class="p">,</span>
+                                <span class="n">additional_contour_options</span><span class="p">,</span>
+                                <span class="n">contour_coordinates</span><span class="p">,</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">))</span>
+                    <span class="c1"># Catch and allocate errors caused by calculating iform.</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="n">ValidationError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span>
+                            <span class="ne">NameError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;contour/error.html&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span>
+                             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">CONTOUR_CALCULATION_ERROR_MSG</span><span class="p">,</span>
+                             <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="s1">&#39;Calculate contour&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;return_url&#39;</span><span class="p">:</span> <span class="s1">&#39;contour:probabilistic_model_select&#39;</span><span class="p">})</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">plot</span><span class="o">.</span><span class="n">create_latex_report</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span>
+                                                 <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
+                                                 <span class="n">environmental_contour</span><span class="p">,</span>
+                                                 <span class="n">var_names</span><span class="p">,</span>
+                                                 <span class="n">var_symbols</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;contour/error.html&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span>
+                             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">CONTOUR_REPORT_ERROR_MSG</span><span class="p">,</span>
+                             <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="s1">&#39;Report of the contour&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;return_url&#39;</span><span class="p">:</span> <span class="s1">&#39;contour:probabilistic_model_select&#39;</span><span class="p">}</span>
+                        <span class="p">)</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">ProbabilisticModelHandler</span><span class="o">.</span><span class="n">render_calculated_contour</span><span class="p">(</span>
+                        <span class="n">request</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span> <span class="n">contour_coordinates</span><span class="p">,</span>
+                        <span class="n">probabilistic_model</span><span class="p">,</span> <span class="n">warn</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">response</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                                  <span class="s1">&#39;contour/contour_settings.html&#39;</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">iform_form</span><span class="p">}</span>
+                                  <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                              <span class="s1">&#39;contour/contour_settings.html&#39;</span><span class="p">,</span>
+                              <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">iform_form</span><span class="p">}</span></div>
+                              <span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.hdc_calc"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.hdc_calc">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hdc_calc</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">,</span> <span class="n">probabilistic_model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calls the HDC calculation and handles errors if they occur.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The HttpRequest to either show the calculation settings page or to</span>
+<span class="sd">            calculate the contour (differentiated by POST or GET request).</span>
+<span class="sd">        var_names : list of str</span>
+<span class="sd">            Names of the variables.</span>
+<span class="sd">        var_symbols : list of str</span>
+<span class="sd">            Names of the symbols of the probabilistic model&#39;s variables.</span>
+<span class="sd">        probabilistic_model : models.ProbabilisticModel</span>
+<span class="sd">            Probabilistic model, which should be used for the environmental</span>
+<span class="sd">            contour calculation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        response : HttpResponse,</span>
+<span class="sd">            Renders an html response showing contour or the error message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hdc_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">HDCForm</span><span class="p">(</span><span class="n">var_names</span><span class="o">=</span><span class="n">var_names</span><span class="p">)</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">ComputeInterface</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">hdc_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">HDCForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">var_names</span><span class="o">=</span><span class="n">var_names</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hdc_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="n">limits</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">deltas</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">warn</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="n">contour_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)):</span>
+                        <span class="n">limits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;limit_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_1&#39;</span><span class="p">]),</span>
+                             <span class="nb">float</span><span class="p">(</span><span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;limit_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;_2&#39;</span><span class="p">])))</span>
+                        <span class="n">deltas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;delta_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]))</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">warn</span><span class="p">:</span>
+                            <span class="n">contour_coordinates</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">hdc</span><span class="p">(</span>
+                                <span class="n">probabilistic_model</span><span class="p">,</span>
+                                <span class="nb">float</span><span class="p">(</span><span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;n_years&#39;</span><span class="p">]),</span>
+                                <span class="nb">float</span><span class="p">(</span><span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;sea_state&#39;</span><span class="p">]),</span>
+                                <span class="n">limits</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)</span>
+                            <span class="n">validate_contour_coordinates</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)</span>
+                            <span class="n">environmental_contour</span> <span class="o">=</span> <span class="n">EnvironmentalContour</span><span class="p">(</span>
+                                <span class="n">primary_user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                                <span class="n">fitting_method</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                <span class="n">contour_method</span><span class="o">=</span><span class="s2">&quot;Highest density contour (HDC) &quot;</span>
+                                               <span class="s2">&quot;method&quot;</span><span class="p">,</span>
+                                <span class="n">return_period</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span>
+                                    <span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;n_years&#39;</span><span class="p">]),</span>
+                                <span class="n">state_duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span>
+                                    <span class="n">hdc_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;sea_state&#39;</span><span class="p">]),</span>
+                                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+                            <span class="p">)</span>
+                            <span class="c1"># Save the environmental contour here that it gets</span>
+                            <span class="c1"># a primary key.</span>
+                            <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                            <span class="n">additional_contour_options</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="n">additional_contour_option</span> <span class="o">=</span> <span class="n">AdditionalContourOption</span><span class="p">(</span>
+                                <span class="n">option_key</span><span class="o">=</span><span class="s2">&quot;Limits of the grid&quot;</span><span class="p">,</span>
+                                <span class="n">option_value</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">limits</span><span class="p">)),</span>
+                                <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span>
+                            <span class="p">)</span>
+                            <span class="n">additional_contour_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="n">additional_contour_option</span><span class="p">)</span>
+                            <span class="n">additional_contour_option</span> <span class="o">=</span> <span class="n">AdditionalContourOption</span><span class="p">(</span>
+                                <span class="n">option_key</span><span class="o">=</span><span class="s2">&quot;Grid cell size ($\Delta x_i$)&quot;</span><span class="p">,</span>
+                                <span class="n">option_value</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">deltas</span><span class="p">)),</span>
+                                <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span>
+                            <span class="p">)</span>
+                            <span class="n">additional_contour_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                <span class="n">additional_contour_option</span><span class="p">)</span>
+                            <span class="n">save_environmental_contour</span><span class="p">(</span>
+                                <span class="n">environmental_contour</span><span class="p">,</span>
+                                <span class="n">additional_contour_options</span><span class="p">,</span>
+                                <span class="n">contour_coordinates</span><span class="p">,</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">))</span>
+                    <span class="c1"># Catch and allocate errors caused by calculating a HDC.</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">TimeoutError</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">,</span>
+                            <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;contour/error.html&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span>
+                             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">CONTOUR_CALCULATION_ERROR_MSG</span><span class="p">,</span>
+                             <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="s1">&#39;Calculate contour&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;return_url&#39;</span><span class="p">:</span> <span class="s1">&#39;contour:probabilistic_model_select&#39;</span><span class="p">}</span>
+                        <span class="p">)</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">plot</span><span class="o">.</span><span class="n">create_latex_report</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span>
+                                                 <span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">),</span>
+                                                 <span class="n">environmental_contour</span><span class="p">,</span>
+                                                 <span class="n">var_names</span><span class="p">,</span>
+                                                 <span class="n">var_symbols</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                            <span class="n">request</span><span class="p">,</span>
+                            <span class="s1">&#39;contour/error.html&#39;</span><span class="p">,</span>
+                            <span class="p">{</span><span class="s1">&#39;error_message&#39;</span><span class="p">:</span> <span class="n">err</span><span class="p">,</span>
+                             <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">CONTOUR_REPORT_ERROR_MSG</span><span class="p">,</span>
+                             <span class="s1">&#39;header&#39;</span><span class="p">:</span> <span class="s1">&#39;Report of the contour&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;return_url&#39;</span><span class="p">:</span> <span class="s1">&#39;contour:probabilistic_model_select&#39;</span><span class="p">}</span>
+                        <span class="p">)</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">ProbabilisticModelHandler</span><span class="o">.</span><span class="n">render_calculated_contour</span><span class="p">(</span>
+                        <span class="n">request</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span> <span class="n">contour_coordinates</span><span class="p">,</span>
+                        <span class="n">probabilistic_model</span><span class="p">,</span> <span class="n">warn</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">response</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;contour/contour_settings.html&#39;</span><span class="p">,</span>
+                                  <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">hdc_form</span><span class="p">}</span>
+                                  <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;contour/contour_settings.html&#39;</span><span class="p">,</span>
+                              <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">hdc_form</span><span class="p">}</span></div>
+                              <span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.render_calculated_contour"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.render_calculated_contour">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">render_calculated_contour</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span>
+                                  <span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">probabilistic_model</span><span class="p">,</span>
+                                  <span class="n">warn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            The HttpRequest to calculate the contour. It is a POST request.</span>
+<span class="sd">        environmental_contour : EnvironmentalContour,</span>
+<span class="sd">            The EnvironmentalContour that just got computed.</span>
+<span class="sd">        contour_coordinates : list of list of np.ndarray,</span>
+<span class="sd">            The contour&#39;s coordinates.</span>
+<span class="sd">            The format is defined in viroconcom.contours.Contour.</span>
+<span class="sd">        probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">            The ProbabilisticModel, which was used to calculate the</span>
+<span class="sd">            EnvironmentalContour</span>
+<span class="sd">        warn : list of warning,</span>
+<span class="sd">            Warnings can get raised during the calculation of the contour.</span>
+<span class="sd">            Then the user will be presented these warnings.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        response : HttpResponse,</span>
+<span class="sd">            The rendered template &#39;evnironmental_contour_show.html&#39; with the</span>
+<span class="sd">            calculated EnvironmentalContour.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If the probabilistic model is 4-dimensional send data to create a 4D</span>
+        <span class="c1"># interactive plot.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">dists</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+            <span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> [</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/environmental_contour_show.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;object&#39;</span><span class="p">:</span> <span class="n">environmental_contour</span><span class="p">,</span>
+                           <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;u&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;dim&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                           <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
+                          <span class="p">)</span>
+        <span class="c1"># If the probabilistic model is 3-dimensional send data for a 3D</span>
+        <span class="c1"># interactive plot</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">dists</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+            <span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">dists</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> [</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dist</span><span class="o">.</span><span class="n">symbol</span><span class="p">))</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/environmental_contour_show.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;object&#39;</span><span class="p">:</span> <span class="n">environmental_contour</span><span class="p">,</span>
+                           <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                           <span class="s1">&#39;dim&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                           <span class="s1">&#39;labels&#39;</span><span class="p">:</span> <span class="n">labels</span><span class="p">})</span>
+
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span>
+                          <span class="s1">&#39;contour/environmental_contour_show.html&#39;</span><span class="p">,</span>
+                          <span class="p">{</span><span class="s1">&#39;object&#39;</span><span class="p">:</span> <span class="n">environmental_contour</span><span class="p">,</span> <span class="s1">&#39;dim&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+                          <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">response</span>
+
+
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.set_variables_number"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.set_variables_number">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">set_variables_number</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the number of variables when a probabilistc model is defined</span>
+<span class="sd">        directly.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to set the number of variables of the probabilistic model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Either adds the probabilistic model to the data base (POST request)</span>
+<span class="sd">            or renders the form to add a probabilistic model (GET request).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_num_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+                <span class="n">var_num_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariableNumber</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">var_num_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+                    <span class="n">var_num</span> <span class="o">=</span> <span class="n">var_num_form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;variable_number&#39;</span><span class="p">]</span>
+                    <span class="n">var_num_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">var_num</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">var_num</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+                        <span class="n">var_num_str</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">var_num_str</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:probabilistic_model_add&#39;</span><span class="p">,</span> <span class="n">var_num_str</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">variable_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariablesForm</span><span class="p">()</span>
+                <span class="n">var_num_form</span> <span class="o">=</span> <span class="n">forms</span><span class="o">.</span><span class="n">VariableNumber</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;contour/probabilistic_model_add.html&#39;</span><span class="p">,</span></div>
+                              <span class="p">{</span><span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">variable_form</span><span class="p">,</span> <span class="s1">&#39;var_num_form&#39;</span><span class="p">:</span> <span class="n">var_num_form</span><span class="p">})</span>
+
+<div class="viewcode-block" id="ProbabilisticModelHandler.show_model"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.ProbabilisticModelHandler.show_model">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">show_model</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows a probabilistic model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        request : HttpRequest,</span>
+<span class="sd">            Request to show a probabilistic model.</span>
+<span class="sd">        pk : int,</span>
+<span class="sd">            Primary key of the probabilistic model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        HttpResponse,</span>
+<span class="sd">            Renders the definition of the probabilistic model (its name,</span>
+<span class="sd">            the probability density function, information about the fit)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_anonymous</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s1">&#39;contour:index&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ProbabilisticModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+            <span class="n">dists_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span>
+            <span class="p">)</span>
+            <span class="n">var_symbols</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">dists_model</span><span class="p">:</span>
+                <span class="n">var_symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
+            <span class="n">multivariate_distribution</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">setup_mul_dist</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+            <span class="n">latex_string_list</span> <span class="o">=</span> <span class="n">multivariate_distribution</span><span class="o">.</span><span class="n">latex_repr</span><span class="p">(</span><span class="n">var_symbols</span><span class="p">)</span>
+
+            <span class="n">figure_collections</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">sort_plotted_figures</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="s1">&#39;contour/probabilistic_model_show.html&#39;</span><span class="p">,</span>
+                <span class="p">{</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                 <span class="s1">&#39;probabilistic_model&#39;</span><span class="p">:</span> <span class="n">probabilistic_model</span><span class="p">,</span>
+                 <span class="s1">&#39;latex_string_list&#39;</span><span class="p">:</span> <span class="n">latex_string_list</span><span class="p">,</span></div></div>
+                 <span class="s1">&#39;figure_collections&#39;</span><span class="p">:</span> <span class="n">figure_collections</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="EnvironmentalContourHandler"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.EnvironmentalContourHandler">[docs]</a><span class="k">class</span> <span class="nc">EnvironmentalContourHandler</span><span class="p">(</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handler for EnvironmentalContour objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EnvironmentalContourHandler.overview"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.EnvironmentalContourHandler.overview">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">EnvironmentalContour</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">overview</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">EnvironmentalContour</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EnvironmentalContourHandler.update"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.EnvironmentalContourHandler.update">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">EnvironmentalContour</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EnvironmentalContourHandler.show"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.EnvironmentalContourHandler.show">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">EnvironmentalContour</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">model_class</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EnvironmentalContourHandler.delete"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.EnvironmentalContourHandler.delete">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">collection</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">EnvironmentalContour</span><span class="p">):</span></div></div>
+        <span class="k">return</span> <span class="n">Handler</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">collection</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="save_fitted_prob_model"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.save_fitted_prob_model">[docs]</a><span class="k">def</span> <span class="nf">save_fitted_prob_model</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">model_title</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span>
+                           <span class="n">measure_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves a probabilistic model which was fitted to measurement data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fit : Fit,</span>
+<span class="sd">        Calculated fit results of a measurement file.</span>
+<span class="sd">    model_title : str,</span>
+<span class="sd">        Title of the probabilistic model.</span>
+<span class="sd">    var_names : list of str,</span>
+<span class="sd">        Names of the variables.</span>
+<span class="sd">    var_symbols : list of str,</span>
+<span class="sd">        Names of the symbols of the probabilistic model&#39;s variables.</span>
+<span class="sd">    user : str,</span>
+<span class="sd">        Name of a user.</span>
+<span class="sd">    measure_file : MeasureFileModel,</span>
+<span class="sd">        MeasureFileModel object linked to the probabilistic model.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ProbabilisticModel</span>
+<span class="sd">        ProbabilisticModel that was fitted to the measurement file.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">ProbabilisticModel</span><span class="p">(</span><span class="n">primary_user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+                                             <span class="n">collection_name</span><span class="o">=</span><span class="n">model_title</span><span class="p">,</span>
+                                             <span class="n">measure_file_model</span><span class="o">=</span><span class="n">measure_file</span><span class="p">)</span>
+    <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dist</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;Lognormal&#39;</span><span class="p">:</span>
+            <span class="n">dist_name</span> <span class="o">=</span> <span class="s1">&#39;Lognormal_SigmaMu&#39;</span>
+
+            <span class="n">distribution_model</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">var_names</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                                   <span class="n">symbol</span><span class="o">=</span><span class="n">var_symbols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                                   <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">,</span>
+                                                   <span class="n">distribution</span><span class="o">=</span><span class="n">dist_name</span><span class="p">)</span>
+            <span class="n">distribution_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;shape&#39;</span><span class="p">)</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;loc&#39;</span><span class="p">)</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;scale&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distribution_model</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">var_names</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">symbol</span><span class="o">=</span><span class="n">var_symbols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="n">dist</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+            <span class="n">distribution_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;shape&#39;</span><span class="p">)</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;loc&#39;</span><span class="p">)</span>
+            <span class="n">save_parameter</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;scale&#39;</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">probabilistic_model</span>
+
+
+<div class="viewcode-block" id="save_environmental_contour"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.save_environmental_contour">[docs]</a><span class="k">def</span> <span class="nf">save_environmental_contour</span><span class="p">(</span><span class="n">environmental_contour</span><span class="p">,</span>
+                               <span class="n">additional_contour_options</span><span class="p">,</span>
+                               <span class="n">contour_coordinates</span><span class="p">,</span>
+                               <span class="n">user</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves an EnvironmentalContour object and its depending models to the data</span>
+<span class="sd">    base.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    environmental_contour : EnvironmentalContour,</span>
+<span class="sd">        The environmental contour obect that should be saved.</span>
+<span class="sd">    additional_contour_options : list of AdditionalContourOption,</span>
+<span class="sd">        Options, whch are specific to the contour and are not general</span>
+<span class="sd">        environmental contour options.</span>
+<span class="sd">    contour_coordinates : list of list of numpy.ndarray,</span>
+<span class="sd">        Contains the coordinates of points on the contour.</span>
+<span class="sd">        The outer list contains can hold multiple contour paths if the</span>
+<span class="sd">        distribution is multimodal. The inner list contains multiple</span>
+<span class="sd">        numpy arrays of the same length, one per dimension.</span>
+<span class="sd">        The values of the arrays are the coordinates in the corresponding</span>
+<span class="sd">        dimension.</span>
+<span class="sd">    user : str,</span>
+<span class="sd">        The user who should own the environmental contour.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    EnvironmentalContour,</span>
+<span class="sd">        The saved environmental contour object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Only save the object if it has not been saved yet.</span>
+    <span class="k">if</span> <span class="n">environmental_contour</span><span class="o">.</span><span class="n">pk</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> \
+           <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> \
+           <span class="n">user</span> <span class="o">+</span> \
+           <span class="s1">&#39;/contour/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">environmental_contour</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">environmental_contour</span><span class="o">.</span><span class="n">path_of_statics</span> <span class="o">=</span> <span class="n">path</span>
+    <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+        <span class="n">update_fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;path_of_statics&#39;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">additional_contour_option</span> <span class="ow">in</span> <span class="n">additional_contour_options</span><span class="p">:</span>
+        <span class="c1"># It is necessary to create a new AdditionalContourObject because the</span>
+        <span class="c1"># original object was created with an environmental contour, which has</span>
+        <span class="c1"># been saved yet and consequently does not have a primary key.</span>
+        <span class="n">additional_contour_option_w_pk</span> <span class="o">=</span> <span class="n">AdditionalContourOption</span><span class="p">(</span>
+            <span class="n">option_key</span><span class="o">=</span><span class="n">additional_contour_option</span><span class="o">.</span><span class="n">option_key</span><span class="p">,</span>
+            <span class="n">option_value</span><span class="o">=</span><span class="n">additional_contour_option</span><span class="o">.</span><span class="n">option_value</span><span class="p">,</span>
+            <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span><span class="p">)</span>
+        <span class="n">additional_contour_option_w_pk</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="c1"># Saving all coordinates to the database is slow since a lot of operations</span>
+    <span class="c1"># might be necessary. Consequenetly, this can be turned off.</span>
+    <span class="k">if</span> <span class="n">DO_SAVE_CONTOUR_COORDINATES_IN_DB</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)):</span>
+            <span class="n">contour_path</span> <span class="o">=</span> <span class="n">ContourPath</span><span class="p">(</span>
+                <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span><span class="p">)</span>
+            <span class="n">contour_path</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                <span class="n">EEDC</span> <span class="o">=</span> <span class="n">ExtremeEnvDesignCondition</span><span class="p">(</span>
+                    <span class="n">contour_path</span><span class="o">=</span><span class="n">contour_path</span><span class="p">)</span>
+                <span class="n">EEDC</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])):</span>
+                    <span class="n">eedc_scalar</span> <span class="o">=</span> <span class="n">EEDCScalar</span><span class="p">(</span>
+                        <span class="n">x</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]),</span>
+                        <span class="n">EEDC</span><span class="o">=</span><span class="n">EEDC</span><span class="p">)</span>
+                    <span class="n">eedc_scalar</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+    <span class="k">return</span> <span class="n">environmental_contour</span>
+
+
+<div class="viewcode-block" id="save_parameter"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.save_parameter">[docs]</a><span class="k">def</span> <span class="nf">save_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">distribution_model</span><span class="p">,</span> <span class="n">dependency</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves a fitted parameter and links it to a DistributionModel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameter : ConstantParam or FunctionParam</span>
+<span class="sd">        ConstantParam is a float value. FunctionParam contains a whole function</span>
+<span class="sd">        like power function or exponential.</span>
+<span class="sd">    distribution_model : DistributionModel</span>
+<span class="sd">        The parameter will be linked to this DistributionModel.</span>
+<span class="sd">    dependency : int</span>
+<span class="sd">        The dimension the dependency is based on.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the parameter (&#39;shape&#39;, &#39;loc&#39; or &#39;scale&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">ConstantParam</span><span class="p">:</span>
+        <span class="n">parameter_model</span> <span class="o">=</span> <span class="n">ParameterModel</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                         <span class="n">x0</span><span class="o">=</span><span class="n">parameter</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                                         <span class="n">dependency</span><span class="o">=</span><span class="s1">&#39;!&#39;</span><span class="p">,</span>
+                                         <span class="n">distribution</span><span class="o">=</span><span class="n">distribution_model</span><span class="p">,</span>
+                                         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">parameter_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span> <span class="o">==</span> <span class="n">params</span><span class="o">.</span><span class="n">FunctionParam</span><span class="p">:</span>
+        <span class="n">parameter_model</span> <span class="o">=</span> <span class="n">ParameterModel</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">func_name</span><span class="p">,</span>
+                                         <span class="n">x0</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">a</span><span class="p">,</span>
+                                         <span class="n">x1</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+                                         <span class="n">x2</span><span class="o">=</span><span class="n">parameter</span><span class="o">.</span><span class="n">c</span><span class="p">,</span>
+                                         <span class="n">dependency</span><span class="o">=</span><span class="n">dependency</span><span class="p">,</span>
+                                         <span class="n">distribution</span><span class="o">=</span><span class="n">distribution_model</span><span class="p">,</span>
+                                         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">parameter_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parameter_model</span> <span class="o">=</span> <span class="n">ParameterModel</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span>
+                                         <span class="n">x0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                         <span class="n">dependency</span><span class="o">=</span><span class="s1">&#39;!&#39;</span><span class="p">,</span>
+                                         <span class="n">distribution</span><span class="o">=</span><span class="n">distribution_model</span><span class="p">,</span>
+                                         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div>
+        <span class="n">parameter_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="get_info_from_file"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.get_info_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_info_from_file</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;	</span>
+<span class="sd">    Reads the variable names and symbols form a csv file.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str,</span>
+<span class="sd">        Path to the csv file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    var_names : list of str,</span>
+<span class="sd">        Names of the environmental variables used in csv file,</span>
+<span class="sd">        e.g. [&#39;wind speed [m/s]&#39;, &#39;significant wave height [m]&#39;]</span>
+<span class="sd">    var_symbols : list of str,</span>
+<span class="sd">        Symbols of the environental variables used in the csv file,</span>
+<span class="sd">        e.g. [&#39;V&#39;, &#39;Hs&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;https://&#39;</span><span class="p">:</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trying to urlopen the url: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">url</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">iterdecode</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span> <span class="o">=</span> <span class="n">get_header_info_from_reader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span> <span class="o">=</span> <span class="n">get_header_info_from_reader</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span>
+
+
+<div class="viewcode-block" id="get_header_info_from_reader"><a class="viewcode-back" href="../../api/contour/views.html#contour.views.get_header_info_from_reader">[docs]</a><span class="k">def</span> <span class="nf">get_header_info_from_reader</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads the variable names and symbols form a reader.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reader : csv.Reader</span>
+<span class="sd">        A Reader object that can read a file line by line.</span>
+<span class="sd">        See https://docs.python.org/2/library/csv.html#reader-objects for</span>
+<span class="sd">        a proper documentation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    var_names : list of str,</span>
+<span class="sd">        Names of the environmental variables used in csv file,</span>
+<span class="sd">        e.g. [&#39;wind speed [m/s]&#39;, &#39;significant wave height [m]&#39;]</span>
+<span class="sd">    var_symbols : list of str,</span>
+<span class="sd">        Symbols of the environental variables used in the csv file,</span>
+<span class="sd">        e.g. [&#39;V&#39;, &#39;Hs&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">var_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">var_symbols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reader</span><span class="p">):</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)):</span>
+            <span class="c1"># The first row contains the variable names.</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="c1"># The second row contains the variable symbols.</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">var_symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="c1"># The body starts at line 3, consequently we can stop here.</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span></div>
+    <span class="k">return</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

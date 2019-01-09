@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>contour.compute_interface &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for contour.compute_interface</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interface between viroconweb and the package viroconcom.</span>
+
+<span class="sd">The package viroconcom handles the statistical computations and is imported</span>
+<span class="sd">in this module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">.models</span> <span class="k">import</span> <span class="n">MeasureFileModel</span><span class="p">,</span> <span class="n">ParameterModel</span><span class="p">,</span> <span class="n">DistributionModel</span><span class="p">,</span> \
+    <span class="n">ProbabilisticModel</span>
+<span class="kn">from</span> <span class="nn">.settings</span> <span class="k">import</span> <span class="n">MAX_COMPUTING_TIME</span><span class="p">,</span> <span class="n">NR_LINES_HEADER</span>
+
+<span class="kn">from</span> <span class="nn">viroconcom.fitting</span> <span class="k">import</span> <span class="n">Fit</span>
+<span class="kn">from</span> <span class="nn">viroconcom.contours</span> <span class="k">import</span> <span class="n">IFormContour</span><span class="p">,</span> <span class="n">HighestDensityContour</span>
+<span class="kn">from</span> <span class="nn">viroconcom.params</span> <span class="k">import</span> <span class="n">ConstantParam</span><span class="p">,</span> <span class="n">FunctionParam</span>
+<span class="kn">from</span> <span class="nn">viroconcom.distributions</span> <span class="k">import</span> <span class="p">(</span><span class="n">NormalDistribution</span><span class="p">,</span>
+                                      <span class="n">LognormalDistribution</span><span class="p">,</span>
+                                      <span class="n">WeibullDistribution</span><span class="p">,</span>
+                                      <span class="n">KernelDensityDistribution</span><span class="p">,</span>
+                                      <span class="n">MultivariateDistribution</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ComputeInterface"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.ComputeInterface">[docs]</a><span class="k">class</span> <span class="nc">ComputeInterface</span><span class="p">:</span>
+<div class="viewcode-block" id="ComputeInterface.fit_curves"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.ComputeInterface.fit_curves">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fit_curves</span><span class="p">(</span><span class="n">mfm_item</span><span class="p">:</span> <span class="n">MeasureFileModel</span><span class="p">,</span> <span class="n">fit_settings</span><span class="p">,</span> <span class="n">var_number</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interface to fit a probabilistic model to a measurement file with</span>
+<span class="sd">        the viroconcom package.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mfm_item : MeasureFileModel,</span>
+<span class="sd">            Contains the measured data, which should be evaluated.</span>
+<span class="sd">        fit_settings : ?,</span>
+<span class="sd">            The settings how the fit should be performed. Here, the</span>
+<span class="sd">            distribution, which should be fitted to the data, is specified.</span>
+<span class="sd">        var_number : int,</span>
+<span class="sd">            Number of random variables that the probabilistic model should have.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fit : Fit,</span>
+<span class="sd">            The fit contains the probabilistic model, which was fitted to the</span>
+<span class="sd">            measurement data, as well as data describing how well the fit worked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_path</span> <span class="o">=</span> <span class="n">mfm_item</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">url</span>
+        <span class="k">if</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+            <span class="n">data_path</span> <span class="o">=</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">NR_LINES_HEADER</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+        <span class="n">dists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">var_number</span><span class="p">):</span>
+            <span class="n">dates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">dists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">],</span>
+                     <span class="s1">&#39;number_of_intervals&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;width_of_intervals&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span>
+                         <span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;width_of_intervals_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]),</span>
+                     <span class="s1">&#39;dependency&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                     <span class="p">})</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="n">var_number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># last variable</span>
+                <span class="n">dists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">],</span>
+                     <span class="s1">&#39;number_of_intervals&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;width_of_intervals&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;dependency&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])],</span>
+                     <span class="s1">&#39;functions&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:])]</span>
+                     <span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;distribution_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">],</span>
+                     <span class="s1">&#39;number_of_intervals&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="s1">&#39;width_of_intervals&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span>
+                         <span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;width_of_intervals_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]),</span>
+                     <span class="s1">&#39;dependency&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])],</span>
+                     <span class="s1">&#39;functions&#39;</span><span class="p">:</span> <span class="p">[</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;shape_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;location_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:]),</span>
+                         <span class="n">adjust</span><span class="p">(</span><span class="n">fit_settings</span><span class="p">[</span><span class="s1">&#39;scale_dependency_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:])]</span>
+                     <span class="p">})</span>
+            <span class="c1"># Delete unused parameters</span>
+            <span class="k">if</span> <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Lognormal_SigmaMu&#39;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;functions&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dependency&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">dists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;functions&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">fit</span> <span class="o">=</span> <span class="n">Fit</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">dists</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">MAX_COMPUTING_TIME</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">fit</span>
+
+<div class="viewcode-block" id="ComputeInterface.iform"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.ComputeInterface.iform">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">iform</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">:</span> <span class="n">ProbabilisticModel</span><span class="p">,</span> <span class="n">return_period</span><span class="p">,</span> <span class="n">state_duration</span><span class="p">,</span>
+              <span class="n">n_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interface to viroconcom to compute an IFORM contour.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">            The probabilistic model, i.e. the joint distribution function,</span>
+<span class="sd">            which should be evaluated.</span>
+<span class="sd">        return_period : float,</span>
+<span class="sd">            The return period of the contour in years.</span>
+<span class="sd">        state_duration : float,</span>
+<span class="sd">            The sea state&#39;s or more general the environmental state&#39;s duration</span>
+<span class="sd">            in hours.</span>
+<span class="sd">        n_points : int,</span>
+<span class="sd">            Number of points along the contour that should be calculated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        contour_coordinates : list of list of numpy.ndarray,</span>
+<span class="sd">            Contains the coordinates of points on the contour.</span>
+<span class="sd">            The outer list contains can hold multiple contour paths if the</span>
+<span class="sd">            distribution is multimodal. The inner list contains multiple</span>
+<span class="sd">            numpy arrays of the same length, one per dimension.</span>
+<span class="sd">            The values of the arrays are the coordinates in the corresponding</span>
+<span class="sd">            dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mul_dist</span> <span class="o">=</span> <span class="n">setup_mul_dist</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+        <span class="n">contour</span> <span class="o">=</span> <span class="n">IFormContour</span><span class="p">(</span><span class="n">mul_var_distribution</span><span class="o">=</span><span class="n">mul_dist</span><span class="p">,</span>
+                               <span class="n">return_period</span><span class="o">=</span><span class="n">return_period</span><span class="p">,</span>
+                               <span class="n">state_duration</span><span class="o">=</span><span class="n">state_duration</span><span class="p">,</span>
+                               <span class="n">n_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">,</span>
+                               <span class="n">timeout</span><span class="o">=</span><span class="n">MAX_COMPUTING_TIME</span><span class="p">)</span>
+        <span class="n">contour_coordinates</span> <span class="o">=</span> <span class="n">contour</span><span class="o">.</span><span class="n">coordinates</span></div>
+        <span class="k">return</span> <span class="n">contour_coordinates</span>
+
+<div class="viewcode-block" id="ComputeInterface.hdc"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.ComputeInterface.hdc">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hdc</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">:</span> <span class="n">ProbabilisticModel</span><span class="p">,</span> <span class="n">return_period</span><span class="p">,</span>
+            <span class="n">state_duration</span><span class="p">,</span> <span class="n">limits</span><span class="p">,</span> <span class="n">deltas</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interface to viroconcom to compute an highest density contour (HDC).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">            The probabilistic model, i.e. the joint distribution function,</span>
+<span class="sd">            which should be evaluated.</span>
+<span class="sd">        return_period : float,</span>
+<span class="sd">            The return period of the contour in years.</span>
+<span class="sd">        state_duration : float,</span>
+<span class="sd">            The sea state&#39;s or more general the environmental state&#39;s duration</span>
+<span class="sd">            in hours.</span>
+<span class="sd">        limits : list of tuple,</span>
+<span class="sd">            One 2-element tuple per dimension in mul_var_distribution,</span>
+<span class="sd">            containing min and max limits for calculation ((min, max)).</span>
+<span class="sd">            The smaller value is always assumed minimum.</span>
+<span class="sd">        deltas : float or list of float,</span>
+<span class="sd">            The grid cell size used for the calculation.</span>
+<span class="sd">            If a single float is supplied it is used for all dimensions.</span>
+<span class="sd">            If a list of float is supplied it has to be of the same length</span>
+<span class="sd">            as there are dimensions in mul_var_dist.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        contour_coordinates : list of list of numpy.ndarray,</span>
+<span class="sd">            Contains the coordinates of points on the contour.</span>
+<span class="sd">            The outer list contains can hold multiple contour paths if the</span>
+<span class="sd">            distribution is multimodal. The inner list contains multiple</span>
+<span class="sd">            numpy arrays of the same length, one per dimension.</span>
+<span class="sd">            The values of the arrays are the coordinates in the corresponding</span>
+<span class="sd">            dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mul_dist</span> <span class="o">=</span> <span class="n">setup_mul_dist</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+        <span class="n">contour</span> <span class="o">=</span> <span class="n">HighestDensityContour</span><span class="p">(</span><span class="n">mul_var_distribution</span><span class="o">=</span><span class="n">mul_dist</span><span class="p">,</span>
+                                        <span class="n">return_period</span><span class="o">=</span><span class="n">return_period</span><span class="p">,</span>
+                                        <span class="n">state_duration</span><span class="o">=</span><span class="n">state_duration</span><span class="p">,</span>
+                                        <span class="n">limits</span><span class="o">=</span><span class="n">limits</span><span class="p">,</span>
+                                        <span class="n">deltas</span><span class="o">=</span><span class="n">deltas</span><span class="p">,</span>
+                                        <span class="n">timeout</span><span class="o">=</span><span class="n">MAX_COMPUTING_TIME</span><span class="p">)</span>
+        <span class="n">contour_coordinates</span> <span class="o">=</span> <span class="n">contour</span><span class="o">.</span><span class="n">coordinates</span></div></div>
+        <span class="k">return</span> <span class="n">contour_coordinates</span>
+
+
+<div class="viewcode-block" id="adjust"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.adjust">[docs]</a><span class="k">def</span> <span class="nf">adjust</span><span class="p">(</span><span class="n">var</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adjusts the variables types of values, which correspond to viroconweb&#39;s</span>
+<span class="sd">    models, which are associated to a database, to variable types compatible</span>
+<span class="sd">    with the viroconcom package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">var</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">or</span> <span class="n">var</span> <span class="o">==</span> <span class="s1">&#39;!&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">var</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span></div>
+        <span class="k">return</span> <span class="n">var</span>
+
+
+<div class="viewcode-block" id="setup_mul_dist"><a class="viewcode-back" href="../../api/contour/compute_interface.html#contour.compute_interface.setup_mul_dist">[docs]</a><span class="k">def</span> <span class="nf">setup_mul_dist</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">:</span> <span class="n">ProbabilisticModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a MultiVariateDistribution from a ProbabilisticModel.</span>
+
+<span class="sd">    MultiVariateDistribution objects are used to perform the statistical</span>
+<span class="sd">    computations in the viroconcom package. ProbabilisticModel objects are used</span>
+<span class="sd">    in the viroconweb package to be saved in the data base.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">        The probabilistic model, which should be converted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mutivar_distribution : MultivariateDistribution,</span>
+<span class="sd">        The object, which can be used in the viroconcom package.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">distributions_model</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">)</span>
+    <span class="n">distributions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">distributions_model</span><span class="p">:</span>
+        <span class="n">dependency</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">parameters_model</span> <span class="o">=</span> <span class="n">ParameterModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">distribution</span><span class="o">=</span><span class="n">dist</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">parameters_model</span><span class="p">:</span>
+            <span class="n">dependency</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">adjust</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">dependency</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">adjust</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">function</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">FunctionParam</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">x0</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">x1</span><span class="p">),</span>
+                                  <span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">x2</span><span class="p">),</span> <span class="n">param</span><span class="o">.</span><span class="n">function</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ConstantParam</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">x0</span><span class="p">)))</span>
+
+        <span class="n">dependencies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dependency</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dist</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+            <span class="n">distributions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NormalDistribution</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">dist</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">:</span>
+            <span class="n">distributions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WeibullDistribution</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">dist</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">:</span>
+            <span class="n">distributions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">LognormalDistribution</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mu</span><span class="o">=</span><span class="n">parameters</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="n">dist</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;KernelDensity&#39;</span><span class="p">:</span>
+            <span class="n">distributions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">KernelDensityDistribution</span><span class="p">(</span><span class="o">*</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not a matching distribution&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">distribution</span><span class="p">))</span>
+
+    <span class="n">mutivar_distribution</span> <span class="o">=</span> <span class="n">MultivariateDistribution</span><span class="p">(</span><span class="n">distributions</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">mutivar_distribution</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

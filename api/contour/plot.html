@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>viroconwebcontour.plot module &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-contour.plot">
+<span id="viroconwebcontour-plot-module"></span><h1>viroconwebcontour.plot module<a class="headerlink" href="#module-contour.plot" title="Permalink to this headline">¶</a></h1>
+<p>Plots measurement files, distributions and contours.</p>
+<dl class="class">
+<dt id="contour.plot.FittingFigureCollection">
+<em class="property">class </em><code class="descclassname">contour.plot.</code><code class="descname">FittingFigureCollection</code><a class="reference internal" href="../../_modules/contour/plot.html#FittingFigureCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.FittingFigureCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Holds information and images of a fitted distribution parameter to view the
+fit results of a parameter.</p>
+<dl class="attribute">
+<dt id="contour.plot.FittingFigureCollection.var_number">
+<code class="descname">var_number</code><a class="headerlink" href="#contour.plot.FittingFigureCollection.var_number" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int,</em> – The dimension number of a distribution.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="contour.plot.FittingFigureCollection.pdf_images">
+<code class="descname">pdf_images</code><a class="headerlink" href="#contour.plot.FittingFigureCollection.pdf_images" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list of PlottedFigure,</em> – PlottedFigures which show a fitted distribution.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="contour.plot.FittingFigureCollection.param_image">
+<code class="descname">param_image</code><a class="headerlink" href="#contour.plot.FittingFigureCollection.param_image" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PlottedFigure,</em> – The PlottedFigure which shows a fit function of a parameter.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="contour.plot.FittingFigureCollection.param_name">
+<code class="descname">param_name</code><a class="headerlink" href="#contour.plot.FittingFigureCollection.param_name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str,</em> – The name of the parameter (shape, loc, scale).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.adjust_param_name_latex">
+<code class="descclassname">contour.plot.</code><code class="descname">adjust_param_name_latex</code><span class="sig-paren">(</span><em>param_name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#adjust_param_name_latex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.adjust_param_name_latex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjusts the parameter name for the latex report.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Name of a parameter.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">The adjusted parameter name for the latex report.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.assign_parameter_name">
+<code class="descclassname">contour.plot.</code><code class="descname">assign_parameter_name</code><span class="sig-paren">(</span><em>dist_name</em>, <em>param_name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#assign_parameter_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.assign_parameter_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assigns the correct parameter name matching for the distribution</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dist_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The name of a distribution, must be ‘Weibull’, ‘Lognormal’,
+‘Lognormal_SigmaMu’ or ‘Normal’.</li>
+<li><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The name of a parameter as it is saved in the database, must be
+‘shape’ ‘loc’ or ‘scale’.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>assigned_name</strong> – The parameter name matching to the distribution e.g. ‘σ’.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)">str</a>,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.calculate_intervals">
+<code class="descclassname">contour.plot.</code><code class="descname">calculate_intervals</code><span class="sig-paren">(</span><em>interval_centers</em>, <em>dimension_index</em>, <em>interval_center_index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#calculate_intervals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.calculate_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the width of a certain interval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>interval_centers</strong> (<em>list of floats</em>) – The interval centers of the fit.</li>
+<li><strong>dimension_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index of the dimension.</li>
+<li><strong>interval_center_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index of the interval centers in the current dimension.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.create_design_conditions_csv">
+<code class="descclassname">contour.plot.</code><code class="descname">create_design_conditions_csv</code><span class="sig-paren">(</span><em>contour_coordinates</em>, <em>environmental_contour</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#create_design_conditions_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.create_design_conditions_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a .csv file containing the extreme env. design conditions.</p>
+<p>The file is saved as a FileField of the EnvironmentalContour object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>contour_coordinates</strong> (<em>n-dimensional matrix</em>) – The coordinates of the environmental contour.
+The format is defined by compute_interface.iform().</li>
+<li><strong>environmental_contour</strong> (<a class="reference internal" href="models.html#contour.models.EnvironmentalContour" title="contour.models.EnvironmentalContour"><em>EnvironmentalContour</em></a>) – The django model of the environmental contour.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.create_latex_report">
+<code class="descclassname">contour.plot.</code><code class="descname">create_latex_report</code><span class="sig-paren">(</span><em>contour_coordinates</em>, <em>user</em>, <em>environmental_contour</em>, <em>var_names</em>, <em>var_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#create_latex_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.create_latex_report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a latex-based pdf report describing the performed environmental
+contour calculation.</p>
+<p>Makes use of the ‘latex_report.tex’ template where the document class and
+packages are defined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>contour_coordinates</strong> (<em>n-dimensional matrix</em>) – The coordinates of the environmental contour.
+The format is defined by compute_interface.iform()</li>
+<li><strong>user</strong> (<em>django.contrib.auth.models.User</em>) – The user, who is working with the app. The report will be saved in a
+directory named like the user.</li>
+<li><strong>environmental_contour</strong> (<em>enviro.models.EnvironmentalContour</em>) – Django’s environmental contour model, which contains the contour’s path,
+the options that were used to create it and its probabilistc model</li>
+<li><strong>var_names</strong> (<em>list of strings</em>) – Names of the environmental variables used in the probabilistic model,
+e.g. [‘wind speed [m/s]’, ‘significant wave height [m]’]</li>
+<li><strong>var_symbols</strong> (<em>list of strings</em>) – Symbols of the environental variables used in the probabilistic model,
+e.g. [‘V’, ‘Hs’]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>short_file_path_report</strong> – The path where the pdf, generated based latex, is saved
+The path continues after the static files prefix, which is defined in
+settings.py and currently is ‘enviro/static/’</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.get_latex_eedc_table">
+<code class="descclassname">contour.plot.</code><code class="descname">get_latex_eedc_table</code><span class="sig-paren">(</span><em>matrix</em>, <em>var_names</em>, <em>var_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#get_latex_eedc_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.get_latex_eedc_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a latex string containing a table listing the contour’s extreme
+environmental design conditions (EEDCs).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>matrix</strong> (<em>n-dimensional matrix</em>) – The coordinates of the environmental contour.
+The format is defined by compute_interface.iform()</li>
+<li><strong>var_names</strong> (<em>list of strings</em>) – Names of the environmental variables used in the probabil. model,
+e.g. [‘wind speed [m/s]’, ‘significant wave height [m]’]</li>
+<li><strong>var_symbols</strong> (<em>list of strings</em>) – Symbols of the environental variables used in the probabil. model,
+e.g. [‘V’, ‘Hs’]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>table_string</strong> – A string in latex format containing a table, which lists the first
+X extreme environmental design conditions</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.get_latex_eedc_table_head_line">
+<code class="descclassname">contour.plot.</code><code class="descname">get_latex_eedc_table_head_line</code><span class="sig-paren">(</span><em>var_names</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#get_latex_eedc_table_head_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.get_latex_eedc_table_head_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a latex string containing the first line of a table.</p>
+<p>The table lists the contour’s extreme environmental design
+conditions (EEDCs).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>var_names</strong> (<em>list of strings</em>) – Names of the environmental variables used in the probabil. model,
+e.g. [‘wind speed [m/s]’, ‘significant wave height [m]’]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>head_line_string</strong> – A string in latex format containing the first row of the table,
+e.g. “EEDC &amp; significant wave height [m] &amp; peak period [s]”</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">string,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.is_legit_distribution_parameter_index">
+<code class="descclassname">contour.plot.</code><code class="descname">is_legit_distribution_parameter_index</code><span class="sig-paren">(</span><em>distribution_name</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#is_legit_distribution_parameter_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.is_legit_distribution_parameter_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the distribution has this kind of parameter index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>distribution_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – The name of a Distribution must be ‘Normal’, ‘Lognormal’ or ‘Weibull’.</li>
+<li><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index represents a parameter of the three possible parameter shape,
+loc, scale. (0 = shape, 1 = loc, 2 = scale)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_contour">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_contour</code><span class="sig-paren">(</span><em>contour_coordinates</em>, <em>user</em>, <em>environmental_contour</em>, <em>var_names</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_contour" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function plots a png image of a contour.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>contour_coordinates</strong> (<em>list of floats</em>) – Data points of the contour.</li>
+<li><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Who gives the contour calculation order.</li>
+<li><strong>environmental_contour</strong> (<a class="reference internal" href="models.html#contour.models.EnvironmentalContour" title="contour.models.EnvironmentalContour"><em>EnvironmentalContour</em></a>) – The model object contains all information about a environmental contour.</li>
+<li><strong>var_names</strong> (<em>list of str</em>) – Name of the variables of the probabilistic model</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_data_set_as_scatter">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_data_set_as_scatter</code><span class="sig-paren">(</span><em>measure_file_model</em>, <em>var_names</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_data_set_as_scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_data_set_as_scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data of a measurement file as a scatter plot.</p>
+<p>In case the measurement file has more than 2 variables, multiple
+scatter plots are generated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>measure_file_model</strong> (<a class="reference internal" href="models.html#contour.models.MeasureFileModel" title="contour.models.MeasureFileModel"><em>MeasureFileModel</em></a><em>,</em>) – The measurement file model, which should be plotted.</li>
+<li><strong>var_names</strong> (<em>list of str</em><em>,</em>) – The names of the variables (each column in the measurement file
+represents one environmental variable).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_fit">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_fit</code><span class="sig-paren">(</span><em>fit</em>, <em>var_names</em>, <em>var_symbols</em>, <em>directory</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize a fit generated by the virconcom package.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fit</strong> (<em>Fit</em>) – Holds data and information about the fit.</li>
+<li><strong>var_names</strong> (<em>list of str</em>) – The list contains the names of distributions</li>
+<li><strong>var_symbols</strong> (<em>list of str</em>) – The symbols of the distribution.</li>
+<li><strong>directory</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Path to the directory where the images will be stored.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a>) – Model for a multivariate distribution, e.g. a sea state description.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_parameter_fit_overview">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_parameter_fit_overview</code><span class="sig-paren">(</span><em>dim_index</em>, <em>parent_var_name</em>, <em>para_name</em>, <em>param_at</em>, <em>param_values</em>, <em>fit_func</em>, <em>dist_name</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_parameter_fit_overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_parameter_fit_overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots an image which shows the fit of a function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dim_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Index of the related distribution.</li>
+<li><strong>parent_var_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Name of the variable that the parameter depends on.</li>
+<li><strong>para_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Parameter name like shape, location, scale.</li>
+<li><strong>param_at</strong> (<em>list of float</em><em>,</em>) – The list contains the x-values of a fitted function for a parameter
+e.g. shape, loc or scale.</li>
+<li><strong>param_values</strong> (<em>list of float</em><em>,</em>) – The list contains the y-values of a fitted function for a parameter
+e.g. shape, loc or scale.</li>
+<li><strong>fit_func</strong> (<em>FunctionParam</em><em>,</em>) – The fit function e.g. power function, exponential</li>
+<li><strong>directory</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The directory where the figure will be saved.</li>
+<li><strong>dist_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Name of the distribution, e.g. “Lognormal”.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a>) – Probabilistic model that was created based on this fit.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_pdf_with_raw_data">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_pdf_with_raw_data</code><span class="sig-paren">(</span><em>dim_index</em>, <em>parent_index</em>, <em>low_index</em>, <em>shape</em>, <em>loc</em>, <em>scale</em>, <em>distribution_type</em>, <em>dist_points</em>, <em>interval</em>, <em>var_name</em>, <em>symbol_parent_var</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_pdf_with_raw_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_pdf_with_raw_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and saves an image, which shows a fit of a distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dim_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The index of the current dimension (distribution). The index is used
+to recognise the image later.</li>
+<li><strong>parent_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The index of the variable on which the conditional is based
+(when no condition: None).</li>
+<li><strong>low_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The index of the interval. (needed to recognize the images later)</li>
+<li><strong>shape</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>,</em>) – The value of the shape parameter.</li>
+<li><strong>loc</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>,</em>) – The value of the loc parameter. (location)</li>
+<li><strong>scale</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a><em>,</em>) – The value of the scale parameter.</li>
+<li><strong>distribution_type</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Name of the distribution, must be “Normal”, “Weibull” or
+“Lognormal”</li>
+<li><strong>dist_points</strong> (<em>list of float</em><em>,</em>) – The dates for the histogram.</li>
+<li><strong>interval</strong> (<em>list of float</em><em>,</em>) – The list contains the interval of the plotted distribution.</li>
+<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The name of a single variable of the probabilistic model.</li>
+<li><strong>symbol_parent_var</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Symbol of the variable on which the conditional variable is based.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a><em>,</em>) – Probabilistic model which has the particular pdf.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_var_dependent">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_var_dependent</code><span class="sig-paren">(</span><em>fit</em>, <em>param_name</em>, <em>dim_index</em>, <em>var_names</em>, <em>var_symbols</em>, <em>probabilistic_model</em>, <em>do_dependent_plot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_var_dependent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_var_dependent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the fitted distribution for each interval and the resulting fit
+function for a parameter like shape, loc or scale.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fit</strong> (<em>Fit</em><em>,</em>) – Holds data and information about the fit.</li>
+<li><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The name of the parameter (e.g. shape, loc or scale).</li>
+<li><strong>dim_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The dimension of the distribution.</li>
+<li><strong>var_names</strong> (<em>list of str</em><em>,</em>) – Variable names of all distributions.</li>
+<li><strong>var_symbols</strong> (<em>list of str</em><em>,</em>) – Variable symbols of all distributions.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a><em>,</em>) – Probabilistic model that was created based on that fit.</li>
+<li><strong>do_dependent_plot</strong> (<em>Boolean</em><em>, </em><em>optional</em>) – True: Probability density functions will be plotted.
+False: Probability density functions will not be plotted.
+Defaults to True.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.plot_var_independent">
+<code class="descclassname">contour.plot.</code><code class="descname">plot_var_independent</code><span class="sig-paren">(</span><em>param_name</em>, <em>dim_index</em>, <em>var_names</em>, <em>fit_inspection_data</em>, <em>fit</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#plot_var_independent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.plot_var_independent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the fitted distribution of a independent parameter
+(e.g. shape, loc or scale).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>param_name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – The name of the parameter (e.g. shape, loc or scale).</li>
+<li><strong>dim_index</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The dimension of the distribution.</li>
+<li><strong>var_names</strong> (<em>list of str</em>) – The name of the distribution.</li>
+<li><strong>fit_inspection_data</strong> (<em>FitInspectionData</em>) – Information for plotting the fits of a single dimension.</li>
+<li><strong>fit</strong> (<em>Fit</em>) – Holds data and information about the fit.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a>) – Probabilistic model that was created based on that fit.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.plot.sort_plotted_figures">
+<code class="descclassname">contour.plot.</code><code class="descname">sort_plotted_figures</code><span class="sig-paren">(</span><em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/plot.html#sort_plotted_figures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.plot.sort_plotted_figures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorts the images showing the fits to generate a structured overview in the
+template.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a><em>,</em>) – A probabilistic model generated by a fit.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>figure_collections</strong> – The FittingFiguresCollections represents all images that are linked to a
+parameter of a distribution.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of FittingFigureCollection,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/contour/plot.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

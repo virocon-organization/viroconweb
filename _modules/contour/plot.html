@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>contour.plot &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for contour.plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Plots measurement files, distributions and contours.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">weibull_min</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">lognorm</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="k">import</span> <span class="n">get_template</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span><span class="p">,</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">django.core.files.base</span> <span class="k">import</span> <span class="n">ContentFile</span>
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
+<span class="kn">from</span> <span class="nn">viroconweb.settings</span> <span class="k">import</span> <span class="n">USE_S3</span>
+<span class="kn">from</span> <span class="nn">viroconcom.distributions</span> <span class="k">import</span> <span class="n">ParametricDistribution</span>
+<span class="kn">from</span> <span class="nn">.settings</span> <span class="k">import</span> <span class="n">NR_LINES_HEADER</span><span class="p">,</span> <span class="n">VIROCON_CITATION</span>
+<span class="kn">from</span> <span class="nn">viroconweb.settings</span> <span class="k">import</span> <span class="n">VERSION</span> <span class="k">as</span> <span class="n">VIROCONWEB_VERSION</span>
+<span class="kn">from</span> <span class="nn">viroconcom.version</span> <span class="k">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">VIROCONCOM_VERSION</span>
+
+<span class="c1"># There is a problem with using matplotlib on a server (with Heroku and Travis).</span>
+<span class="c1">#</span>
+<span class="c1"># The standard solution to fix it is to use:</span>
+<span class="c1">#   import matplotlib</span>
+<span class="c1">#   matplotlib.use(&#39;Agg&#39;)</span>
+<span class="c1">#   import matplotlib.pyplot as plt</span>
+<span class="c1"># see https://stackoverflow.com/questions/41319082/import-matplotlib-failing-</span>
+<span class="c1"># with-no-module-named-tkinter-on-heroku</span>
+<span class="c1">#</span>
+<span class="c1"># However this does not work. Consequently we use another solution, which is</span>
+<span class="c1"># inspired by https://stackoverflow.com/questions/3285193/how-to-switch-backends</span>
+<span class="c1"># -in-matplotlib-python</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+
+<span class="n">all_backends</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcsetup</span><span class="o">.</span><span class="n">all_backends</span>
+<span class="n">backend_worked</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">for</span> <span class="n">gui</span> <span class="ow">in</span> <span class="n">all_backends</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing&quot;</span><span class="p">,</span> <span class="n">gui</span><span class="p">)</span>
+        <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+        <span class="n">backend_worked</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">break</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">continue</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using&quot;</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">get_backend</span><span class="p">())</span>
+<span class="k">if</span> <span class="n">backend_worked</span> <span class="o">==</span> <span class="kc">False</span> <span class="ow">or</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;TkAgg&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Switched backend and now using&quot;</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">get_backend</span><span class="p">())</span>
+
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">axes3d</span><span class="p">,</span> <span class="n">Axes3D</span> <span class="c1"># Needed for projection=&#39;3d&#39;</span>
+<span class="kn">from</span> <span class="nn">descartes</span> <span class="k">import</span> <span class="n">PolygonPatch</span>
+<span class="kn">from</span> <span class="nn">.plot_generic</span> <span class="k">import</span> <span class="n">alpha_shape</span>
+<span class="kn">from</span> <span class="nn">.plot_generic</span> <span class="k">import</span> <span class="n">convert_ndarray_list_to_multipoint</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">settings</span>
+
+<span class="kn">from</span> <span class="nn">.models</span> <span class="k">import</span> <span class="n">ProbabilisticModel</span><span class="p">,</span> <span class="n">DistributionModel</span><span class="p">,</span> <span class="n">ParameterModel</span><span class="p">,</span> \
+    <span class="n">AdditionalContourOption</span><span class="p">,</span> <span class="n">PlottedFigure</span>
+<span class="kn">from</span> <span class="nn">.compute_interface</span> <span class="k">import</span> <span class="n">setup_mul_dist</span>
+
+
+<div class="viewcode-block" id="plot_pdf_with_raw_data"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_pdf_with_raw_data">[docs]</a><span class="k">def</span> <span class="nf">plot_pdf_with_raw_data</span><span class="p">(</span><span class="n">dim_index</span><span class="p">,</span>
+                           <span class="n">parent_index</span><span class="p">,</span>
+                           <span class="n">low_index</span><span class="p">,</span>
+                           <span class="n">shape</span><span class="p">,</span>
+                           <span class="n">loc</span><span class="p">,</span>
+                           <span class="n">scale</span><span class="p">,</span>
+                           <span class="n">distribution_type</span><span class="p">,</span>
+                           <span class="n">dist_points</span><span class="p">,</span>
+                           <span class="n">interval</span><span class="p">,</span>
+                           <span class="n">var_name</span><span class="p">,</span>
+                           <span class="n">symbol_parent_var</span><span class="p">,</span>
+                           <span class="n">probabilistic_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates and saves an image, which shows a fit of a distribution.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dim_index : int,</span>
+<span class="sd">          The index of the current dimension (distribution). The index is used</span>
+<span class="sd">          to recognise the image later.</span>
+<span class="sd">    parent_index : int,</span>
+<span class="sd">        The index of the variable on which the conditional is based</span>
+<span class="sd">        (when no condition: None).</span>
+<span class="sd">    low_index : int,</span>
+<span class="sd">         The index of the interval. (needed to recognize the images later)</span>
+<span class="sd">    shape : float,</span>
+<span class="sd">        The value of the shape parameter.</span>
+<span class="sd">    loc : float,</span>
+<span class="sd">        The value of the loc parameter. (location)</span>
+<span class="sd">    scale : float,</span>
+<span class="sd">        The value of the scale parameter.</span>
+<span class="sd">    distribution_type: str,</span>
+<span class="sd">        Name of the distribution, must be &quot;Normal&quot;, &quot;Weibull&quot; or</span>
+<span class="sd">        &quot;Lognormal&quot;</span>
+<span class="sd">    dist_points: list of float,</span>
+<span class="sd">       The dates for the histogram.</span>
+<span class="sd">    interval : list of float,</span>
+<span class="sd">        The list contains the interval of the plotted distribution.</span>
+<span class="sd">    var_name : str,</span>
+<span class="sd">        The name of a single variable of the probabilistic model.</span>
+<span class="sd">    symbol_parent_var : str,</span>
+<span class="sd">        Symbol of the variable on which the conditional variable is based.</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">        Probabilistic model which has the particular pdf.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">distribution_type</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span>
+                        <span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.9999</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">distribution_type</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> \
+               <span class="s1">&#39; μ=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> \
+               <span class="s1">&#39; σ=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">distribution_type</span> <span class="o">==</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">weibull_min</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span>
+                        <span class="n">weibull_min</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.9999</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">weibull_min</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">distribution_type</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> \
+               <span class="s1">&#39; α=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> \
+               <span class="s1">&#39; β=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> \
+               <span class="s1">&#39; γ=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">distribution_type</span> <span class="o">==</span> <span class="s1">&#39;Lognormal&#39;</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">lognorm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">),</span>
+                        <span class="n">lognorm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mf">0.9999</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">lognorm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+
+        <span class="c1"># plot_pdf_with_raw_data works with the scale parameter, but the user</span>
+        <span class="c1"># should be presented the mu value. Consequently, the scale value must</span>
+        <span class="c1"># be converted.</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">distribution_type</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span> <span class="o">+</span> \
+               <span class="s1">&#39; μ=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scale</span><span class="p">),</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> \
+               <span class="s1">&#39; σ=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;No function match - </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">distribution_type</span><span class="p">))</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span>
+    <span class="k">if</span> <span class="n">symbol_parent_var</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">interval</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;≤&#39;</span> <span class="o">+</span> \
+               <span class="n">symbol_parent_var</span> <span class="o">+</span> <span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">format</span><span class="p">(</span><span class="n">interval</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;.3f&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span> <span class="o">+</span> <span class="s1">&#39;n=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dist_points</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">distribution_type</span><span class="p">)</span>
+    <span class="n">n_intervals_histogram</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dist_points</span><span class="p">)</span> <span class="o">/</span> <span class="mf">50.0</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">n_intervals_histogram</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="n">n_intervals_histogram</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">if</span> <span class="n">n_intervals_histogram</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">n_intervals_histogram</span> <span class="o">=</span> <span class="mi">10</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">dist_points</span><span class="p">,</span> <span class="n">n_intervals_histogram</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;stepfilled&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#54889c&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;probability density [-]&#39;</span><span class="p">)</span>
+    <span class="n">dim_index_2_digits</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dim_index</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">parent_index_2_digits</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent_index</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">low_index_2_digits</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">low_index</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># The convention for image name is like this: &#39;fit_01_00_02.png&#39; means</span>
+    <span class="c1"># a plot of the second variable (01) which is conditional on the first</span>
+    <span class="c1"># variable (00) and this is the third (02) fit</span>
+    <span class="c1"># For the following block thanks to: https://stackoverflow.com/questions/</span>
+    <span class="c1"># 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">content_file</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+
+    <span class="n">dists_models</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">)</span>
+    <span class="n">plotted_figure</span> <span class="o">=</span> <span class="n">PlottedFigure</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">,</span>
+                                   <span class="n">distribution_model</span><span class="o">=</span><span class="n">dists_models</span><span class="p">[</span><span class="n">dim_index</span><span class="p">])</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;fit_&#39;</span> <span class="o">+</span> <span class="n">dim_index_2_digits</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">parent_index_2_digits</span> <span class="o">+</span> \
+                <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">low_index_2_digits</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">content_file</span><span class="p">)</span></div>
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="plot_parameter_fit_overview"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_parameter_fit_overview">[docs]</a><span class="k">def</span> <span class="nf">plot_parameter_fit_overview</span><span class="p">(</span><span class="n">dim_index</span><span class="p">,</span>
+                                <span class="n">parent_var_name</span><span class="p">,</span>
+                                <span class="n">para_name</span><span class="p">,</span>
+                                <span class="n">param_at</span><span class="p">,</span>
+                                <span class="n">param_values</span><span class="p">,</span>
+                                <span class="n">fit_func</span><span class="p">,</span>
+                                <span class="n">dist_name</span><span class="p">,</span>
+                                <span class="n">probabilistic_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots an image which shows the fit of a function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dim_index : int,</span>
+<span class="sd">        Index of the related distribution.</span>
+<span class="sd">    parent_var_name : str,</span>
+<span class="sd">        Name of the variable that the parameter depends on.</span>
+<span class="sd">    para_name : str,</span>
+<span class="sd">        Parameter name like shape, location, scale.</span>
+<span class="sd">    param_at : list of float,</span>
+<span class="sd">        The list contains the x-values of a fitted function for a parameter</span>
+<span class="sd">        e.g. shape, loc or scale.</span>
+<span class="sd">    param_values : list of float,</span>
+<span class="sd">        The list contains the y-values of a fitted function for a parameter</span>
+<span class="sd">        e.g. shape, loc or scale.</span>
+<span class="sd">    fit_func : FunctionParam,</span>
+<span class="sd">        The fit function e.g. power function, exponential</span>
+<span class="sd">    directory : str,</span>
+<span class="sd">        The directory where the figure will be saved.</span>
+<span class="sd">    dist_name : str,</span>
+<span class="sd">        Name of the distribution, e.g. &quot;Lognormal&quot;.</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel</span>
+<span class="sd">        Probabilistic model that was created based on this fit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">y_text</span> <span class="o">=</span> <span class="n">assign_parameter_name</span><span class="p">(</span><span class="n">dist_name</span><span class="p">,</span> <span class="n">para_name</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">param_at</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">param_at</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="mi">100</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">param_values_for_plot</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">dist_name</span> <span class="o">==</span> <span class="s1">&#39;Lognormal&#39;</span> <span class="ow">and</span> <span class="n">para_name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param_values</span><span class="p">)):</span>
+            <span class="c1"># We are not allowed to alter the param_values object since</span>
+            <span class="c1"># it is an attribute of a BasicFit, which we shall not change.</span>
+            <span class="n">param_values_for_plot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">param_values</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">x1</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">fit_func</span><span class="p">(</span><span class="n">x1</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">param_values_for_plot</span> <span class="o">=</span> <span class="n">param_values</span>
+        <span class="k">for</span> <span class="n">x1</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fit_func</span><span class="p">(</span><span class="n">x1</span><span class="p">))</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#54889c&#39;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">param_at</span><span class="p">,</span> <span class="n">param_values_for_plot</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#9C373A&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_text</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">parent_var_name</span><span class="p">)</span>
+
+    <span class="c1"># For the following block thanks to: https://stackoverflow.com/questions/</span>
+    <span class="c1"># 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">content_file</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+
+    <span class="n">dists_models</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">)</span>
+    <span class="n">param_models</span> <span class="o">=</span> <span class="n">ParameterModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">distribution</span><span class="o">=</span><span class="n">dists_models</span><span class="p">[</span><span class="n">dim_index</span><span class="p">])</span>
+    <span class="n">param_model</span> <span class="o">=</span> <span class="n">param_models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">para_name</span><span class="p">)</span>
+    <span class="n">plotted_figure</span> <span class="o">=</span> <span class="n">PlottedFigure</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">,</span>
+                                   <span class="n">distribution_model</span><span class="o">=</span><span class="n">dists_models</span><span class="p">[</span><span class="n">dim_index</span><span class="p">],</span>
+                                   <span class="n">parameter_model</span><span class="o">=</span><span class="n">param_model</span><span class="p">)</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;fit_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dim_index</span><span class="p">)</span> <span class="o">+</span> <span class="n">para_name</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">content_file</span><span class="p">)</span></div>
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="plot_var_dependent"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_var_dependent">[docs]</a><span class="k">def</span> <span class="nf">plot_var_dependent</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+                       <span class="n">param_name</span><span class="p">,</span>
+                       <span class="n">dim_index</span><span class="p">,</span>
+                       <span class="n">var_names</span><span class="p">,</span>
+                       <span class="n">var_symbols</span><span class="p">,</span>
+                       <span class="n">probabilistic_model</span><span class="p">,</span>
+                       <span class="n">do_dependent_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the fitted distribution for each interval and the resulting fit</span>
+<span class="sd">    function for a parameter like shape, loc or scale.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fit : Fit,</span>
+<span class="sd">        Holds data and information about the fit.</span>
+<span class="sd">    param_name : str,</span>
+<span class="sd">        The name of the parameter (e.g. shape, loc or scale).</span>
+<span class="sd">    dim_index : int,</span>
+<span class="sd">        The dimension of the distribution.</span>
+<span class="sd">    var_names : list of str,</span>
+<span class="sd">        Variable names of all distributions.</span>
+<span class="sd">    var_symbols : list of str,</span>
+<span class="sd">        Variable symbols of all distributions.</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">        Probabilistic model that was created based on that fit.</span>
+<span class="sd">    do_dependent_plot : Boolean, optional</span>
+<span class="sd">        True: Probability density functions will be plotted.</span>
+<span class="sd">        False: Probability density functions will not be plotted.</span>
+<span class="sd">        Defaults to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fit_inspection_data</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">multiple_fit_inspection_data</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span>
+    <span class="n">distribution</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span>
+    <span class="n">dist_name</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">scale</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span><span class="p">:</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;loc&#39;</span><span class="p">:</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">loc</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong value for &#39;param_name&#39;. It must be either &quot;</span>
+                         <span class="s2">&quot;&#39;scale&#39;, &#39;shape&#39;, or &#39;loc&#39;, but was </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param_name</span><span class="p">))</span>
+    <span class="n">param_at</span><span class="p">,</span> <span class="n">param_value</span> <span class="o">=</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">get_dependent_param_points</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+
+    <span class="c1"># Get the name of the variable that this parameter is dependent on.</span>
+    <span class="n">dependency_tuple</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span>
+    <span class="n">dim_index_of_parent</span> <span class="o">=</span> <span class="n">dependency_tuple</span><span class="p">[</span><span class="n">ParametricDistribution</span><span class="o">.</span><span class="n">param_name_to_index</span><span class="p">(</span><span class="n">param_name</span><span class="p">)]</span>
+    <span class="n">parent_var_name</span> <span class="o">=</span> <span class="n">var_names</span><span class="p">[</span><span class="n">dim_index_of_parent</span><span class="p">]</span>
+
+    <span class="n">plot_parameter_fit_overview</span><span class="p">(</span><span class="n">dim_index</span><span class="p">,</span>
+                                <span class="n">parent_var_name</span><span class="p">,</span>
+                                <span class="n">param_name</span><span class="p">,</span>
+                                <span class="n">param_at</span><span class="p">,</span>
+                                <span class="n">param_value</span><span class="p">,</span>
+                                <span class="n">param</span><span class="p">,</span>
+                                <span class="n">dist_name</span><span class="p">,</span>
+                                <span class="n">probabilistic_model</span>
+                                <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_dependent_plot</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">param_at</span><span class="p">)):</span>
+            <span class="n">param_index</span> <span class="o">=</span> <span class="n">ParametricDistribution</span><span class="o">.</span><span class="n">param_name_to_index</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+            <span class="n">basic_fit</span> <span class="o">=</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">get_basic_fit</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">interval_limits</span> <span class="o">=</span> <span class="n">calculate_intervals</span><span class="p">(</span><span class="n">param_at</span><span class="p">,</span> <span class="n">dim_index</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">parent_index</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">dim_index</span><span class="p">][</span><span class="n">param_index</span><span class="p">]</span>
+            <span class="n">symbol_parent_var</span> <span class="o">=</span> <span class="n">var_symbols</span><span class="p">[</span><span class="n">parent_index</span><span class="p">]</span>
+            <span class="n">plot_pdf_with_raw_data</span><span class="p">(</span><span class="n">dim_index</span><span class="p">,</span>
+                                   <span class="n">parent_index</span><span class="p">,</span>
+                                   <span class="n">j</span><span class="p">,</span>
+                                   <span class="n">basic_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                                   <span class="n">basic_fit</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span>
+                                   <span class="n">basic_fit</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                                   <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span>
+                                       <span class="n">dim_index</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                   <span class="n">basic_fit</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span>
+                                   <span class="n">interval_limits</span><span class="p">,</span>
+                                   <span class="n">var_names</span><span class="p">[</span><span class="n">dim_index</span><span class="p">],</span>
+                                   <span class="n">symbol_parent_var</span><span class="p">,</span></div>
+                                   <span class="n">probabilistic_model</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="plot_var_independent"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_var_independent">[docs]</a><span class="k">def</span> <span class="nf">plot_var_independent</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span>
+                         <span class="n">dim_index</span><span class="p">,</span>
+                         <span class="n">var_names</span><span class="p">,</span>
+                         <span class="n">fit_inspection_data</span><span class="p">,</span>
+                         <span class="n">fit</span><span class="p">,</span>
+                         <span class="n">probabilistic_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the fitted distribution of a independent parameter</span>
+<span class="sd">    (e.g. shape, loc or scale).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    param_name : str</span>
+<span class="sd">        The name of the parameter (e.g. shape, loc or scale).</span>
+<span class="sd">    dim_index : int</span>
+<span class="sd">        The dimension of the distribution.</span>
+<span class="sd">    var_names : list of str</span>
+<span class="sd">        The name of the distribution.</span>
+<span class="sd">    fit_inspection_data : FitInspectionData</span>
+<span class="sd">        Information for plotting the fits of a single dimension.</span>
+<span class="sd">    fit : Fit</span>
+<span class="sd">        Holds data and information about the fit.</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel</span>
+<span class="sd">        Probabilistic model that was created based on that fit.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">basic_fit</span> <span class="o">=</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">get_basic_fit</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">interval_limits</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">param_index</span> <span class="o">=</span> <span class="n">ParametricDistribution</span><span class="o">.</span><span class="n">param_name_to_index</span><span class="p">(</span><span class="n">param_name</span><span class="p">)</span>
+    <span class="n">parent_index</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">dependencies</span><span class="p">[</span><span class="n">dim_index</span><span class="p">][</span><span class="n">param_index</span><span class="p">]</span>
+    <span class="n">symbol_parent_var</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">plot_pdf_with_raw_data</span><span class="p">(</span><span class="n">dim_index</span><span class="p">,</span>
+                           <span class="n">parent_index</span><span class="p">,</span>
+                           <span class="mi">0</span><span class="p">,</span>
+                           <span class="n">basic_fit</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                           <span class="n">basic_fit</span><span class="o">.</span><span class="n">loc</span><span class="p">,</span>
+                           <span class="n">basic_fit</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                           <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                           <span class="n">basic_fit</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span>
+                           <span class="n">interval_limits</span><span class="p">,</span>
+                           <span class="n">var_names</span><span class="p">[</span><span class="n">dim_index</span><span class="p">],</span>
+                           <span class="n">symbol_parent_var</span><span class="p">,</span></div>
+                           <span class="n">probabilistic_model</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="plot_fit"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_fit">[docs]</a><span class="k">def</span> <span class="nf">plot_fit</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">probabilistic_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Visualize a fit generated by the virconcom package.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fit : Fit</span>
+<span class="sd">        Holds data and information about the fit.</span>
+<span class="sd">    var_names : list of str</span>
+<span class="sd">        The list contains the names of distributions</span>
+<span class="sd">    var_symbols : list of str</span>
+<span class="sd">        The symbols of the distribution.</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        Path to the directory where the images will be stored.</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel</span>
+<span class="sd">       Model for a multivariate distribution, e.g. a sea state description.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fit_inspection_data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fit</span><span class="o">.</span><span class="n">multiple_fit_inspection_data</span><span class="p">):</span>
+        <span class="n">do_independent_plot</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">do_dependent_plot</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Scale</span>
+        <span class="k">if</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">scale_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plot_var_dependent</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+                               <span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+                               <span class="n">i</span><span class="p">,</span>
+                               <span class="n">var_names</span><span class="p">,</span>
+                               <span class="n">var_symbols</span><span class="p">,</span>
+                               <span class="n">probabilistic_model</span><span class="p">,</span>
+                               <span class="n">do_dependent_plot</span>
+                               <span class="p">)</span>
+            <span class="n">do_dependent_plot</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plot_var_independent</span><span class="p">(</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span>
+                                 <span class="n">i</span><span class="p">,</span>
+                                 <span class="n">var_names</span><span class="p">,</span>
+                                 <span class="n">fit_inspection_data</span><span class="p">,</span>
+                                 <span class="n">fit</span><span class="p">,</span>
+                                 <span class="n">probabilistic_model</span><span class="p">)</span>
+            <span class="n">do_independent_plot</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Shape</span>
+        <span class="k">if</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">shape_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">plot_var_dependent</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+                                   <span class="s1">&#39;shape&#39;</span><span class="p">,</span>
+                                   <span class="n">i</span><span class="p">,</span>
+                                   <span class="n">var_names</span><span class="p">,</span>
+                                   <span class="n">var_symbols</span><span class="p">,</span>
+                                   <span class="n">probabilistic_model</span><span class="p">,</span>
+                                   <span class="n">do_dependent_plot</span>
+                                   <span class="p">)</span>
+                <span class="n">do_dependent_plot</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">do_independent_plot</span><span class="p">:</span>
+                <span class="n">plot_var_independent</span><span class="p">(</span><span class="s1">&#39;shape&#39;</span><span class="p">,</span>
+                                     <span class="n">i</span><span class="p">,</span>
+                                     <span class="n">var_names</span><span class="p">,</span>
+                                     <span class="n">fit_inspection_data</span><span class="p">,</span>
+                                     <span class="n">fit</span><span class="p">,</span>
+                                     <span class="n">probabilistic_model</span>
+                <span class="p">)</span>
+                <span class="n">do_independent_plot</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Location</span>
+        <span class="k">if</span> <span class="n">fit</span><span class="o">.</span><span class="n">mul_var_dist</span><span class="o">.</span><span class="n">distributions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;Lognormal&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fit_inspection_data</span><span class="o">.</span><span class="n">loc_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">plot_var_dependent</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span>
+                                   <span class="s1">&#39;loc&#39;</span><span class="p">,</span>
+                                   <span class="n">i</span><span class="p">,</span>
+                                   <span class="n">var_names</span><span class="p">,</span>
+                                   <span class="n">var_symbols</span><span class="p">,</span>
+                                   <span class="n">probabilistic_model</span><span class="p">,</span>
+                                   <span class="n">do_dependent_plot</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">do_independent_plot</span><span class="p">:</span>
+                <span class="n">plot_var_independent</span><span class="p">(</span><span class="s1">&#39;loc&#39;</span><span class="p">,</span>
+                                     <span class="n">i</span><span class="p">,</span>
+                                     <span class="n">var_names</span><span class="p">,</span>
+                                     <span class="n">fit_inspection_data</span><span class="p">,</span>
+                                     <span class="n">fit</span><span class="p">,</span>
+                                     <span class="n">probabilistic_model</span></div>
+                                     <span class="p">)</span>
+
+
+<div class="viewcode-block" id="calculate_intervals"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.calculate_intervals">[docs]</a><span class="k">def</span> <span class="nf">calculate_intervals</span><span class="p">(</span><span class="n">interval_centers</span><span class="p">,</span> <span class="n">dimension_index</span><span class="p">,</span>
+                        <span class="n">interval_center_index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the width of a certain interval.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    interval_centers : list of floats</span>
+<span class="sd">        The interval centers of the fit.</span>
+<span class="sd">    dimension_index : int</span>
+<span class="sd">        The index of the dimension.</span>
+<span class="sd">    interval_center_index : int</span>
+<span class="sd">        The index of the interval centers in the current dimension.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dimension_index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">interval_centers</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">interval_limits</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">interval_centers</span><span class="p">),</span>
+                           <span class="nb">max</span><span class="p">(</span><span class="n">interval_centers</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Calculate  the interval width assuming constant</span>
+        <span class="c1"># interval width.</span>
+        <span class="n">interval_width</span> <span class="o">=</span> <span class="n">interval_centers</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">interval_centers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">interval_limits</span> <span class="o">=</span> <span class="p">[</span><span class="n">interval_centers</span><span class="p">[</span><span class="n">interval_center_index</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span>
+                           <span class="n">interval_width</span><span class="p">,</span>
+                           <span class="n">interval_centers</span><span class="p">[</span><span class="n">interval_center_index</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span>\
+                           <span class="n">interval_width</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="n">interval_limits</span>
+
+
+<div class="viewcode-block" id="is_legit_distribution_parameter_index"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.is_legit_distribution_parameter_index">[docs]</a><span class="k">def</span> <span class="nf">is_legit_distribution_parameter_index</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if the distribution has this kind of parameter index</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    distribution_name : str</span>
+<span class="sd">        The name of a Distribution must be &#39;Normal&#39;, &#39;Lognormal&#39; or &#39;Weibull&#39;.</span>
+<span class="sd">    index : int</span>
+<span class="sd">        The index represents a parameter of the three possible parameter shape,</span>
+<span class="sd">        loc, scale. (0 = shape, 1 = loc, 2 = scale)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">distribution_name</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">distribution_name</span> <span class="o">==</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">distribution_name</span> <span class="o">==</span> <span class="s1">&#39;Lognormal&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The distribution name you used to call &quot;</span>
+                      <span class="s2">&quot;is_legit_distribution_parameter_index() &quot;</span>
+                      <span class="s2">&quot;is not supported&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="plot_contour"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_contour">[docs]</a><span class="k">def</span> <span class="nf">plot_contour</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span> <span class="n">var_names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The function plots a png image of a contour.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    contour_coordinates : list of floats</span>
+<span class="sd">        Data points of the contour.</span>
+<span class="sd">    user : str</span>
+<span class="sd">        Who gives the contour calculation order.</span>
+<span class="sd">    environmental_contour : EnvironmentalContour</span>
+<span class="sd">        The model object contains all information about a environmental contour.</span>
+<span class="sd">    var_names: list of str</span>
+<span class="sd">      Name of the variables of the probabilistic model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">environmental_contour</span><span class="o">.</span><span class="n">probabilistic_model</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+        <span class="c1"># Plot raw data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">probabilistic_model</span><span class="o">.</span><span class="n">measure_file_model</span><span class="p">):</span>
+            <span class="n">data_path</span> <span class="o">=</span> <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">measure_file_model</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">url</span>
+            <span class="k">if</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+                <span class="n">data_path</span> <span class="o">=</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">NR_LINES_HEADER</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;measured/simulated data&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Plot the contour as a scatter plot and a line connecting the dots</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                       <span class="n">s</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;extreme env. design condition&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">concave_hull</span><span class="p">,</span> <span class="n">edge_points</span> <span class="o">=</span> <span class="n">alpha_shape</span><span class="p">(</span>
+                    <span class="n">convert_ndarray_list_to_multipoint</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+                <span class="n">patch_design_region</span> <span class="o">=</span> <span class="n">PolygonPatch</span><span class="p">(</span>
+                    <span class="n">concave_hull</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;#999999&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">zorder</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;design region&#39;</span><span class="p">)</span>
+                <span class="n">patch_environmental_contour</span> <span class="o">=</span> <span class="n">PolygonPatch</span><span class="p">(</span>
+                    <span class="n">concave_hull</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s1">&#39;environmental contour&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">patch_design_region</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">patch_environmental_contour</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">):</span> <span class="c1"># alpha_shape() can throw these</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Encountered a ZeroDivisionError when using alpha_shape.&#39;</span>
+                      <span class="s1">&#39;Consequently no contour is plotted.&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                   <span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figtext</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;4-Dim plot is not supported&#39;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;4-Dim plot or higher is not supported&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> <span class="n">user</span> <span class="o">+</span> \
+        <span class="s1">&#39;/contour/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">environmental_contour</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="c1"># For the following block thanks to: https://stackoverflow.com/questions/</span>
+    <span class="c1"># 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">content_file</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+    <span class="n">plotted_figure</span> <span class="o">=</span> <span class="n">PlottedFigure</span><span class="p">(</span><span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span><span class="p">)</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;contour.png&#39;</span>
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">content_file</span><span class="p">)</span></div>
+    <span class="n">plotted_figure</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="plot_data_set_as_scatter"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.plot_data_set_as_scatter">[docs]</a><span class="k">def</span> <span class="nf">plot_data_set_as_scatter</span><span class="p">(</span><span class="n">measure_file_model</span><span class="p">,</span> <span class="n">var_names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots the data of a measurement file as a scatter plot.</span>
+
+<span class="sd">    In case the measurement file has more than 2 variables, multiple</span>
+<span class="sd">    scatter plots are generated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    measure_file_model : MeasureFileModel,</span>
+<span class="sd">        The measurement file model, which should be plotted.</span>
+<span class="sd">    var_names : list of str,</span>
+<span class="sd">        The names of the variables (each column in the measurement file</span>
+<span class="sd">        represents one environmental variable).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">7.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+    <span class="n">data_path</span> <span class="o">=</span> <span class="n">measure_file_model</span><span class="o">.</span><span class="n">measure_file</span><span class="o">.</span><span class="n">url</span>
+    <span class="k">if</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="n">data_path</span> <span class="o">=</span> <span class="n">data_path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># For some reason here the header parameter must be the number of lines</span>
+    <span class="c1"># of the header - 1, consequently 1. There was a bug related to this,</span>
+    <span class="c1"># as the first data row was ignored, see issue #20.</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">NR_LINES_HEADER</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+
+    <span class="c1"># Plot all variables against the first variable. This is done in subplots</span>
+    <span class="c1"># such that only a single figure is generated.</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_names</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;measurement file: &#39;</span> <span class="o">+</span> <span class="n">measure_file_model</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="c1"># For the following block thanks to: https://stackoverflow.com/questions/</span>
+    <span class="c1"># 20580179/saving-a-matplotlib-graph-as-an-image-field-in-database</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="n">content_file</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+    <span class="n">measure_file_model</span><span class="o">.</span><span class="n">scatter_plot</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;scatter_plot.png&#39;</span><span class="p">,</span> <span class="n">content_file</span><span class="p">)</span></div>
+    <span class="n">measure_file_model</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="create_latex_report"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.create_latex_report">[docs]</a><span class="k">def</span> <span class="nf">create_latex_report</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span>
+                        <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a latex-based pdf report describing the performed environmental</span>
+<span class="sd">    contour calculation.</span>
+
+<span class="sd">    Makes use of the &#39;latex_report.tex&#39; template where the document class and</span>
+<span class="sd">    packages are defined.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    contour_coordinates : n-dimensional matrix</span>
+<span class="sd">        The coordinates of the environmental contour.</span>
+<span class="sd">        The format is defined by compute_interface.iform()</span>
+<span class="sd">    user : django.contrib.auth.models.User</span>
+<span class="sd">        The user, who is working with the app. The report will be saved in a</span>
+<span class="sd">        directory named like the user.</span>
+<span class="sd">    environmental_contour : enviro.models.EnvironmentalContour</span>
+<span class="sd">        Django&#39;s environmental contour model, which contains the contour&#39;s path,</span>
+<span class="sd">        the options that were used to create it and its probabilistc model</span>
+<span class="sd">    var_names : list of strings</span>
+<span class="sd">        Names of the environmental variables used in the probabilistic model,</span>
+<span class="sd">        e.g. [&#39;wind speed [m/s]&#39;, &#39;significant wave height [m]&#39;]</span>
+<span class="sd">    var_symbols : list of strings</span>
+<span class="sd">        Symbols of the environental variables used in the probabilistic model,</span>
+<span class="sd">        e.g. [&#39;V&#39;, &#39;Hs&#39;]</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    short_file_path_report : string,</span>
+<span class="sd">        The path where the pdf, generated based latex, is saved</span>
+<span class="sd">        The path continues after the static files prefix, which is defined in</span>
+<span class="sd">        settings.py and currently is &#39;enviro/static/&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">environmental_contour</span><span class="o">.</span><span class="n">probabilistic_model</span>
+    <span class="n">short_directory_contour</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> <span class="n">user</span> <span class="o">+</span> \
+                              <span class="s1">&#39;/contour/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">environmental_contour</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">short_directory_prob_model</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_USER_GENERATED</span> <span class="o">+</span> <span class="n">user</span> <span class="o">+</span> \
+                                 <span class="s1">&#39;/prob_model/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">short_file_path_report</span> <span class="o">=</span> <span class="n">short_directory_contour</span> <span class="o">+</span> <span class="n">settings</span><span class="o">.</span><span class="n">LATEX_REPORT_NAME</span>
+    <span class="n">full_directory_contour</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> <span class="n">short_directory_contour</span>
+    <span class="n">full_directory_prob_model</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> <span class="n">short_directory_prob_model</span>
+    <span class="n">full_file_path_report</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span> <span class="o">+</span> <span class="n">short_file_path_report</span>
+
+
+    <span class="n">plot_contour</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">,</span> <span class="n">var_names</span><span class="p">)</span>
+
+    <span class="n">pf_contour</span> <span class="o">=</span> <span class="n">PlottedFigure</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="c1"># Download the image from Amazon S3 since latex needs a local version</span>
+    <span class="n">url_contour_image</span> <span class="o">=</span> <span class="n">pf_contour</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">url</span>
+    <span class="n">local_path_contour_image</span> <span class="o">=</span> <span class="n">full_directory_contour</span> <span class="o">+</span> \
+                               <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">url_contour_image</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">USE_S3</span><span class="p">:</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_contour_image</span><span class="p">,</span> <span class="n">local_path_contour_image</span><span class="p">)</span>
+
+    <span class="n">latex_content</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\section</span><span class="si">{Results}</span><span class="s2"> &quot;</span> \
+                    <span class="sa">r</span><span class="s2">&quot;\subsection{Environmental contour}&quot;</span> \
+                    <span class="sa">r</span><span class="s2">&quot;\includegraphics[width=\textwidth]{&quot;</span> <span class="o">+</span> \
+                    <span class="n">local_path_contour_image</span><span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;}&quot;</span> \
+                    <span class="sa">r</span><span class="s2">&quot;\subsection{Extreme environmental design conditions}&quot;</span> <span class="o">+</span> \
+                    <span class="n">get_latex_eedc_table</span><span class="p">(</span>
+                        <span class="n">contour_coordinates</span><span class="p">,</span>
+                        <span class="n">var_names</span><span class="p">,</span>
+                        <span class="n">var_symbols</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="sa">r</span><span class="s2">&quot;\section</span><span class="si">{Methods}</span><span class="s2">&quot;</span> \
+                    <span class="sa">r</span><span class="s2">&quot;\subsection{Associated measurement file}&quot;</span>
+
+    <span class="k">if</span> <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">measure_file_model</span><span class="p">:</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;File: &#39;\verb|&quot;</span> <span class="o">+</span> \
+                         <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">measure_file_model</span><span class="o">.</span><span class="n">title</span> <span class="o">+</span> \
+                         <span class="sa">r</span><span class="s2">&quot;|&#39; \subsection</span><span class="si">{Fitting}</span><span class="s2">&quot;</span>
+
+        <span class="n">figure_collections</span> <span class="o">=</span> <span class="n">sort_plotted_figures</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">figure_collection</span> <span class="ow">in</span> <span class="n">figure_collections</span><span class="p">:</span>
+            <span class="n">latex_content</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">figure_collection</span><span class="o">.</span><span class="n">var_number</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;. Variable &quot;</span>
+            <span class="n">latex_content</span> <span class="o">+=</span> <span class="n">adjust_param_name_latex</span><span class="p">(</span><span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span><span class="p">)</span>
+            <span class="n">url_plotted_figure</span> <span class="o">=</span> <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_image</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">url</span>
+            <span class="n">local_path_plotted_figure</span> <span class="o">=</span> <span class="n">full_directory_prob_model</span> <span class="o">+</span> \
+                                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">url_plotted_figure</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">USE_S3</span><span class="p">:</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_plotted_figure</span><span class="p">,</span>
+                                    <span class="n">local_path_plotted_figure</span>
+                                    <span class="p">)</span>
+            <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\begin</span><span class="si">{figure}</span><span class="s2">[H]&quot;</span>
+            <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\includegraphics[width=\textwidth]{&quot;</span> <span class="o">+</span> \
+                             <span class="n">local_path_plotted_figure</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;}&quot;</span>
+            <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{figure}</span><span class="s2">&quot;</span>
+
+            <span class="k">for</span> <span class="n">pdf_image</span> <span class="ow">in</span> <span class="n">figure_collection</span><span class="o">.</span><span class="n">pdf_images</span><span class="p">:</span>
+                <span class="n">url_plotted_figure</span> <span class="o">=</span> <span class="n">pdf_image</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">url</span>
+                <span class="n">local_path_plotted_figure</span> <span class="o">=</span> <span class="n">full_directory_prob_model</span> <span class="o">+</span> \
+                                            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">url_plotted_figure</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">USE_S3</span><span class="p">:</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_plotted_figure</span><span class="p">,</span>
+                                        <span class="n">local_path_plotted_figure</span>
+                                        <span class="p">)</span>
+                <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\begin</span><span class="si">{figure}</span><span class="s2">[H]&quot;</span>
+                <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\includegraphics[width=\textwidth]{&quot;</span> <span class="o">+</span> \
+                                 <span class="n">local_path_plotted_figure</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot;}&quot;</span>
+                <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{figure}</span><span class="s2">&quot;</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;No associated file. The model was created by &quot;</span> \
+                         <span class="sa">r</span><span class="s2">&quot;direct input.&quot;</span>
+
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\subsection{Probabilistic model}&quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;Name: &#39;\verb|&quot;</span> <span class="o">+</span> \
+                     <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">collection_name</span> <span class="o">+</span> \
+                     <span class="sa">r</span><span class="s2">&quot;|&#39;</span><span class="se">\\</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Get the probability density function equation in latex style</span>
+    <span class="n">dists_model</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">)</span>
+    <span class="n">var_symbols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">dists_model</span><span class="p">:</span>
+        <span class="n">var_symbols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
+    <span class="n">multivariate_distribution</span> <span class="o">=</span> <span class="n">setup_mul_dist</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">)</span>
+    <span class="n">latex_string_list</span> <span class="o">=</span> <span class="n">multivariate_distribution</span><span class="o">.</span><span class="n">latex_repr</span><span class="p">(</span><span class="n">var_symbols</span><span class="p">)</span>
+
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;{\setlength{\mathindent}</span><span class="si">{0cm}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">latex_string</span> <span class="ow">in</span> <span class="n">latex_string_list</span><span class="p">:</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\begin{equation*}&quot;</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="n">latex_string</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end{equation*}&quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;}&quot;</span>
+
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\subsection{Environmental contour} </span><span class="se">\</span>
+<span class="s2">        \begin</span><span class="si">{itemize}</span><span class="s2">&quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item Contour method: &quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="n">environmental_contour</span><span class="o">.</span><span class="n">contour_method</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item Return period: &quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">environmental_contour</span><span class="o">.</span><span class="n">return_period</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; years&quot;</span>
+    <span class="n">additonal_options</span> <span class="o">=</span> <span class="n">AdditionalContourOption</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">environmental_contour</span><span class="o">=</span><span class="n">environmental_contour</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">additonal_option</span> <span class="ow">in</span> <span class="n">additonal_options</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">additonal_option</span><span class="o">.</span><span class="n">option_key</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">additonal_option</span><span class="o">.</span><span class="n">option_value</span>
+        <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{itemize}</span><span class="s2">&quot;</span>
+
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\subsection</span><span class="si">{Software}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">        \begin</span><span class="si">{itemize}</span><span class="s2">&quot;</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item viroconweb version: &quot;</span> <span class="o">+</span> <span class="n">VIROCONWEB_VERSION</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item viroconcom version: &quot;</span> <span class="o">+</span> <span class="n">VIROCONCOM_VERSION</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\item ViroCon citation: &quot;</span> <span class="o">+</span> <span class="n">VIROCON_CITATION</span>
+    <span class="n">latex_content</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{itemize}</span><span class="s2">&quot;</span>
+
+    <span class="n">render_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">latex_content</span>
+    <span class="p">)</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;contour/latex_report.tex&#39;</span><span class="p">)</span>
+    <span class="n">rendered_tpl</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">render_dict</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+        <span class="c1"># Create subprocess, supress output with PIPE and</span>
+        <span class="c1"># run latex twice to generate the TOC properly.</span>
+        <span class="c1"># Finally read the generated pdf.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">process</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;pdflatex&#39;</span><span class="p">,</span> <span class="s1">&#39;--shell-escape&#39;</span><span class="p">,</span> <span class="s1">&#39;-output-directory&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="p">],</span>
+                <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">rendered_tpl</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempdir</span><span class="p">,</span> <span class="s1">&#39;texput.pdf&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pdf</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">full_directory_contour</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">full_directory_contour</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_file_path_report</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span>
+        <span class="n">djangofile</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">pdf</span><span class="p">)</span>
+        <span class="n">environmental_contour</span><span class="o">.</span><span class="n">latex_report</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">LATEX_REPORT_NAME</span><span class="p">,</span> <span class="n">djangofile</span><span class="p">)</span>
+        <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+    <span class="n">create_design_conditions_csv</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">short_file_path_report</span>
+
+
+<div class="viewcode-block" id="get_latex_eedc_table"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.get_latex_eedc_table">[docs]</a><span class="k">def</span> <span class="nf">get_latex_eedc_table</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">var_names</span><span class="p">,</span> <span class="n">var_symbols</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a latex string containing a table listing the contour&#39;s extreme</span>
+<span class="sd">    environmental design conditions (EEDCs).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    matrix : n-dimensional matrix</span>
+<span class="sd">        The coordinates of the environmental contour.</span>
+<span class="sd">        The format is defined by compute_interface.iform()</span>
+
+<span class="sd">    var_names : list of strings</span>
+<span class="sd">        Names of the environmental variables used in the probabil. model,</span>
+<span class="sd">        e.g. [&#39;wind speed [m/s]&#39;, &#39;significant wave height [m]&#39;]</span>
+
+<span class="sd">    var_symbols : list of strings</span>
+<span class="sd">        Symbols of the environental variables used in the probabil. model,</span>
+<span class="sd">        e.g. [&#39;V&#39;, &#39;Hs&#39;]</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    table_string : string,</span>
+<span class="sd">        A string in latex format containing a table, which lists the first</span>
+<span class="sd">        X extreme environmental design conditions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Constants, which define the layout of the report.</span>
+    <span class="n">max_eedcs_to_list_in_table</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">lines_for_page_break</span> <span class="o">=</span> <span class="mi">40</span>
+
+    <span class="n">reached_max_eedc_number</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">table_string</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\begin</span><span class="si">{tabular}</span><span class="s2">{&quot;</span>
+    <span class="n">table_head_line</span> <span class="o">=</span> <span class="n">get_latex_eedc_table_head_line</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span>
+    <span class="n">table_string</span> <span class="o">+=</span> <span class="n">table_head_line</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])):</span>
+        <span class="n">table_string</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="sa">r</span><span class="s2">&quot; &amp; &quot;</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)):</span>
+
+            <span class="c1"># The formating is taken from https://stackoverflow.com/questions/</span>
+            <span class="c1"># 455612/limiting-floats-to-two-decimal-points</span>
+            <span class="n">table_string</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{0:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot; &amp; &quot;</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">lines_for_page_break</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{tabular}</span><span class="s2">&quot;</span>
+            <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\newpage&quot;</span>
+            <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\begin</span><span class="si">{tabular}</span><span class="s2">{&quot;</span>
+            <span class="n">table_string</span> <span class="o">+=</span> <span class="n">table_head_line</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">max_eedcs_to_list_in_table</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">reached_max_eedc_number</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+
+    <span class="n">table_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;\end</span><span class="si">{tabular}</span><span class="s2"> \vspace</span><span class="si">{1em}</span><span class="s2"> \newline &quot;</span>
+    <span class="k">if</span> <span class="n">reached_max_eedc_number</span><span class="p">:</span>
+        <span class="n">table_string</span> <span class="o">+=</span> <span class="s2">&quot;Only the first &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_eedcs_to_list_in_table</span><span class="p">)</span> <span class="o">+</span> \
+                        <span class="s2">&quot; out of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">+</span> \
+                        <span class="s2">&quot; EEDCs are listed.&quot;</span>
+</div>
+    <span class="k">return</span> <span class="n">table_string</span>
+
+
+<div class="viewcode-block" id="get_latex_eedc_table_head_line"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.get_latex_eedc_table_head_line">[docs]</a><span class="k">def</span> <span class="nf">get_latex_eedc_table_head_line</span><span class="p">(</span><span class="n">var_names</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a latex string containing the first line of a table.</span>
+
+<span class="sd">    The table lists the contour&#39;s extreme environmental design</span>
+<span class="sd">    conditions (EEDCs).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var_names : list of strings</span>
+<span class="sd">        Names of the environmental variables used in the probabil. model,</span>
+<span class="sd">        e.g. [&#39;wind speed [m/s]&#39;, &#39;significant wave height [m]&#39;]</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    head_line_string : string,</span>
+<span class="sd">        A string in latex format containing the first row of the table,</span>
+<span class="sd">        e.g. &quot;EEDC &amp; significant wave height [m] &amp; peak period [s]\\&quot;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">head_line_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">head_line_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot; l&quot;</span>
+    <span class="n">head_line_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot; }&quot;</span>
+
+    <span class="n">head_line_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;EEDC &amp; &quot;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">var_names</span><span class="p">):</span>
+        <span class="n">head_line_string</span> <span class="o">+=</span> <span class="n">x</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">head_line_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">head_line_string</span> <span class="o">+=</span> <span class="sa">r</span><span class="s2">&quot; &amp; &quot;</span>
+</div>
+    <span class="k">return</span> <span class="n">head_line_string</span>
+
+
+<div class="viewcode-block" id="create_design_conditions_csv"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.create_design_conditions_csv">[docs]</a><span class="k">def</span> <span class="nf">create_design_conditions_csv</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">,</span> <span class="n">environmental_contour</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a .csv file containing the extreme env. design conditions.</span>
+
+<span class="sd">    The file is saved as a FileField of the EnvironmentalContour object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    contour_coordinates : n-dimensional matrix</span>
+<span class="sd">        The coordinates of the environmental contour.</span>
+<span class="sd">        The format is defined by compute_interface.iform().</span>
+<span class="sd">    environmental_contour : EnvironmentalContour</span>
+<span class="sd">        The django model of the environmental contour.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">file_content_as_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+                <span class="n">file_content_as_string</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contour_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">file_content_as_string</span> <span class="o">+=</span> <span class="s2">&quot;;&quot;</span>
+            <span class="n">file_content_as_string</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">content_bytes</span> <span class="o">=</span> <span class="n">file_content_as_string</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">content_file</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="n">content_bytes</span><span class="p">)</span>
+    <span class="n">environmental_contour</span><span class="o">.</span><span class="n">design_conditions_csv</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">EEDC_FILE_NAME</span><span class="p">,</span> <span class="n">content_file</span><span class="p">)</span></div>
+    <span class="n">environmental_contour</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="assign_parameter_name"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.assign_parameter_name">[docs]</a><span class="k">def</span> <span class="nf">assign_parameter_name</span><span class="p">(</span><span class="n">dist_name</span><span class="p">,</span> <span class="n">param_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assigns the correct parameter name matching for the distribution</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    dist_name : str,</span>
+<span class="sd">        The name of a distribution, must be &#39;Weibull&#39;, &#39;Lognormal&#39;,</span>
+<span class="sd">        &#39;Lognormal_SigmaMu&#39; or &#39;Normal&#39;.</span>
+<span class="sd">    param_name : str,</span>
+<span class="sd">        The name of a parameter as it is saved in the database, must be</span>
+<span class="sd">        &#39;shape&#39; &#39;loc&#39; or &#39;scale&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    assigned_name : str,</span>
+<span class="sd">        The parameter name matching to the distribution e.g. &#39;σ&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assigned_name</span> <span class="o">=</span> <span class="n">param_name</span>
+    <span class="k">if</span> <span class="n">dist_name</span> <span class="o">==</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;β&#39;</span>
+        <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;loc&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;γ&#39;</span>
+        <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;α&#39;</span>
+    <span class="k">elif</span> <span class="n">dist_name</span> <span class="o">==</span> <span class="s1">&#39;Lognormal&#39;</span> <span class="ow">or</span> <span class="n">dist_name</span> <span class="o">==</span> <span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;σ&#39;</span>
+        <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;μ&#39;</span>
+    <span class="k">elif</span> <span class="n">dist_name</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;loc&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;μ&#39;</span>
+        <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span>
+            <span class="n">assigned_name</span> <span class="o">=</span> <span class="s1">&#39;σ&#39;</span>
+</div>
+    <span class="k">return</span> <span class="n">assigned_name</span>
+
+
+<div class="viewcode-block" id="adjust_param_name_latex"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.adjust_param_name_latex">[docs]</a><span class="k">def</span> <span class="nf">adjust_param_name_latex</span><span class="p">(</span><span class="n">param_name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adjusts the parameter name for the latex report.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    param_name : str,</span>
+<span class="sd">        Name of a parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    The adjusted parameter name for the latex report.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;α parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;$\alpha$ parameter&quot;</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;β parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;$\beta$ parameter&quot;</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;γ parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;$\gamma$ parameter&quot;</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;σ parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;$\sigma$ parameter&quot;</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;μ parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;$\mu$ parameter&quot;</span>
+    <span class="k">elif</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;independent parameters&#39;</span> \
+            <span class="ow">or</span> <span class="n">param_name</span> <span class="o">==</span> <span class="s1">&#39;independent parameter&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">param_name</span>
+    <span class="k">else</span><span class="p">:</span></div>
+        <span class="k">return</span> <span class="sa">r</span><span class="s2">&quot;parameter&quot;</span>
+
+
+<div class="viewcode-block" id="sort_plotted_figures"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.sort_plotted_figures">[docs]</a><span class="k">def</span> <span class="nf">sort_plotted_figures</span><span class="p">(</span><span class="n">probabilistic_model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sorts the images showing the fits to generate a structured overview in the</span>
+<span class="sd">    template.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    probabilistic_model : ProbabilisticModel,</span>
+<span class="sd">        A probabilistic model generated by a fit.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    figure_collections : list of FittingFigureCollection,</span>
+<span class="sd">        The FittingFiguresCollections represents all images that are linked to a</span>
+<span class="sd">        parameter of a distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figure_collections</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">dist_models</span> <span class="o">=</span> <span class="n">DistributionModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">probabilistic_model</span><span class="o">=</span><span class="n">probabilistic_model</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dist_models</span><span class="p">):</span>
+        <span class="n">plotted_figures</span> <span class="o">=</span> <span class="n">PlottedFigure</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">distribution_model</span><span class="o">=</span><span class="n">dist</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plotted_figures</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">figure_collection</span> <span class="o">=</span> <span class="n">FittingFigureCollection</span><span class="p">()</span>
+            <span class="n">figure_collection</span><span class="o">.</span><span class="n">var_number</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_image</span> <span class="o">=</span> <span class="n">plotted_figures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;independent parameters&#39;</span>
+            <span class="n">figure_collections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">figure_collection</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">param_images</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">pdf_images</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">plotted_figure</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plotted_figures</span><span class="p">):</span>
+                <span class="c1"># If a PlottedFigure is assigned to a ParameterModel instance</span>
+                <span class="c1"># the PlottedFigure holds an image which shows a fit of a</span>
+                <span class="c1"># parameter&#39;s dependency or if the PlottedFigure object&#39;s</span>
+                <span class="c1"># image url includes the String &#39;None&#39; then the image shows</span>
+                <span class="c1"># fitted distribution of all independent parameters. Both types</span>
+                <span class="c1"># of images will be appended to the param_images list.</span>
+                <span class="k">if</span> <span class="n">plotted_figure</span><span class="o">.</span><span class="n">parameter_model</span> <span class="ow">or</span> <span class="s1">&#39;None&#39;</span> <span class="ow">in</span> <span class="n">plotted_figure</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+                    <span class="n">param_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plotted_figure</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pdf_images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plotted_figure</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">param_images</span><span class="p">:</span>
+                <span class="n">figure_collection</span> <span class="o">=</span> <span class="n">FittingFigureCollection</span><span class="p">()</span>
+                <span class="n">figure_collection</span><span class="o">.</span><span class="n">var_number</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_image</span> <span class="o">=</span> <span class="n">param</span>
+                <span class="c1"># Filter the independent distribution plot of the fitted</span>
+                <span class="c1"># parameters.</span>
+                <span class="k">if</span> <span class="s1">&#39;None&#39;</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+                    <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;independent parameter&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">figure_collection</span><span class="o">.</span><span class="n">pdf_images</span> <span class="o">=</span> <span class="n">pdf_images</span>
+                    <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span> <span class="o">=</span> <span class="n">assign_parameter_name</span><span class="p">(</span>
+                        <span class="n">dist</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">parameter_model</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span> <span class="o">=</span> \
+                        <span class="n">figure_collection</span><span class="o">.</span><span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; parameter&#39;</span>
+
+                <span class="n">figure_collections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">figure_collection</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">figure_collections</span>
+
+
+<div class="viewcode-block" id="FittingFigureCollection"><a class="viewcode-back" href="../../api/contour/plot.html#contour.plot.FittingFigureCollection">[docs]</a><span class="k">class</span> <span class="nc">FittingFigureCollection</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Holds information and images of a fitted distribution parameter to view the</span>
+<span class="sd">    fit results of a parameter.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var_number : int,</span>
+<span class="sd">        The dimension number of a distribution.</span>
+<span class="sd">    pdf_images : list of PlottedFigure,</span>
+<span class="sd">        PlottedFigures which show a fitted distribution.</span>
+<span class="sd">    param_image : PlottedFigure,</span>
+<span class="sd">        The PlottedFigure which shows a fit function of a parameter.</span>
+<span class="sd">    param_name : str,</span>
+<span class="sd">        The name of the parameter (shape, loc, scale).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_number</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdf_images</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_image</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_name</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

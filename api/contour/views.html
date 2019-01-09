@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>viroconwebcontour.views module &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-contour.views">
+<span id="viroconwebcontour-views-module"></span><h1>viroconwebcontour.views module<a class="headerlink" href="#module-contour.views" title="Permalink to this headline">¶</a></h1>
+<p>Handles requests and outputs rendered html.</p>
+<dl class="class">
+<dt id="contour.views.EnvironmentalContourHandler">
+<em class="property">class </em><code class="descclassname">contour.views.</code><code class="descname">EnvironmentalContourHandler</code><a class="reference internal" href="../../_modules/contour/views.html#EnvironmentalContourHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.EnvironmentalContourHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#contour.views.Handler" title="contour.views.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">contour.views.Handler</span></code></a></p>
+<p>Handler for EnvironmentalContour objects.</p>
+<dl class="staticmethod">
+<dt id="contour.views.EnvironmentalContourHandler.delete">
+<em class="property">static </em><code class="descname">delete</code><span class="sig-paren">(</span><em>pk</em>, <em>collection=&lt;class 'contour.models.EnvironmentalContour'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#EnvironmentalContourHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.EnvironmentalContourHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an object from the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to delete the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.EnvironmentalContourHandler.overview">
+<em class="property">static </em><code class="descname">overview</code><span class="sig-paren">(</span><em>model_class=&lt;class 'contour.models.EnvironmentalContour'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#EnvironmentalContourHandler.overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.EnvironmentalContourHandler.overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders an overview about all objects of a Django Model (all data base
+entries).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to show the overview.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of a Django Model as defined in models.py, e.g.
+MeasurementFileModel or EnvironmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The rendered overview.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.EnvironmentalContourHandler.show">
+<em class="property">static </em><code class="descname">show</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.EnvironmentalContour'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#EnvironmentalContourHandler.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.EnvironmentalContourHandler.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows an object from the data base, e.g. an EnvironmentalContour object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The HttpRequest to show the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the object in the data base.</li>
+<li><strong>model_class</strong> (<em>models.Model</em><em>,</em>) – The class of the Django model, which should be shown. For example
+the class models.EnvronmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> – Renders an html response showing the object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.EnvironmentalContourHandler.update">
+<em class="property">static </em><code class="descname">update</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.EnvironmentalContour'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#EnvironmentalContourHandler.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.EnvironmentalContourHandler.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates an object in the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to update the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="contour.views.Handler">
+<em class="property">class </em><code class="descclassname">contour.views.</code><code class="descname">Handler</code><a class="reference internal" href="../../_modules/contour/views.html#Handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3.6/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="staticmethod">
+<dt id="contour.views.Handler.add">
+<em class="property">static </em><code class="descname">add</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an object to the data base.</p>
+<p>Must be overwritten by the Handler specific to one Django Model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to add the object to the data base.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.Handler.delete">
+<em class="property">static </em><code class="descname">delete</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an object from the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to delete the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.Handler.overview">
+<em class="property">static </em><code class="descname">overview</code><span class="sig-paren">(</span><em>model_class</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders an overview about all objects of a Django Model (all data base
+entries).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to show the overview.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of a Django Model as defined in models.py, e.g.
+MeasurementFileModel or EnvironmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The rendered overview.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.Handler.select">
+<em class="property">static </em><code class="descname">select</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reduced overview of all objects to guide the user through the work
+flow shown at the Dashboard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to render the select view.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.Handler.show">
+<em class="property">static </em><code class="descname">show</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows an object from the data base, e.g. an EnvironmentalContour object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The HttpRequest to show the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the object in the data base.</li>
+<li><strong>model_class</strong> (<em>models.Model</em><em>,</em>) – The class of the Django model, which should be shown. For example
+the class models.EnvronmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> – Renders an html response showing the object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.Handler.update">
+<em class="property">static </em><code class="descname">update</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#Handler.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.Handler.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates an object in the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to update the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="contour.views.MeasureFileHandler">
+<em class="property">class </em><code class="descclassname">contour.views.</code><code class="descname">MeasureFileHandler</code><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#contour.views.Handler" title="contour.views.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">contour.views.Handler</span></code></a></p>
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.add">
+<em class="property">static </em><code class="descname">add</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a MeasurementFileModel to the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to add the model to the data base.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Renders the a response to the user after she/he added the model.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">HttpResponse,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.delete">
+<em class="property">static </em><code class="descname">delete</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.MeasureFileModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an object from the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to delete the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.fit_file">
+<em class="property">static </em><code class="descname">fit_file</code><span class="sig-paren">(</span><em>pk</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.fit_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.fit_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits a probabilistic model to a measurement file and renders the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to peform a fit.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the measurement file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Renders the fitting result.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.new_fit">
+<em class="property">static </em><code class="descname">new_fit</code><span class="sig-paren">(</span><em>pk</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.new_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.new_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the previous fit and returns the form to define a new fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to perform a new fit.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the previous fit, which will be deleted.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Renders the view to select a measurement file for fitting.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.overview">
+<em class="property">static </em><code class="descname">overview</code><span class="sig-paren">(</span><em>model_class=&lt;class 'contour.models.MeasureFileModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders an overview about all objects of a Django Model (all data base
+entries).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to show the overview.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of a Django Model as defined in models.py, e.g.
+MeasurementFileModel or EnvironmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The rendered overview.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.plot_file">
+<em class="property">static </em><code class="descname">plot_file</code><span class="sig-paren">(</span><em>pk</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.plot_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.plot_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots and renders a measurement file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to plot a measurement file.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the measurement file, which will be plotted.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Renders the plotted measurement file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.select">
+<em class="property">static </em><code class="descname">select</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>A reduced overview of all objects to guide the user through the work
+flow shown at the Dashboard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to render the select view.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.MeasureFileHandler.update">
+<em class="property">static </em><code class="descname">update</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.MeasureFileModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#MeasureFileHandler.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.MeasureFileHandler.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates an object in the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to update the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="contour.views.ProbabilisticModelHandler">
+<em class="property">class </em><code class="descclassname">contour.views.</code><code class="descname">ProbabilisticModelHandler</code><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#contour.views.Handler" title="contour.views.Handler"><code class="xref py py-class docutils literal notranslate"><span class="pre">contour.views.Handler</span></code></a></p>
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.add">
+<em class="property">static </em><code class="descname">add</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a ProbabilisticModel to the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to add the model to the data base.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Renders feedback to the user based on whether she/he is:
+* logged in (normal behaviour)
+* Sent a defined probabilistic model as a POST request (normal
+behaviour)
+* Requested a form with a GET request or (unexpected beavhiour)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">HttpResponse,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.calculate">
+<em class="property">static </em><code class="descname">calculate</code><span class="sig-paren">(</span><em>pk</em>, <em>method</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles requests to calculate an environmental contour.</p>
+<p>This method handles both requests, for an IFORM contour and for a
+highest density contour.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to calculate a contour.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the probabilistic model, which the contour should be
+based on.</li>
+<li><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Defines, which method should be used. Must be either ‘I’ form IFORM
+contour or ‘H’ for highest density contour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Renders the form for inputing all preprocessing options to calculate
+a contour.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.delete">
+<em class="property">static </em><code class="descname">delete</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.ProbabilisticModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes an object from the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to delete the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.hdc_calc">
+<em class="property">static </em><code class="descname">hdc_calc</code><span class="sig-paren">(</span><em>var_names</em>, <em>var_symbols</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.hdc_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.hdc_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the HDC calculation and handles errors if they occur.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The HttpRequest to either show the calculation settings page or to
+calculate the contour (differentiated by POST or GET request).</li>
+<li><strong>var_names</strong> (<em>list of str</em>) – Names of the variables.</li>
+<li><strong>var_symbols</strong> (<em>list of str</em>) – Names of the symbols of the probabilistic model’s variables.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>models.ProbabilisticModel</em></a>) – Probabilistic model, which should be used for the environmental
+contour calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> – Renders an html response showing contour or the error message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.iform_calc">
+<em class="property">static </em><code class="descname">iform_calc</code><span class="sig-paren">(</span><em>var_names</em>, <em>var_symbols</em>, <em>probabilistic_model</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.iform_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.iform_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the IFORM contour calculation and handles errors if they occur.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The HttpRequest to either show the calculation settings page or to
+calculate the contour (differentiated by POST or GET request).</li>
+<li><strong>var_names</strong> (<em>list of str</em>) – Names of the variables.</li>
+<li><strong>var_symbols</strong> (<em>list of str</em>) – Names of the symbols of the probabilistic model’s variables.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>models.ProbabilisticModel</em></a>) – Probabilistic model, which should be used for the environmental
+contour calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> – Renders an html response showing contour or the error message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.overview">
+<em class="property">static </em><code class="descname">overview</code><span class="sig-paren">(</span><em>model_class=&lt;class 'contour.models.ProbabilisticModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.overview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.overview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders an overview about all objects of a Django Model (all data base
+entries).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to show the overview.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of a Django Model as defined in models.py, e.g.
+MeasurementFileModel or EnvironmentalContour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The rendered overview.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.render_calculated_contour">
+<em class="property">static </em><code class="descname">render_calculated_contour</code><span class="sig-paren">(</span><em>environmental_contour</em>, <em>contour_coordinates</em>, <em>probabilistic_model</em>, <em>warn</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.render_calculated_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.render_calculated_contour" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The HttpRequest to calculate the contour. It is a POST request.</li>
+<li><strong>environmental_contour</strong> (<a class="reference internal" href="models.html#contour.models.EnvironmentalContour" title="contour.models.EnvironmentalContour"><em>EnvironmentalContour</em></a><em>,</em>) – The EnvironmentalContour that just got computed.</li>
+<li><strong>contour_coordinates</strong> (<em>list of list of np.ndarray</em><em>,</em>) – The contour’s coordinates.
+The format is defined in viroconcom.contours.Contour.</li>
+<li><strong>probabilistic_model</strong> (<a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel"><em>ProbabilisticModel</em></a><em>,</em>) – The ProbabilisticModel, which was used to calculate the
+EnvironmentalContour</li>
+<li><strong>warn</strong> (<em>list of warning</em><em>,</em>) – Warnings can get raised during the calculation of the contour.
+Then the user will be presented these warnings.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> – The rendered template ‘evnironmental_contour_show.html’ with the
+calculated EnvironmentalContour.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.select">
+<em class="property">static </em><code class="descname">select</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders an overview of the probabilistic models with the option to
+select one to calculate an environmental contour.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to select a probabilistic model to calculate a contour.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Renders an overview of the probabilistic models with the option to
+select one to calculate an environmental contour.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">HttpResponse,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.set_variables_number">
+<em class="property">static </em><code class="descname">set_variables_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.set_variables_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.set_variables_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the number of variables when a probabilistc model is defined
+directly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to set the number of variables of the probabilistic model.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Either adds the probabilistic model to the data base (POST request)
+or renders the form to add a probabilistic model (GET request).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">HttpResponse,</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.show_model">
+<em class="property">static </em><code class="descname">show_model</code><span class="sig-paren">(</span><em>pk</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.show_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.show_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a probabilistic model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – Request to show a probabilistic model.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – Primary key of the probabilistic model.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Renders the definition of the probabilistic model (its name,
+the probability density function, information about the fit)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="contour.views.ProbabilisticModelHandler.update">
+<em class="property">static </em><code class="descname">update</code><span class="sig-paren">(</span><em>pk</em>, <em>model_class=&lt;class 'contour.models.ProbabilisticModel'&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#ProbabilisticModelHandler.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.ProbabilisticModelHandler.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates an object in the data base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<em>HttpRequest</em><em>,</em>) – The request to update the object.</li>
+<li><strong>pk</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a><em>,</em>) – The object’s primary key.</li>
+<li><strong>model_class</strong> (<em>class of models.Model</em><em>,</em>) – The class of the Django Model (as defined in models.py).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.get_header_info_from_reader">
+<code class="descclassname">contour.views.</code><code class="descname">get_header_info_from_reader</code><span class="sig-paren">(</span><em>reader</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#get_header_info_from_reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.get_header_info_from_reader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the variable names and symbols form a reader.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reader</strong> (<em>csv.Reader</em>) – A Reader object that can read a file line by line.
+See <a class="reference external" href="https://docs.python.org/2/library/csv.html#reader-objects">https://docs.python.org/2/library/csv.html#reader-objects</a> for
+a proper documentation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>var_names</strong> (<em>list of str,</em>) – Names of the environmental variables used in csv file,
+e.g. [‘wind speed [m/s]’, ‘significant wave height [m]’]</li>
+<li><strong>var_symbols</strong> (<em>list of str,</em>) – Symbols of the environental variables used in the csv file,
+e.g. [‘V’, ‘Hs’]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.get_info_from_file">
+<code class="descclassname">contour.views.</code><code class="descname">get_info_from_file</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#get_info_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.get_info_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the variable names and symbols form a csv file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Path to the csv file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>var_names</strong> (<em>list of str,</em>) – Names of the environmental variables used in csv file,
+e.g. [‘wind speed [m/s]’, ‘significant wave height [m]’]</li>
+<li><strong>var_symbols</strong> (<em>list of str,</em>) – Symbols of the environental variables used in the csv file,
+e.g. [‘V’, ‘Hs’]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.index">
+<code class="descclassname">contour.views.</code><code class="descname">index</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders the landing page, i.e. the ‘Dashboard’.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.save_environmental_contour">
+<code class="descclassname">contour.views.</code><code class="descname">save_environmental_contour</code><span class="sig-paren">(</span><em>environmental_contour</em>, <em>additional_contour_options</em>, <em>contour_coordinates</em>, <em>user</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#save_environmental_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.save_environmental_contour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves an EnvironmentalContour object and its depending models to the data
+base.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>environmental_contour</strong> (<a class="reference internal" href="models.html#contour.models.EnvironmentalContour" title="contour.models.EnvironmentalContour"><em>EnvironmentalContour</em></a><em>,</em>) – The environmental contour obect that should be saved.</li>
+<li><strong>additional_contour_options</strong> (<em>list of AdditionalContourOption</em><em>,</em>) – Options, whch are specific to the contour and are not general
+environmental contour options.</li>
+<li><strong>contour_coordinates</strong> (<em>list of list of numpy.ndarray</em><em>,</em>) – Contains the coordinates of points on the contour.
+The outer list contains can hold multiple contour paths if the
+distribution is multimodal. The inner list contains multiple
+numpy arrays of the same length, one per dimension.
+The values of the arrays are the coordinates in the corresponding
+dimension.</li>
+<li><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – The user who should own the environmental contour.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The saved environmental contour object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#contour.models.EnvironmentalContour" title="contour.models.EnvironmentalContour">EnvironmentalContour</a>,</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.save_fitted_prob_model">
+<code class="descclassname">contour.views.</code><code class="descname">save_fitted_prob_model</code><span class="sig-paren">(</span><em>fit</em>, <em>model_title</em>, <em>var_names</em>, <em>var_symbols</em>, <em>user</em>, <em>measure_file</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#save_fitted_prob_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.save_fitted_prob_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves a probabilistic model which was fitted to measurement data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fit</strong> (<em>Fit</em><em>,</em>) – Calculated fit results of a measurement file.</li>
+<li><strong>model_title</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Title of the probabilistic model.</li>
+<li><strong>var_names</strong> (<em>list of str</em><em>,</em>) – Names of the variables.</li>
+<li><strong>var_symbols</strong> (<em>list of str</em><em>,</em>) – Names of the symbols of the probabilistic model’s variables.</li>
+<li><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a><em>,</em>) – Name of a user.</li>
+<li><strong>measure_file</strong> (<a class="reference internal" href="models.html#contour.models.MeasureFileModel" title="contour.models.MeasureFileModel"><em>MeasureFileModel</em></a><em>,</em>) – MeasureFileModel object linked to the probabilistic model.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ProbabilisticModel that was fitted to the measurement file.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="models.html#contour.models.ProbabilisticModel" title="contour.models.ProbabilisticModel">ProbabilisticModel</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="contour.views.save_parameter">
+<code class="descclassname">contour.views.</code><code class="descname">save_parameter</code><span class="sig-paren">(</span><em>parameter</em>, <em>distribution_model</em>, <em>dependency</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/contour/views.html#save_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#contour.views.save_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves a fitted parameter and links it to a DistributionModel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>parameter</strong> (<em>ConstantParam</em><em> or </em><em>FunctionParam</em>) – ConstantParam is a float value. FunctionParam contains a whole function
+like power function or exponential.</li>
+<li><strong>distribution_model</strong> (<a class="reference internal" href="models.html#contour.models.DistributionModel" title="contour.models.DistributionModel"><em>DistributionModel</em></a>) – The parameter will be linked to this DistributionModel.</li>
+<li><strong>dependency</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The dimension the dependency is based on.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.6/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) – Name of the parameter (‘shape’, ‘loc’ or ‘scale’)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/contour/views.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>

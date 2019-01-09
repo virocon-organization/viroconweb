@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>contour.models &#8212; viroconweb 1.0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/mini_logo.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">viroconweb 1.0.8 documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for contour.models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Models for viroconweb, e.g. for a measurement file and a environmental contour.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">strftime</span>
+
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="k">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="k">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="k">import</span> <span class="n">timezone</span>
+
+<span class="kn">from</span> <span class="nn">user.models</span> <span class="k">import</span> <span class="n">User</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">.settings</span> <span class="k">import</span> <span class="n">MAX_LENGTH_FILE_NAME</span>
+<span class="kn">from</span> <span class="nn">.validators</span> <span class="k">import</span> <span class="n">validate_csv_upload</span>
+
+
+<span class="c1"># Based on: https://stackoverflow.com/questions/34239877/django-save-user-</span>
+<span class="c1"># uploads-in-seperate-folders</span>
+<div class="viewcode-block" id="media_directory_path"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.media_directory_path">[docs]</a><span class="k">def</span> <span class="nf">media_directory_path</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates the path where to upload a media file.</span>
+
+<span class="sd">    The path is:</span>
+<span class="sd">    MEDIA_ROOT/&lt;username&gt;/&lt;model_abbvrevation&gt;/&lt;pk&gt;/&lt;time_stamp&gt;_&lt;random_hash&gt;_</span>
+<span class="sd">    &lt;filename&gt;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    instance : EnvironmentalContour, MeasureFileModel or PlottedFigure,</span>
+<span class="sd">        These models have media files, which need a directory.</span>
+<span class="sd">    filename : String,</span>
+<span class="sd">        Name of the measurement file, e.g. &quot;data_points.csv&quot;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    path : str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">time_stamp</span> <span class="o">=</span> <span class="n">file_time_stamp</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;MeasureFileModel&#39;</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1">/</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">primary_user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEASUREMENT</span><span class="p">,</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+            <span class="n">time_stamp</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">random_hash_string</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">instance</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;PlottedFigure&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">probabilistic_model</span><span class="p">:</span>
+            <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">probabilistic_model</span>
+            <span class="n">user_name</span> <span class="o">=</span> <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">primary_user</span><span class="o">.</span><span class="n">username</span>
+            <span class="n">model_path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_PROB_MODEL</span>
+            <span class="n">primary_key</span> <span class="o">=</span> <span class="n">probabilistic_model</span><span class="o">.</span><span class="n">pk</span>
+        <span class="k">elif</span> <span class="n">instance</span><span class="o">.</span><span class="n">environmental_contour</span><span class="p">:</span>
+            <span class="n">ec</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">environmental_contour</span>
+            <span class="n">user_name</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">probabilistic_model</span><span class="o">.</span><span class="n">primary_user</span><span class="o">.</span><span class="n">username</span>
+            <span class="n">model_path</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">PATH_CONTOUR</span>
+            <span class="n">primary_key</span> <span class="o">=</span> <span class="n">ec</span><span class="o">.</span><span class="n">pk</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1">/</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">user_name</span><span class="p">,</span>
+            <span class="n">model_path</span><span class="p">,</span>
+            <span class="n">primary_key</span><span class="p">,</span>
+            <span class="n">time_stamp</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">random_hash_string</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">instance</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;EnvironmentalContour&#39;</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">/</span><span class="si">{1}</span><span class="s1">/</span><span class="si">{2}</span><span class="s1">/</span><span class="si">{3}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">probabilistic_model</span><span class="o">.</span><span class="n">primary_user</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">PATH_CONTOUR</span><span class="p">,</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+            <span class="n">time_stamp</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">random_hash_string</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<div class="viewcode-block" id="file_time_stamp"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.file_time_stamp">[docs]</a><span class="k">def</span> <span class="nf">file_time_stamp</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the current time as a string as year-month-day-hour-minute.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+    <span class="k">return</span> <span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%m&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="random_hash_string"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.random_hash_string">[docs]</a><span class="k">def</span> <span class="nf">random_hash_string</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a 8-character random hash string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Thanks to: https://stackoverflow.com/questions/2511222/efficiently-</span>
+    <span class="c1"># generate-a-16-character-alphanumeric-string</span>
+    <span class="n">hash_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span>
+        <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span>
+                <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="n">hash_string</span>
+
+
+<div class="viewcode-block" id="MeasureFileModel"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.MeasureFileModel">[docs]</a><span class="k">class</span> <span class="nc">MeasureFileModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for a file containing measurement data.</span>
+
+<span class="sd">    A MeasureFileModel object holds a measurement file. It is associated to a</span>
+<span class="sd">    user (owner) and can be shared with other users.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">primary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="n">secondary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">User</span><span class="p">,</span>
+                                            <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;secondary&quot;</span><span class="p">,</span>
+                                            <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;MeasureFile&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">upload_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+    <span class="n">measure_file</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span>
+        <span class="n">upload_to</span><span class="o">=</span><span class="n">media_directory_path</span><span class="p">,</span>
+        <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">validate_csv_upload</span><span class="p">],</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="n">MAX_LENGTH_FILE_NAME</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">scatter_plot</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ImageField</span><span class="p">(</span>
+        <span class="n">upload_to</span><span class="o">=</span><span class="n">media_directory_path</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">path_of_statics</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MeasureFileModel.url_str"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.MeasureFileModel.url_str">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">url_str</span><span class="p">():</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;measure_file_model&quot;</span>
+
+
+<div class="viewcode-block" id="ProbabilisticModel"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ProbabilisticModel">[docs]</a><span class="k">class</span> <span class="nc">ProbabilisticModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for a multivariate distribution, e.g. a sea state description.</span>
+
+<span class="sd">    A ProbabilisticModel object is associated to a user (owner) and can be</span>
+<span class="sd">    shared with other users. It has a name and can be connected to</span>
+<span class="sd">    measurement data.</span>
+<span class="sd">    If a probabilistic model is defined, in addition X DistributionModel objects</span>
+<span class="sd">    are needed to define the distributions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">primary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                     <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;variables_primary&quot;</span><span class="p">)</span>
+    <span class="n">secondary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">User</span><span class="p">,</span>
+                                            <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;variables_secondary&quot;</span><span class="p">)</span>
+    <span class="n">upload_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+    <span class="n">collection_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;VariablesCollection&#39;</span><span class="p">,</span>
+                                       <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">path_of_statics</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">measure_file_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">MeasureFileModel</span><span class="p">,</span>
+                                           <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+                                           <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilisticModel.url_str"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ProbabilisticModel.url_str">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">url_str</span><span class="p">():</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;probabilistic_model&quot;</span>
+
+
+<div class="viewcode-block" id="DistributionModel"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.DistributionModel">[docs]</a><span class="k">class</span> <span class="nc">DistributionModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for the distribution of a single random variable.</span>
+
+<span class="sd">    For example the random variable significant wave height, can be defined</span>
+<span class="sd">    with this model. Its name would be &#39;significant wave height&#39;, its</span>
+<span class="sd">    symbol &#39;Hs&#39; and its distribution &#39;Weibull&#39;. In addition one would need 3</span>
+<span class="sd">    ParameterModel objects, which define the distributions parameters (scale,</span>
+<span class="sd">    shape, location).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DISTRIBUTIONS</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;Normal&#39;</span><span class="p">,</span> <span class="s1">&#39;Normal Distribution&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Weibull&#39;</span><span class="p">,</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">,</span> <span class="s1">&#39;Log-Normal&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;KernelDensity&#39;</span><span class="p">,</span> <span class="s1">&#39;Kernel Density&#39;</span><span class="p">))</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;peak period&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">symbol</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;Tp&quot;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">distribution</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">DISTRIBUTIONS</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ProbabilisticModel</span><span class="p">,</span>
+                                            <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DistributionModel.url_str"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.DistributionModel.url_str">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">url_str</span><span class="p">():</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;distribution&quot;</span>
+
+
+<div class="viewcode-block" id="ParameterModel"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ParameterModel">[docs]</a><span class="k">class</span> <span class="nc">ParameterModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for one parameter of a distribution, e.g. scale.</span>
+
+<span class="sd">    The parameter model can either be a constant value, e.g. x0 = 1.5 or</span>
+<span class="sd">    it can be a function, which describes the parameter&#39;s depedency on</span>
+<span class="sd">    another variable. The two available funtions have 3 parameters each, which</span>
+<span class="sd">    are represented by x0, x1 and x2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">FUNCTIONS</span> <span class="o">=</span> <span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;power3&#39;</span><span class="p">,</span> <span class="s1">&#39;power function&#39;</span><span class="p">),</span>
+                 <span class="p">(</span><span class="s1">&#39;exp3&#39;</span><span class="p">,</span> <span class="s1">&#39;exponential&#39;</span><span class="p">))</span>
+    <span class="n">function</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">FUNCTIONS</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.000</span><span class="p">,</span> <span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                             <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.000</span><span class="p">,</span> <span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                             <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.000</span><span class="p">,</span> <span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                             <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dependency</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="c1"># The name attribute can be &#39;scale&#39;, &#39;shape&#39;, or &#39;location&#39; (see views.py)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;empty&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">distribution</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">DistributionModel</span><span class="p">,</span>
+                                     <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ParameterModel.clean"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ParameterModel.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates if the parameter of a distribution has valid values.</span>
+
+<span class="sd">        For example a Normal distribution&#39;s scale parameter (sigma) must</span>
+<span class="sd">        be &gt; 0. If this is not the case, a ValidationError is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If the parameters are given as constant values</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                    <span class="s2">&quot;The Normal distribution&#39;s scale parameter, sigma, &quot;</span>
+                    <span class="s2">&quot;must be &gt; 0.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Weibull&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;scale&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                    <span class="s2">&quot;The Weibull distribution&#39;s scale parameter, lambda, &quot;</span>
+                    <span class="s2">&quot;must be &gt; 0.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                    <span class="s2">&quot;The Weibull distribution&#39;s shape parameter, k, &quot;</span>
+                    <span class="s2">&quot;must be &gt; 0.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;Lognormal_SigmaMu&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;shape&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
+                    <span class="s2">&quot;The Log-normal&#39;s distribution&#39;s shape parameter, sigma, &quot;</span></div>
+                    <span class="s2">&quot;must be &gt; 0.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;ParameterModel object with: function=</span><span class="si">%r</span><span class="s2">, x0=</span><span class="si">%r</span><span class="s2">, x1=</span><span class="si">%r</span><span class="s2">, x2=</span><span class="si">%r</span><span class="s2">,&quot;</span> \
+               <span class="s2">&quot; dependency=</span><span class="si">%r</span><span class="s2">, name=</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> \
+               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x2</span><span class="p">,</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dependency</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EnvironmentalContour"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.EnvironmentalContour">[docs]</a><span class="k">class</span> <span class="nc">EnvironmentalContour</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for an environmental contour.</span>
+
+<span class="sd">    The model contains the the settings, which were used to create the contour</span>
+<span class="sd">    and the primary key to the probabilistic model on which it is based on.</span>
+<span class="sd">    Additional options, which are a dictionary, have their own model</span>
+<span class="sd">    (AdditionalContourOption) and are connected via the primary key to an</span>
+<span class="sd">    EnvironmentalContour instance. The contour&#39;s path (the EEDCs) are also</span>
+<span class="sd">    connected via two own models (Contourpath and ExtremeEnvDesignCondition).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">primary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                     <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;contours_primary&quot;</span><span class="p">)</span>
+    <span class="n">secondary_user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">User</span><span class="p">,</span>
+                                            <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;contours_secondary&quot;</span><span class="p">)</span>
+    <span class="n">fitting_method</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">)</span>
+    <span class="n">contour_method</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">)</span>
+    <span class="n">return_period</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">state_duration</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">path_of_statics</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ProbabilisticModel</span><span class="p">,</span>
+                                     <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+    <span class="n">latex_report</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span>
+        <span class="n">upload_to</span><span class="o">=</span><span class="n">media_directory_path</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">design_conditions_csv</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FileField</span><span class="p">(</span>
+        <span class="n">upload_to</span><span class="o">=</span><span class="n">media_directory_path</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="EnvironmentalContour.path_of_latex_report"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.EnvironmentalContour.path_of_latex_report">[docs]</a>    <span class="k">def</span> <span class="nf">path_of_latex_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_of_statics</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_of_statics</span><span class="p">[</span><span class="n">settings</span><span class="o">.</span><span class="n">PATH_MEDIA</span><span class="o">.</span><span class="fm">__len__</span><span class="p">():]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_of_statics</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">settings</span><span class="o">.</span><span class="n">LATEX_REPORT_NAME</span></div>
+        <span class="k">return</span> <span class="n">path</span>
+
+<div class="viewcode-block" id="EnvironmentalContour.url_str"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.EnvironmentalContour.url_str">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">url_str</span><span class="p">():</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;environmental_contour&quot;</span>
+
+
+<div class="viewcode-block" id="AdditionalContourOption"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.AdditionalContourOption">[docs]</a><span class="k">class</span> <span class="nc">AdditionalContourOption</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Additional options describing how an environmental contour was created.</span>
+
+<span class="sd">    Since different environmental contour methods are available some options</span>
+<span class="sd">    are only applicable to one method. Consequently, AdditionalContourOption</span>
+<span class="sd">    can be used as a dictionary to specify additional options.</span>
+
+<span class="sd">    The idea how this model works is based on this stackoverflow post:</span>
+<span class="sd">    https://stackoverflow.com/questions/402217/how-to-store-a-dictionary-on-a-django-model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Key can for example be &quot;Number of points on the contour&quot;</span>
+    <span class="n">option_key</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Then value can for example be &quot;50&quot;</span>
+    <span class="n">option_value</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">240</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">environmental_contour</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">EnvironmentalContour</span><span class="p">,</span></div>
+                                              <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ContourPath"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ContourPath">[docs]</a><span class="k">class</span> <span class="nc">ContourPath</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for the path of an environmental contour.</span>
+
+<span class="sd">    One or multiple ContourPath instances can be associated to an</span>
+<span class="sd">    EnvironmentalContour instance.</span>
+
+<span class="sd">    The points of the path have their own model (ExtremeEnvDesignCondition)</span>
+<span class="sd">    and are connected via the ContourPath primary key.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">environmental_contour</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">EnvironmentalContour</span><span class="p">,</span></div>
+                                              <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ExtremeEnvDesignCondition"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.ExtremeEnvDesignCondition">[docs]</a><span class="k">class</span> <span class="nc">ExtremeEnvDesignCondition</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for a single extreme environmental design conditions.</span>
+
+
+<span class="sd">    Multiple ExtremeEnvDesignCondition instances make up a ContourPath instance.</span>
+
+<span class="sd">    For each dimension an EEDCScalar instance is needed and connected via the</span>
+<span class="sd">    primary key to an ExtremeEnvDesignCondition instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+    <span class="n">contour_path</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ContourPath</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EEDCScalar"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.EEDCScalar">[docs]</a><span class="k">class</span> <span class="nc">EEDCScalar</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for the value of one dimension of an extreme env. design condition.</span>
+
+<span class="sd">    Multiple EEDCScalar instances make up an ExtremEnvDesignCondition instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">decimal_places</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_digits</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">EEDC</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ExtremeEnvDesignCondition</span><span class="p">,</span></div>
+                                     <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PlottedFigure"><a class="viewcode-back" href="../../api/contour/models.html#contour.forms.PlottedFigure">[docs]</a><span class="k">class</span> <span class="nc">PlottedFigure</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Has an ImageField, which stores an image crated with matplotlib</span>
+
+<span class="sd">    By having a class with an ImageField a ProbabilisticModel or an</span>
+<span class="sd">    EnvironmentalContour instance can have multiple images associated to it</span>
+<span class="sd">    using a many-to-one relation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ImageField</span><span class="p">(</span>
+        <span class="n">upload_to</span><span class="o">=</span><span class="n">media_directory_path</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">probabilistic_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">ProbabilisticModel</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span>
+    <span class="p">)</span>
+
+    <span class="n">distribution_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">DistributionModel</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span>
+    <span class="p">)</span>
+
+    <span class="n">parameter_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">ParameterModel</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span>
+    <span class="p">)</span>
+
+    <span class="n">environmental_contour</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span>
+        <span class="n">EnvironmentalContour</span><span class="p">,</span>
+        <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span></div>
+    <span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, viroconweb.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.
+    </div>
+  </body>
+</html>
