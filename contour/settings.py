@@ -15,7 +15,7 @@ EEDC_FILE_NAME = 'design_conditions.csv'
 VIROCON_CITATION = 'A.F. Haselsteiner, J. Lehmkuhl, T. Pape, K.-L. Windmeier, ' \
                    'K.-D. Thoben (2018): ViroCon: A software to compute ' \
                    'multivariate extremes using the environmental contour ' \
-                   'method. Manuscript in preparation.'
+                   'method. Accepted by SoftwareX.'
 
 # Set a maximum computing time in seconds for performing a fit, calculating a
 # a contour or saving the contour to the data base. The time limit is important

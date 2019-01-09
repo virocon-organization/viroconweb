@@ -103,11 +103,13 @@ file a pull request to merge it into our repository.
 we summarize our conventions, which are consistent with PEP8.
 
 ## Cite
-If you are using viroconcom in your academic work please cite it by referencing
+If you are using viroconweb in your academic work please cite it by referencing
 our SoftwareX paper.
 
-Example: Environmental contours were computed using the package viroconcom
-(version 1.2.0) of the software ViroCon [1].
+Example long: Environmental contours were computed using the package viroconweb
+of the software ViroCon (viroconweb version 1.0.8, viroconcom version 1.2.0) [1].
+
+Example short: Environmental contours were computed using the software ViroCon [1].
 
 [1] A.F. Haselsteiner, J. Lemkuhl, T. Pape, K.-L. Windmeier, K.-D. Thoben:
 ViroCon: A software to compute multivariate extremes using the environmental
