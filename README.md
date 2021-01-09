@@ -1,5 +1,5 @@
 # ViroCon: viroconweb
-We stopped maintaining viroconweb to concentrate on [viroconcom](https://github.com/virocon-organization/viroconcom)).
+We stopped maintaining viroconweb to concentrate on [viroconcom](https://github.com/virocon-organization/viroconcom).
 
 [![Build Status](https://travis-ci.org/virocon-organization/viroconweb.svg?branch=master)](https://travis-ci.org/virocon-organization/viroconweb)
 [![Coverage Status](https://coveralls.io/repos/github/virocon-organization/viroconweb/badge.svg?branch=master&service=github)](https://coveralls.io/github/virocon-organization/viroconweb?branch=master)
